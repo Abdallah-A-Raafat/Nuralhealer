@@ -274,57 +274,17 @@ cd mobile && npm test
 
 ---
 
-## 🚀 Deployment | النشر
 
-### Web Application
-- **Recommended**: Vercel / Netlify
-- **Alternative**: AWS S3 + CloudFront
 
-### Backend
-- **Recommended**: AWS EC2 / Heroku
-- **Alternative**: DigitalOcean / Railway
 
-### AI Service
-- **Recommended**: AWS EC2 with GPU
-- **Alternative**: Google Cloud Run
-
-### Mobile Apps
-- **Android**: Google Play Store
-- **iOS**: Apple App Store
-
-**See**: [Deployment Guide](./docs/deployment/DEPLOYMENT_GUIDE.md)
-
----
-
-## 🤝 Contributing | المساهمة
-
-<div dir="rtl">
-
-نرحب بالمساهمات! يرجى:
-1. Fork المشروع
-2. إنشاء Branch جديد (`git checkout -b feature/amazing-feature`)
-3. Commit التغييرات (`git commit -m 'Add amazing feature'`)
-4. Push للـ Branch (`git push origin feature/amazing-feature`)
-5. فتح Pull Request
-
-</div>
-
-We welcome contributions! Please:
-1. Fork the project
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
-
----
 
 ## 👥 Team | الفريق
 
-- **Frontend Web Developer**: [Your Name]
-- **Mobile Developer**: [Your Name]
-- **Backend Developer**: [Name]
-- **AI/ML Engineer**: [Name]
-- **UI/UX Designer**: [Name]
+- **Frontend Web Developer**: [Abdallah Ahmed]
+- **Mobile Developer**: [Abdallah Ahmed]
+- **Backend Developer**: [Ahmed Adel]
+- **AI/ML Engineer**: [Mariam Raafat & Mohamed Ashraf]
+- **UI/UX Designer**: [Abdallah Ahmed]
 
 ---
 
@@ -334,13 +294,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 📞 Contact | التواصل
-
-- **Email**: contact@neuralhealer.com
-- **Website**: https://neuralhealer.com
-- **GitHub**: https://github.com/your-username/NeuralHealer
-
----
 
 ## 🙏 Acknowledgments | شكر وتقدير
 

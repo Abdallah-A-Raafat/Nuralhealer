@@ -1,0 +1,89 @@
+# ========================================
+# Core Web Framework
+# ========================================
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# ========================================
+# Machine Learning & AI
+# ========================================
+# Deep Learning
+torch==2.1.2
+transformers==4.36.2
+tensorflow==2.15.0
+
+# NLP
+nltk==3.8.1
+spacy==3.7.2
+textblob==0.17.1
+
+# Audio Processing
+librosa==0.10.1
+soundfile==0.12.1
+pydub==0.25.1
+speechrecognition==3.10.1
+
+# OpenAI
+openai==1.7.2
+
+# ========================================
+# Data Processing
+# ========================================
+numpy==1.26.3
+pandas==2.1.4
+scipy==1.11.4
+scikit-learn==1.3.2
+
+# ========================================
+# API & HTTP
+# ========================================
+httpx==0.26.0
+requests==2.31.0
+aiohttp==3.9.1
+
+# ========================================
+# Database & Caching
+# ========================================
+redis==5.0.1
+motor==3.3.2  # Async MongoDB driver
+asyncpg==0.29.0  # Async PostgreSQL driver
+
+# ========================================
+# Authentication & Security
+# ========================================
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+
+# ========================================
+# Monitoring & Logging
+# ========================================
+sentry-sdk==1.39.2
+loguru==0.7.2
+
+# ========================================
+# Testing
+# ========================================
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+httpx==0.26.0  # For testing FastAPI
+
+# ========================================
+# Development Tools
+# ========================================
+black==23.12.1
+flake8==7.0.0
+mypy==1.8.0
+ipython==8.19.0
+jupyter==1.0.0
+
+# ========================================
+# Utilities
+# ========================================
+python-dateutil==2.8.2
+pytz==2023.3
+pyyaml==6.0.1

@@ -1,0 +1,122 @@
+/* NeuralHealer enhanced theme tokens for Tailwind v4 */
+@theme {
+	--color-primary: #9B59B6;         /* Vibrant purple */
+	--color-secondary: #8E44AD;       /* Rich violet */
+	--color-accent: #BB8FCE;          /* Soft lilac */
+	--color-background: #F8F9FA;      /* Clean white-gray */
+	--color-backgroundDark: #1A1625;  /* Deep purple-black */
+	--color-textPrimary: #2C1A3F;     /* Dark purple */
+	--color-textSecondary: #5D4E6D;   /* Muted purple-gray */
+	--color-lightText: #ECE8F5;       /* Soft white-lavender */
+	--color-success: #27AE60;         /* Fresh green */
+	--color-warning: #F39C12;         /* Warm orange */
+	--color-error: #E74C3C;           /* Vibrant red */
+}
+
+@import "tailwindcss";
+
+/* Light mode (default) */
+@layer base {
+	:root {
+		--color-bg-primary: #F8F9FA;
+		--color-bg-secondary: #FFFFFF;
+		--color-text-primary: #2C1A3F;
+		--color-text-secondary: #5D4E6D;
+		--color-border: #D5C7E8;
+	}
+
+	/* Dark mode */
+	:root.dark {
+		--color-bg-primary: #1A1625;
+		--color-bg-secondary: #241D30;
+		--color-text-primary: #ECE8F5;
+		--color-text-secondary: #C5B8D9;
+		--color-border: #3F3651;
+	}
+
+	/* Global dark mode styles */
+	body {
+		@apply transition-colors duration-300;
+	}
+
+	body.dark {
+		@apply bg-[#1A1625] text-[#ECE8F5];
+	}
+}
+
+/* Fallback utilities to ensure brand colors apply even if tokens aren't picked up */
+@layer utilities {
+	/* Light mode text colors */
+	.text-textPrimary { color: #2C1A3F; }
+	.text-textSecondary { color: #5D4E6D; }
+	.text-lightText { color: #ECE8F5; }
+
+	/* Light mode backgrounds */
+	.bg-background { background-color: #F8F9FA; }
+	.bg-primary { background-color: #9B59B6; }
+	.text-primary { color: #9B59B6; }
+	.bg-primary\/10 { background-color: rgba(155, 89, 182, 0.10); }
+	.bg-primary\/20 { background-color: rgba(155, 89, 182, 0.20); }
+
+	.bg-secondary { background-color: #8E44AD; }
+	.text-secondary { color: #8E44AD; }
+	.bg-secondary\/10 { background-color: rgba(142, 68, 173, 0.10); }
+
+	.bg-accent { background-color: #BB8FCE; }
+	.text-accent { color: #BB8FCE; }
+	.bg-accent\/10 { background-color: rgba(187, 143, 206, 0.10); }
+	.bg-accent\/20 { background-color: rgba(187, 143, 206, 0.20); }
+	.bg-accent\/30 { background-color: rgba(187, 143, 206, 0.30); }
+
+	/* Dark mode overrides */
+	.dark .text-textPrimary { color: #ECE8F5; }
+	.dark .text-textSecondary { color: #C5B8D9; }
+
+	.dark .bg-white { background-color: #1C1A2B; }
+	.dark .bg-background { background-color: #1A1625; }
+	.dark .bg-gray-100 { background-color: #241D30; }
+	.dark .bg-gray-50 { background-color: #2D2538; }
+	.dark .bg-red-50 { background-color: #3A2632; }
+	.dark .bg-green-50 { background-color: #243029; }
+
+	.dark .border-gray-300 { border-color: #3F3651; }
+	.dark .border-gray-200 { border-color: #3F3651; }
+	.dark .border-accent\/30 { border-color: rgba(187, 143, 206, 0.25); }
+
+	.dark .hover\:border-gray-400:hover { border-color: #4F4561; }
+	.dark .text-gray-500 { color: #A89EC0; }
+	.dark .text-gray-700 { color: #D8CFE8; }
+
+	.dark .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(155, 89, 182, 0.1); }
+	.dark .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(155, 89, 182, 0.05); }
+}
+
+/* RTL Support for Arabic */
+body.rtl {
+	direction: rtl;
+	text-align: right;
+}
+
+body.rtl *:not(script) {
+	direction: rtl;
+}
+
+/* RTL Flex alignment fix */
+body.rtl .flex-start {
+	flex-direction: row-reverse;
+}
+
+body.rtl .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+	margin-right: 0.5rem;
+	margin-left: 0;
+}
+
+body.rtl .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+	margin-right: 1rem;
+	margin-left: 0;
+}
+
+body.rtl .ml- {
+	margin-right: var(--margin);
+	margin-left: 0;
+}

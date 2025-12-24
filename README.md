@@ -3,7 +3,7 @@
 
 <div align="center">
 
-![NeuralHealer Logo](./assets/logo.png)
+![NeuralHealer Logo](./web/src/assets/icon.png)
 
 **A comprehensive mental health platform powered by AI**
 

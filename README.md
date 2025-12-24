@@ -10,8 +10,6 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Web](https://img.shields.io/badge/Web-React-61DAFB?logo=react)](./web)
 [![Mobile](https://img.shields.io/badge/Mobile-React%20Native-61DAFB?logo=react)](./mobile)
-[![Backend](https://img.shields.io/badge/Backend-Node.js-339933?logo=node.js)](./backend)
-[![AI](https://img.shields.io/badge/AI-Python-3776AB?logo=python)](./ai)
 
 </div>
 

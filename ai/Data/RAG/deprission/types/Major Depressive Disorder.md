@@ -220,7 +220,7 @@ Check in with loved ones on a regular basis.
 Try to stay active
 Exercise can’t cure depression, but it can help you feel better, especially when you take it outside.
 
-It’s natural and not uncommon to feel you’re not up for an intense workout. Low-impact exercise like walkingTrusted Source or yogaTrusted Source can also help lift your mood and improve your outlook overall.
+It’s natural and not uncommon to feel you’re not up for an intense workout. Low-impact exercise like walkingTrusted Source or yoga can also help lift your mood and improve your outlook overall.
 
 Take it slow
 Consider treating yourself kindly as you work to manage your symptoms.

@@ -104,7 +104,6 @@ Like anorexia, bulimia often involves low self-esteem or a hyper-focus on body i
 
 Over time, health implications specific to bulimia can include tooth decay, inflamed glands near the esophagus, and ulcers. So, treatment for bulimia has to account for the physical and psychological differences of this eating disorder from its variants.
 
-Read more: Treatment for bulimia
 
 Binge eating disorder
 Binge eating disorder is another common eating disorder. It’s associated with a loss of control when eating and repetitive episodes of overeating that are followed by feelings of shame.

@@ -58,7 +58,7 @@ That would help explain why the luteal phase of the menstrual cycle — 1 to 2 w
 
 These hormone changes also spur a drop in serotonin, which may be responsible for PMDD symptoms like low mood, anxiety, and sleeping problems.
 
-Recent research has shown a connection between PMDD and the naturally-produced steroid, allopregnanolone (ALLO), which is metabolized by progesterone. ALLO has anti-anxiety and antidepressant properties, but according to the research, brains of people with PMDD appear to be less sensitive to its helpful functions.
+Recent research has shown a connection between PMDD and the naturally-produced steroid, allopregnanolone (ALLO), which is metabolized by progesterone. ALLO has anti-anxiety properties, but according to the research, brains of people with PMDD appear to be less sensitive to its helpful functions.
 
 Contributing factors
 Though these alone won’t cause PMDD, certain factors may increase your chances of developing it. They include:
@@ -69,7 +69,7 @@ cigarette smoking
 high stress
 
 Diagnosis of PMDD
-The Diagnostic and Statistical Manual of Mental Disorders, 5th Edition (DSM-5) has specific criteria laid out to help doctors diagnose someone with PMDD.
+The Diagnostic and Statistical Manual of Mental Disorders, 5th Edition (DSM-5) has specific criteria laid out to help identify and classify PMDD.
 
 PMDD differs from other depressive disorders due to its connection with menstruation. During most periods over the course of a year:
 
@@ -99,11 +99,11 @@ All of these symptoms must affect your ability to function in daily life, includ
 
 Your symptoms also cannot be due to another medical condition like major depressive disorder or hyperthyroidism, or due to substance use.
 
-Diagnosing PMDD can be quite challenging since many other mental and physical health conditions are exacerbated during certain points in the menstrual cycle. Other possible causes of your symptoms must first be ruled out by a medical professional.
+Diagnosing PMDD can be quite challenging since many other mental and physical health conditions are exacerbated during certain points in the menstrual cycle. It is important to consider whether other factors might be causing the symptoms.
 
 Many who seek treatment for PMDD actually have a different mood disorder with episodes that worsen in the week before their period.
 
-There’s no blood test or instrument that can definitively diagnose PMDD. Instead, a healthcare professional will likely do a physical and psychiatric evaluation and ask you to track your symptoms over the course of a few cycles.
+There’s no blood test or instrument that can definitively identify PMDD. Instead, a professional evaluation often involves a review of mood and physical symptoms, and tracking these symptoms over the course of a few cycles.
 
 Does PMDD worsen with age?
 For many folks, premenstrual symptoms can become more severe as they approach menopause.
@@ -123,7 +123,7 @@ aromatherapy
 reducing intake of alcohol, caffeine, and sugar
 increasing intake of protein
 stress management and relaxation techniques
-For women with symptoms that can’t be managed by these changes alone, medication and therapy may be necessary.
+For women with symptoms that can’t be managed by these changes alone, therapy may be necessary.
 Cognitive behavioral therapy (CBT) is also a sound form of treatment that can help you learn how to manage your mental and physical symptoms.
 
 Let’s recap
@@ -131,5 +131,5 @@ Many women experience unpleasant symptoms during their time of the month. But if
 
 PMDD is highly treatable, so with the right approach, you can find relief from your symptoms and improve your overall quality of life.
 
-Whether it’s PMDD or another mental health condition, reaching out to a healthcare professional can help you get the right diagnosis and treatment plan.
+Whether it’s PMDD or another mental health condition, reaching out to a mental health professional can help in understanding and managing your experience.
 

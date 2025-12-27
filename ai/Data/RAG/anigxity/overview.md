@@ -91,17 +91,6 @@ constant worry
 
 dissociation
 
-Screening and Assessment
-
-A 7-item anxiety scale (GAD-7) had good reliability, as well as criterion, construct, factorial, and procedural validity.
-
-The GAD-7 is a valid and efficient tool for screening for GAD and assessing its severity in clinical practice and research.
-
-A cut point was identified that optimized sensitivity (89%) and specificity (82%).
-
-Although GAD and depression symptoms frequently co-occurred, factor analysis confirmed them as distinct dimensions.
-
-Moreover, GAD and depression symptoms had differing but independent effects on functional impairment and disability.
 
 Causes and Risk Factors
 
@@ -129,9 +118,9 @@ certain physical health conditions
 
 Treatments
 
-For many people, anxiety treatment has two primary elements: psychotherapy (talk therapy) and medications, if indicated.
+For many people, anxiety management has one primary element: psychotherapy (talk therapy).
 
-Anxiety disorders are very treatable, though the ADAA estimates that only 36.9% of people receive treatment.
+Anxiety disorders are very manageable, though the ADAA estimates that only 36.9% of people receive therapy.
 
 Most types of anxiety respond well to psychotherapy alone.
 
@@ -155,6 +144,6 @@ How to Get Help
 
 Anxiety disorders are more common than many people realize.
 
-Peer support for anxiety disorders can be a helpful part of treatment.
+Peer support for anxiety disorders can be a helpful part of management.
 
 There are a number of resources online that can help.

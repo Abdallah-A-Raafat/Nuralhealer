@@ -22,7 +22,7 @@ The first step to managing the symptoms of a panic attack — whether occasional
 Symptoms of panic attacks
 During a panic attack, you can experience physical, emotional, and cognitive symptoms all at once.
 
-According to the Diagnostic and Statistical Manual of Mental Disorders, 5th edition, text revision (DSM-5-TR), if you experience four or more of the following panic attack symptoms, the incident will receive a formal diagnosis:
+According to the Diagnostic and Statistical Manual of Mental Disorders, 5th edition, text revision (DSM-5-TR), if you experience four or more of the following panic attack symptoms, the incident may be identified as a panic attack:
 
 heart palpitations
 sweating
@@ -66,9 +66,7 @@ As difficult as it can be in the midst of a panic attack, try to remember that t
 Chest pain or discomfort
 Between heart palpitations and hyperventilating, you may also experience anxiety and chest pain. The first time this happens is often the scariest, since you may assume it’s your heart and not realize it’s anxiety.
 
-Even though chest discomfort is a common panic attack symptom, it’s important to seek medical care if you’ve never had chest pain before. This can help you rule out any underlying cardiac conditions.
-
-A doctor can run tests and ask questions to let them know whether it’s heart-related or anxiety.
+Even though chest discomfort is a common panic attack symptom, it’s important to remember that this is a product of anxiety and not a physical condition.
 
 Nausea or abdominal distress
 Another consequence of all that adrenaline is nausea or stomach pain. These symptoms may worsen right at the peak of the panic attack — within the first 10 minutes.
@@ -104,7 +102,7 @@ Chills or heat sensations
 Usually associated with excessive sweating, you can also experience chills or hot flashes. This is your body trying to adapt to the adrenaline and surge of panic.
 
 Other panic attack symptoms and sensations
-You can also experience other symptoms like crying, headaches, or vomiting. But to receive a diagnosis of a panic attack, you’ll still need to have at least four of the detailed symptoms above.
+You can also experience other symptoms like crying, headaches, or vomiting. But to be identified as having a panic attack, you’ll still need to have at least four of the detailed symptoms above.
 
 How does a panic attack feel like?
 During a panic attack, the dramatic physical sensations you feel (like chest pain or heart palpitations) can be so upsetting that some people mistake it for a heart attack.
@@ -116,8 +114,6 @@ These sensations and feelings aren’t always related to a specific trigger. Pan
 
 Types of panic attacks
 Some people might experience panic attack symptoms every time they’re in a specific situation, like when they get stuck in an elevator or when speaking in public.
-
-In some cases, panic attacks can also result from medical conditions or injuries, or even as side effects of some medications.
 
 Not all panic attack symptoms have the same causes — and they can be both expected or unexpected.
 
@@ -166,7 +162,7 @@ But while panic attacks aren’t lethal, there is a chance that your long-term h
 
 This doesn’t mean you can die from a panic attack, but rather that multiple attacks can turn into a risk factor for some health conditions.
 
-This is why it’s important to seek professional help to prevent and manage panic attack symptoms. It might also be a good idea to regularly engage in relaxation techniques.
+This is why it’s important to seek professional support to prevent and manage panic attack symptoms. It might also be a good idea to regularly engage in relaxation techniques.
 
 How long do panic attacks last?
 Not all panic attacks have the same symptoms or the same intensity. They can vary in duration, as well.
@@ -207,14 +203,4 @@ You breathe even faster, and your heart pumps even more blood. This, in turn, ca
 
 It’s not clear why the body overreacts this way in certain situations, leading you to panic.
 
-When to see a doctor
-Consider seeking out a healthcare professional — your primary doctor or a mental health professional — if you’re:
-
-finding it difficult to make it through the day and your symptoms are interfering with your relationships, work, or any other daily activities
-having recurrent physical symptoms, such as insomnia, heart palpitations, headaches, or any form of pain
-using substances to cope with your anxiety and physical symptoms
-having panic attacks after sustaining an injury or being diagnosed with a medical condition
-staying home despite having responsibilities that require you to leave the house
-interested in better understanding your symptoms or would like to be screened for diagnosis
-interested in learning the best ways to self-manage your symptoms or the various treatment options for panic attacks
 

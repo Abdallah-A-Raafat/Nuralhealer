@@ -1,6 +1,6 @@
 ---
 title: The difference between depression and sadness
-source: Medical News Today
+source: Psych Central
 category: Depression
 language: English
 ---
@@ -8,15 +8,12 @@ language: English
 
 The difference between depression and sadness
 
-Key takeaways
 Sadness is a temporary emotion often linked to a specific trigger, whereas depression is a persistent mood disorder that can significantly impact daily life.
 Depression can manifest differently in individuals, with some experiencing overwhelming sadness while others feel numb or lose interest in activities they once enjoyed.
-Treatment options for depression include psychotherapy and counseling. A healthcare professional can determine the appropriate approach based on the severity of symptoms.
+Psychotherapy and counseling are common ways to manage depression.
 The National Institute of Mental Health (NIMH) notes that depression is one of the most common mental health illnesses in the United States.
 
-Knowing and understanding the differences between sadness and depression can help a person recognize when to seek treatment.
-
-In this article, we help the reader make this distinction and suggest treatment options for depression.
+Knowing and understanding the differences between sadness and depression can help a person recognize the signs of depression.
 
 Defining sadness and depression is important for improving well-being.
 
@@ -53,18 +50,13 @@ a lack of energy
 a loss of interest in hobbies
 In severe cases, the person may think about or attempt suicide. They may isolate themselves from family or friends and feel unable to attend work or school.
 
-If these feelings of doubt last longer than 2 weeks, a healthcare professional may diagnose the person with major depressive disorder (MDD). This is a type of depression that can be more severe and persistent than some other types.
+If these feelings of doubt last longer than 2 weeks, it could be a sign of major depressive disorder (MDD). This is a type of depression that can be more severe and persistent than some other types.
 
-For a diagnosis of MDD, the doctor should link the symptoms only to depression and not to another medical diagnosis, such as substance use disorder or another underlying condition.
+For an accurate understanding, it is important to distinguish depression from other factors, such as substance use or underlying conditions.
 
 Unlike sadness, depression can leave a person struggling to get through their day. Sadness is just one element of depression.
 
-Treatment for depression
-If a person has symptoms of depression for longer than 2 weeks, it is advisable to seek professional help.
-
-A physician can help determine the level of treatment necessary to manage symptoms.
-
-Following diagnosis, possible treatments include counseling and psychotherapy.
+Psychotherapy and counseling are often helpful for managing symptoms of depression.
 
 Psychotherapy and counseling
 Psychotherapy involves talking with a trained professional.
@@ -73,7 +65,6 @@ A person can pursue psychotherapy on its own. A therapist can help identify prob
 
 Some examples of psychotherapy include cognitive behavioral therapy (CBT) and interpersonal therapy.
 
-A medical team might admit a person with severe depression to a hospital if they are in immediate danger of harming themselves, either because of the risk of suicide or lack of ability to care for themselves.
 
 Outpatient facilities and psychotherapy clinics can help with long-term care.
 
@@ -95,4 +86,4 @@ Sadness is an emotion that everyone experiences, often after stressful or upsett
 
 Specific triggers will often cause sadness, whereas depression may have no identifiable cause. Sadness is a part of depression but is more temporary in nature.
 
-A person should seek a medical opinion if sadness continues for a disproportionate amount of time. This could indicate the development of depression.
+Sadness that continues for a disproportionate amount of time could indicate the development of depression.

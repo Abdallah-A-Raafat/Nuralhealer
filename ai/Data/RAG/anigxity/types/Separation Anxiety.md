@@ -35,10 +35,10 @@ nightmares
 physical symptoms like headaches, nausea, or vomiting
 While most commonly seen in children and adolescents, the current Diagnostic and Statistical Manual of Mental Disorders, 5th edition (DSM-5) recognizes that adults can also experience separation anxiety disorder.
 
-In fact, research from 2008 indicates that approximately 4.1% of children will deal with separation anxiety disorder — and 36.1% of them will continue living with the condition into adulthood if it’s left untreated.
+In fact, research from 2008 indicates that approximately 4.1% of children will deal with separation anxiety disorder — and 36.1% of them will continue living with the condition into adulthood if it’s left unaddressed.
 
 Separation anxiety in children vs. adults
-Only in the last decade or so has separation anxiety disorder been recognized in adults, according to a 2010 study. And even still, it’s diagnosed only when symptoms fail to meet the criteria for other panic and anxiety disorders.
+Only in the last decade or so has separation anxiety disorder been recognized in adults, according to a 2010 study. And even still, it’s identified only when symptoms fail to meet the criteria for other panic and anxiety disorders.
 
 For the most part, childhood separation anxiety disorder and adult separation anxiety disorder appear very similar, with just a few minor exceptions.
 
@@ -58,7 +58,7 @@ being away from home
 being alone
 Other symptoms include an inability to sleep without a major attachment figure nearby and nightmares about being separated from a major attachment figure.
 
-While many kids may experiences some of the above from time to time, the DSM-5 explains that in order to qualify for a diagnosis of separation anxiety disorder, these symptoms must be:
+While many kids may experiences some of the above from time to time, the DSM-5 explains that in order for an identification of separation anxiety disorder, these symptoms must be:
 
 persistent
 excessive to the point of impairing social or academic functioning
@@ -85,54 +85,52 @@ the absence or death of a major attachment figure
 domestic violence in the home
 parental divorce
 recurrent moves that impact the development of social connections
-For adults, the main risk factor for separation anxiety disorder is having untreated separation anxiety disorder in childhood.
+For adults, the main risk factor for separation anxiety disorder is having unaddressed separation anxiety disorder in childhood.
 
-How is separation anxiety disorder diagnosed?
-One of the main parts of diagnosing separation anxiety disorder is first ruling out other potential mental health conditions, including:
+How is separation anxiety disorder identified?
+One of the main parts of identifying separation anxiety disorder is first ruling out other potential mental health conditions, including:
 
 autism spectrum disorder
 psychotic disorders
 agoraphobia
 generalized anxiety disorder
-From there, it’s a matter of meeting the diagnostic criteria, including fears about a major attachment figure that are:
+From there, it’s a matter of meeting the identification criteria, including fears about a major attachment figure that are:
 
 persistent
 excessive to the point of impairing social or academic functioning
 not developmentally appropriate
-If symptoms meet the diagnostic criteria and a trained medical or mental health professional has ruled out other mental health conditions, they can make a diagnosis of separation anxiety disorder.
+If symptoms meet the criteria and a mental health professional has ruled out other mental health conditions, they can provide an assessment of separation anxiety disorder.
 
-For a parent wondering if they should take their child for evaluation, the answer is simple: If your child’s anxiety is impacting their day-to-day life (or yours), an evaluation is warranted.
+Most mental health professionals will spend time talking with a child’s about what they’ve witnessed in their child. Then, they’ll talk with the child about how they experience their anxiety.
 
-Most mental health professionals will spend time talking with a child’s about what they’ve witnessed in their child. Then, they’ll talk with the child about how they experience their anxiety. It may take only one session for a diagnosis — but that’s when the real work begins.
+Management of separation anxiety disorder
+As mentioned, the main risk factor for adult separation anxiety disorder is unaddressed childhood separation anxiety disorder.
 
-Treating separation anxiety disorder
-As mentioned, the main risk factor for adult separation anxiety disorder is untreated childhood separation anxiety disorder.
+That’s just one more reason to commit to therapy for your child once a mental health professional provides an assessment of separation anxiety disorder.
 
-That’s just one more reason to commit to treatment for your child once a mental health professional makes a diagnosis of separation anxiety disorder.
+The good news is several therapy options are available, and many have proven successful in the management of separation anxiety disorder.
 
-The good news is several treatment options are available, and many have proven successful in the treatment of separation anxiety disorder.
-
-The treatment option with the most research behind it is cognitive behavior therapy (CBT). Plus, research from 2018 indicates that this form of therapy may be effective long term.
+The therapy option with the most research behind it is cognitive behavior therapy (CBT). Plus, research from 2018 indicates that this form of therapy may be effective long term.
 
 The goal of CBT is to challenge thought distortions and teach the person undergoing therapy better coping strategies.
 
 For children and adults living with separation anxiety disorder, this may involve talking about the fears they’re experiencing and exploring how realistic those fears may be.
 
-Continuing treatment adds in an exposure component. This is when the child or adult goes through imagined or real-life anxiety-provoking situations while applying the coping skills learned previously.
+Continuing therapy adds in an exposure component. This is when the child or adult goes through imagined or real-life anxiety-provoking situations while applying the coping skills learned previously.
 
-Another potential treatment option is parent-child interaction therapy (PCIT), which focuses on improving the parent-child relationship and allows parents to learn how to interact with their children in a healthier manner.
+Another potential therapy option is parent-child interaction therapy (PCIT), which focuses on improving the parent-child relationship and allows parents to learn how to interact with their children in a healthier manner.
 
-For children with separation anxiety disorder, one of the key components of success, regardless of the type of treatment being pursued, is parental involvement. It may be best to think of this as family treatment, as opposed to treatment for just the individual child.
+For children with separation anxiety disorder, one of the key components of success, regardless of the type of therapy being pursued, is parental involvement. It may be best to think of this as family support, as opposed to support for just the individual child.
 
 Let’s recap
 Having a child with separation anxiety disorder can be isolating and exhausting for both caregiver and child. Being an adult with separation anxiety disorder is perhaps even more exhausting.
 
-That’s why it’s so important to remember you’re not alone. This diagnosis exists because others like you are dealing with the same thing.
+That’s why it’s so important to remember you’re not alone. This condition is recognized because others like you are dealing with the same thing.
 
 In fact, there are quite a few support groups specifically for parents of children with anxiety disorders, including:
 
 Parents Helping Parents
 Anxiety & Depression Association of America
 NAMI Family Support Group
-It’s also important to remember that treatment can help, particularly when the whole family is involved. Children and adults living with separation anxiety disorder can find relief from their symptoms.
+It’s also important to remember that therapy can help, particularly when the whole family is involved. Children and adults living with separation anxiety disorder can find relief from their symptoms.
 

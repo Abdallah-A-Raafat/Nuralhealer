@@ -64,8 +64,7 @@ Bouts of dysthymia can last for years at a time.
 
 According to the Diagnostic and Statistical Manual of Mental Disorders, 5th edition (DSM-5), PDD is diagnosed when a person has experienced a depressive mood for at least 2 years — without a break in symptoms that lasts more than 2 months.
 
-What happens if dysthymia is left untreated?
-There are several treatment options for PDD. Your doctor may recommend a mix of medication, psychotherapy, or lifestyle changes to relieve symptoms. Leaving dysthymia untreated, however, can negatively affect you and your life.
+Several treatment options are available for PDD. A combination of psychotherapy and lifestyle changes may help relieve symptoms. Leaving dysthymia untreated, however, can negatively affect you and your life.
 
 Not only can living in a chronic state of depression leave you in a constant state of sadness or hopelessness, but these feelings can impact how you relate to others.
 
@@ -82,5 +81,5 @@ When left untreated, PDD can affect your relationships with others and yourself.
 
 PDD can be challenging to live with, but there are ways to manage it.
 
-If you or a loved one is experiencing symptoms of depression (whether it be dysthymia or other forms), you may want to consider seeking support from a mental health professional. They can provide a diagnosis and recommend treatment options, such as medication, psychotherapy, or lifestyle changes.
+If you or a loved one is experiencing symptoms of depression (whether it be dysthymia or other forms), seeking support from a mental health professional can be an important step. They can help navigate your experience and suggest supportive strategies, such as psychotherapy or lifestyle changes.
 

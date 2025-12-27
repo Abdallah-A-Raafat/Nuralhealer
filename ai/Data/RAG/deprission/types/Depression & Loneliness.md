@@ -60,9 +60,7 @@ On the other hand, depression is a complex mental health condition that can be c
 
 Sometimes, depression makes it harder to want to reach out and connect with others. On the other hand, feeling lonely may push you to act in the opposite way.
 
-There’s also the matter of how long loneliness and depression last.
-
-Loneliness can come and go or only last a short while. It can also last longer, depending on your situation. A diagnosis of depression, on the other hand, means you’ve experienced symptoms for at least 2 weeks.
+Loneliness can come and go or only last a short while. It can also last longer, depending on your situation. With depression, on the other hand, symptoms typically persist for at least 2 weeks.
 
 The best way to know if what you‘re experiencing is loneliness or symptoms of depression is to reach out to a mental health professional.
 
@@ -119,19 +117,9 @@ If you’ve felt “connected” yet disconnected at the same time, you’re not
 
 The study results demonstrate that perhaps virtual services like Zoom or FaceTime can’t alleviate the sting of loneliness quite like an in-person connection.
 
-When to seek help
-For some, loneliness and depression can impact perspective like a heavy fog.
+When feelings of sadness, hopelessness, and loneliness make it difficult to function in day-to-day life, or when it feels too painful to go on feeling this way, reaching out for support from a therapist or a specialized resource can provide a pathway forward.
 
-It may make it difficult to spot others just beyond the veil. If this sounds like you, know that there’s support available, and you don’t have to do this all by yourself.
-
-You may want to consider seeking support if:
-
-you’ve experienced symptoms of depression for 2 weeks or longer
-symptoms are interfering with your self-care, work or school life, and relationships
-you have contemplated suicide or self-harm
-When your feelings of sadness, hopelessness, and loneliness make it difficult to function in day-to-day life, or when you feel like it is too painful to go on feeling this way, it is critical to seek help from your family doctor or a therapist.
-
-When you feel sad and lonely for a long time and it doesn’t seem to be lifting, there are therapies and medications that can help.
+When you feel sad and lonely for a long time and it doesn’t seem to be lifting, there are supportive therapies that can help.
 
 With the right support, both loneliness and depression can be managed. A good starting point may be reaching out to a licensed therapist and trying to prioritize your well-being.
 

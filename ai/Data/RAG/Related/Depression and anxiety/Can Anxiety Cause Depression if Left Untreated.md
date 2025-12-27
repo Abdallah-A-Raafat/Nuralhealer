@@ -1,8 +1,8 @@
 ---
 title: Can Anxiety Cause Depression if Left Untreated?
-source: Verywell Mind
-category: OCD
-language: English
+source: Psych Central
+category: Depression and anxiety
+language: en
 ---
 
 Living with the effects of anxiety can cause depression as a result of avoidant behaviors, self-esteem changes, and hypervigilance.
@@ -34,7 +34,7 @@ For example, if even the thought of public speaking activates your stress respon
 
 “Anxiety shrinks lives by keeping us in our comfort zones, which is a misnomer because our comfort zones aren’t really comfortable.
 
-We tend to feel anxious about things that are important to us. “If you avoid what is important to you long enough, your life becomes less enjoyable and you may not like who you are. That is where depression comes in.”
+We tend to feel anxious about things that are important to us. If you avoid what is important to you long enough, your life becomes less enjoyable and you may not like who you are. That is where depression comes in.
 
 Avoidance may also lead you to isolate yourself from other people, particularly if you live with symptoms of social anxiety. In some cases, social anxiety and feelings of loneliness can lead to depression.
 
@@ -43,12 +43,12 @@ If you find yourself unable to start or follow through with things you need to d
 
 A sense of worthlessness is a formal symptom of depression. When you live with low self-esteem and self-confidence for long enough, you may be more likely to develop other symptoms of depression.
 
-“Anxiety tells you, ‘I can’t do this. This is scary.’ So you don’t go to the dance, or you find a way to pass off the presentation at work. Now, self-criticism starts because you didn’t do the hard thing that was important to you. "This is another way anxiety leads to depression.”
+“Anxiety tells you, ‘I can’t do this. This is scary.’ So you don’t go to the dance, or you find a way to pass off the presentation at work. Now, self-criticism starts because you didn’t do the hard thing that was important to you. This is another way anxiety leads to depression.”
 
 Depletion of resources
 When you feel fear, adrenaline is released in your body to help you face the perceived threat.
 
-“Hypervigilance — when fight or flight is triggered easily and often — can deplete and wear out our stress hormones.” “It can also result in the disruption of sleep and appetite, which can result in a depressed mood.”
+Hypervigilance — when fight or flight is triggered easily and often — can deplete and wear out our stress hormones. It can also result in the disruption of sleep and appetite, which can result in a depressed mood.
 
 Effects of untreated anxiety
 Anxiety can be paralyzing, which can make it difficult to reach out for help.
@@ -57,7 +57,7 @@ It’s understandable. But try to keep in mind that research shows that untreate
 
 You may find it useful to think of your emotional bandwidth as a cup. If that cup becomes full of anxiety, panic, or fear, there’s limited room for emotions like joy, happiness, and peace.
 
-“The contents of your cup then overflow, and out come all of those negative emotions which commonly look like depression, sadness, or hopelessness.”
+The contents of your cup then overflow, and out come all of those negative emotions which commonly look like depression, sadness, or hopelessness.
 
 Left untreated, an anxiety disorder can lead to:
 
@@ -105,7 +105,7 @@ uncover negative core beliefs
 identify unhelpful or distorted thoughts
 widen your comfort zone
 increase your self-esteem
-“In therapy, we focus on changing your negative narrative about yourself to one that is strength and value-focused.” “By combining these methods, we see clients move from anxiety and depression, to self-confidence and more fulfilling lives.”
+In therapy, the focus is on changing your negative narrative about yourself to one that is strength and value-focused. By combining these methods, clients move from anxiety and depression to self-confidence and more fulfilling lives.
 Let’s recap
 In some cases, living with the effects of anxiety can cause depression symptoms to develop. It could also intensify these symptoms if you already live with both conditions.
 

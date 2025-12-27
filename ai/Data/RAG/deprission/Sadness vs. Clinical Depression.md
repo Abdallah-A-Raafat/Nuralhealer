@@ -1,6 +1,6 @@
 ---
 title: Sadness vs. Clinical Depression
-source: Verywell Mind
+source: Psych Central
 category: Depression
 language: English
 ---
@@ -19,7 +19,7 @@ Diagnosis
 
 
 Sadness is temporary and often occurs after disappointing events, while depression lasts longer and affects daily life.
-If feelings of sadness or depression last more than two weeks, talk to your doctor.
+If feelings of sadness or depression last more than two weeks, it is important to take them seriously as they may indicate a more persistent condition.
 Sadness is an emotional state characterized by unhappiness and low mood. It is considered one of the basic human emotions. It is a normal response to situations that are upsetting, painful, or disappointing. Sometimes, these feelings can be more intense, while in other cases, they might be fairly mild.
 
 Unlike depression, which is persistent and longer-lasting, sadness is temporary and transitory. Sadness can, however, turn into depression.1 Being able to tell the difference between normal sadness and depression might encourage you to take action and seek resources for an improved mood.
@@ -49,7 +49,7 @@ It is important to be able to distinguish between feelings of normal sadness and
 It is the transitory nature of sadness that makes it different from depression. While sadness is limited in duration, depression lasts longer and creates significant impairments in a person's ability to function in their daily life. Sadness is an emotion, whereas depression is a mental disorder.
 
 
-Be aware of the signs of sadness turning into depression and get help if you notice these symptoms significantly impacting your life for two weeks or longer.
+Be aware of the signs of sadness turning into depression and consider exploring supportive resources if you notice these symptoms significantly impacting your life for two weeks or longer.
 
 Sadness
 Normal human emotion
@@ -83,24 +83,13 @@ Loss of appetite and/or weight loss, or overeating and/or weight gain4
 Thoughts of death or suicide and/or suicide attempts
 Restlessness and/or irritability
 Persistent physical symptoms that do not respond to treatment, such as headaches, digestive disorders, and chronic pain
-If you experience these, you may feel inclined to just "tough it out" and wait until it passes. However, the earlier you recognize these signs, the sooner you can seek help and change your situation.
+If you experience these, you may feel inclined to just "tough it out" and wait until it passes. However, the earlier you recognize these signs, the sooner you can take steps to improve your situation.
 
-Symptoms of Clinical Depression
-When to Call Your Doctor
 Know that you are not alone if you are experiencing some (or multiple) of the symptoms above.
 
-If you've been experiencing symptoms of sadness or depression for longer than a few weeks, consider reaching out to your doctor to determine the cause and what you can do about it.
+Determining whether feelings are normal sadness or depression often involves looking at the type of symptoms, how long they have been present, and how severe they are.
 
-Sometimes feeling depression is not a result of mental illness. It could be a medical condition, like hypothyroidism, for example, that can be causing symptoms of depression.5
-
-Once your doctor rules out any potential medical causes, they will be able to provide other options for your depression or refer you to a psychiatrist or therapist who can help you.
-
-Diagnosis
-Your doctor will use a number of techniques to determine if what you are feeling is normal sadness or depression. This often involves asking questions or having you complete a questionnaire about what type of symptoms you are experiencing, how long you have been feeling them, and how severe they are.
-
-Your doctor will also want to know more about your life and the impact these symptoms have had on your ability to function at home, work, and school.
-
-Your doctor may also perform a physical exam and conduct lab tests to rule out medical conditions or that might be contributing to your symptoms. Remember to tell your doctor about any medications or supplements that you are taking since certain medications, such as beta-blockers and corticosteroids, may also cause feelings of depression.
+This assessment considers the impact these symptoms have on the ability to function at home, work, and school. It is also common to consider whether other underlying factors might be contributing to the symptoms.
 
 Causes
 There are a number of factors that can play a role in causing depression. Some of the risk factors for depression include:
@@ -115,7 +104,7 @@ Poor self-esteem
 Stressful life events
 Brain chemistry
 Childhood trauma
-It is important also to be aware that feelings of sadness in response to a situation in your life can turn into depression. This is why it is essential to seek help if you suspect that what you are feeling is more than normal sadness.
+It is important also to be aware that feelings of sadness in response to a situation in your life can turn into depression. This is why it is essential to be attentive if you suspect that what you are feeling is more than normal sadness.
 
 Treatment for Depression
 Depression is usually treated through talk therapy. Usually, the best treatment plans include a variety of approaches.
@@ -128,7 +117,6 @@ Cognitive therapy is a popular type of psychotherapy for depression.6﻿ It teac
 If we frequently say negative things, we're creating a mental environment relevant to depression. Positive thinking, on the other hand, triggers positive emotions. And while controlling all aspects of depression isn't possible, this is one aspect we do have some power over.
 
 
-Lifestyle
-Your doctor may also recommend lifestyle changes that you can make that may help you cope with your symptoms. Doing things like getting regular exercise, eating a healthy diet, getting adequate sleep, and staying connected with loved ones can help you manage your condition.
+Lifestyle adjustments can also help in coping with symptoms. Doing things like getting regular exercise, eating a healthy diet, getting adequate sleep, and staying connected with loved ones can help manage the condition.
 
-Finding ways to overcome sadness or depression can get you back to feeling like your normal self. While normal sadness is usually temporary and can often be relieved with lifestyle adjustments, you should talk to your doctor if your symptoms last longer than two weeks. If what you are feeling is depression, there are effective treatments available, including medication and psychotherapy, that can help.
+Finding ways to overcome sadness or depression can get you back to feeling like your normal self. While normal sadness is usually temporary and can often be relieved with lifestyle adjustments, persistent symptoms lasting longer than two weeks should be taken seriously. If what you are feeling is depression, there are effective approaches available, including psychotherapy, that can help.

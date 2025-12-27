@@ -102,7 +102,7 @@ agitation and restlessness
 anxiety
 
 How is seasonal affective disorder treated?
-If you’re experiencing symptoms of seasonal depression, reach out to a doctor or mental health professional to discuss your treatment options, which may involve a combination of therapy, medications, and coping strategies.
+If you’re experiencing symptoms of seasonal depression, reaching out to a mental health professional can help you explore supportive options, which may involve a combination of therapy and coping strategies.
 
 Strategies that may help with winter depression
 Get as much natural light as possible
@@ -125,7 +125,7 @@ cause your brain to reduce the production of the hormone melatonin, which makes 
 increase the production of the hormone serotonin, which affects your mood
 Though light therapy is recognized as a first-line treatment for seasonal affective disorder, the lamps can be a bit pricy.
 
-Some insurance plans may cover the cost of the light therapy box, especially if your healthcare professional recommends light therapy. If you have medical insurance, then checking with your insurance provider is a good idea.
+Some insurance plans may cover the cost of the light therapy box, especially if a health professional recommends light therapy. If you have insurance, then checking with your provider is a good idea.
 
 Also, inexpensive alternatives are available. You can replace commonly used light bulbs in your home with brighter full spectrum (also known as broad spectrum) light bulbs.
 
@@ -182,10 +182,7 @@ Regular exercise can help treat mild to moderate depression. It may also be an e
 
 However, since too much sun exposure and heat could trigger your symptoms, you may want to opt for indoor activities, such as working out at a gym with air conditioning, swimming at an indoor pool, or trying a yoga class (just maybe not hot yoga).
 
-What if these strategies don’t work?
-If you start with coping strategies and techniques and they don’t seem to relieve your symptoms alone, your doctor may recommend psychotherapy or medications.
+If coping strategies alone don’t seem to relieve your symptoms, psychotherapy can be a beneficial next step. Often, a combination of therapy and self-care strategies is effective for managing seasonal affective disorder.
 
-Often, a combination of therapy, medication, and self-care strategies will be the most effective for treating seasonal affective disorder, similar to treating other types of depression.
-
-No matter what, don’t be afraid of speaking with your healthcare professional about your symptoms. Together, you can work to find the right treatment options for you.
+No matter what, don’t be afraid to speak with a mental health professional about your symptoms. Together, you can find the right roadmap for you.
 

@@ -71,7 +71,7 @@ Depression can look very different from person to person, and the intensity of t
 
 Depression can appear differently in children than in adults. Some symptoms in children can include anxiety or anxious behavior.
 
-Wondering if what you’re experiencing might be depression? You can check out our depression test to find out.
+
 
 
 Types of depression
@@ -100,7 +100,7 @@ While it can be more challenging to treat than other types of depression, it’s
 Bipolar disorder depression
 Some forms of bipolar disorder involve depressive episodes. Sometimes depressive episodes alternate with episodes of mania or hypomania.
 
-Treatment for bipolar disorder depression can differ from other depression treatment approaches. For example, due to the nature of bipolar disorder, antidepressants are not always a safe way to manage bipolar disorder symptoms.
+Treatment for bipolar disorder depression can differ from other depression treatment approaches.
 
 Other depression subtypes
 Other subtypes of depression include depression with the following:
@@ -110,9 +110,9 @@ melancholic
 psychotic
 catatonic
 atypical
-If you talk with a therapist, you might learn if any of these specifiers apply to you. You can also learn more about the types of depression below.
+If you talk with a therapist, you might learn if any of these specifiers apply to you.
 
-Learn more about depression types.
+
 
 Depression risk factors and causes
 As with most mental health conditions, researchers still aren’t sure what causes depression. But most experts consider the following to be contributing factors:
@@ -135,17 +135,15 @@ trauma or chronic stress
 medical conditions
 certain medications
 alcohol or other substance use
-Even if you don’t identify with any depression risk factors, you could still meet the criteria for a depression diagnosis. You can learn more about the causes and risk factors for depression below.
+Even if you don’t identify with any depression risk factors, you could still meet the criteria for a depression diagnosis.
 
-Learn more about risk factors and causes of depression.
+
 
 
 Depression treatment
 Can depression actually be successfully treated? The short answer is yes.
 
-According to the NIMH and countless research studies over the past 6 decades, clinical depression is readily treated with short-term, goal-oriented psychotherapy or talk therapy.
-
-For most people, a combination of the two works best and is often recommended by healthcare professionals.
+According to the NIMH and countless research studies over the past 6 decades, clinical depression is readily treated with short-term, goal-oriented psychotherapy or talk therapy. Psychotherapy is often recommended by healthcare professionals.
 
 Psychotherapy
 Psychotherapy approaches scientifically proven to work with depression include:
@@ -156,6 +154,6 @@ psychodynamic therapy
 Therapy is one of the most effective treatments for all types of depression, and it has very few side effects. It’s also typically covered by all insurers.
 
 Self-help strategies
-For mild depression, many people begin with self-help strategies and emotional support. Research also indicates some herbal remedies may help relieve certain depression symptoms.
+For mild depression, many people begin with self-help strategies and emotional support.
 
 Exercise and diet are other factors to consider when building a routine to manage depression. Though it can be difficult to practice consistent self-care habits when experiencing a depressive episode, small steps can help.

@@ -56,9 +56,9 @@ More research is needed to understand the processes involved in dreaming and dre
 Can anxiety dreams affect your mental health?
 Anxiety dreams can cause you to feel distressed for a long time after waking up.
 
-Ballard says that in some cases, anxiety dreams may start to negatively affect your mental health, especially if you attach a lot of meaning to your dreams.
+Experts say that in some cases, anxiety dreams may start to negatively affect your mental health, especially if you attach a lot of meaning to your dreams.
 
-“If you focus on the content of a bad dream, worry about it, and fear that it means something significant in your real life, it’s more likely to have a negative effect on your mood or anxiety level,” she says.
+“If you focus on the content of a bad dream, worry about it, and fear that it means something significant in your real life, it’s more likely to have a negative effect on your mood or anxiety level,” they say.
 
 How to prevent and stop anxiety dreams
 Controlling the content of your dreams is rarely possible, unless you master lucid dreaming. But the following tips may help you reduce how often you have anxiety dreams.

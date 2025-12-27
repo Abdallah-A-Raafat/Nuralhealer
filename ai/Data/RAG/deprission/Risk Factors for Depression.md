@@ -31,7 +31,7 @@ gender
 poor nutrition
 unresolved grief or loss
 personality traits
-medication and substance use
+substance use
 Do risk factors differ for different types of depression?
 There are various types of depression, including:
 
@@ -70,7 +70,7 @@ One study found that adults with MDD had experienced significantly more childhoo
 
 Those with MDD had much higher rates of sexual, physical, and emotional abuse than those without MDD. They also had experienced much more neglect, bullying, or rejection, and had witnessed more domestic violence.
 
-The study also showed that people with a history of childhood trauma before the age of 7 — including sexual, physical, or emotional abuse — didn’t respond as well to antidepressant treatments.
+The study also showed that people with a history of childhood trauma before the age of 7 — including sexual, physical, or emotional abuse — didn’t respond as well to treatments.
 
 Racial trauma may also put a person at a higher chance of depression — this may affect adults and adolescents alike.
 
@@ -104,8 +104,6 @@ vitamin D
 zinc
 copper
 manganese
-So eating foods rich in these nutrients or taking a supplement may help ease depression symptoms.
-
 One group of nutrients considered to be a protective factor against depression is omega-3 fatty acids, found for example in fatty fish, algae, walnuts, and chia seeds.
 
 Evidence suggests that people who usually consume a diet rich in omega-3-fatty acids are at lower risk of developing:
@@ -143,28 +141,11 @@ be more reserved
 be less organized
 be impulsive
 finish things at the last minute
-Medication and substance use
-In most cases, people use substances or alcohol in an effort to feel better. But sometimes the substance can have the opposite effect, making the person feel worse.
-
-When substances — including prescribed medications — lead to depressive symptoms, it’s known as substance-induced depression. This may occur when you actively use a substance, or when you experience intoxication or withdrawal.
+When substances lead to depressive symptoms, it’s known as substance-induced depression. This may occur when you actively use a substance, or when you experience intoxication or withdrawal.
 
 Studies suggest that nearly half of these depressive episodes occur through heavy alcohol use. Other substances commonly associated with substance-induced depression include cocaine and opioids, particularly heroin.
 
 
 
-When to seek help
-Some symptoms of depression include:
 
-low mood most of the day
-reduced interest or pleasure in activities
-notable weight loss or gain without trying; decrease or increase in appetite
-fatigue or low energy
-sleep disturbances: insomnia or sleeping too much
-recurrent thoughts of suicide or death
-feelings of worthlessness or inappropriate guilt
-poor concentration
-slowing down of thoughts or physical movements; agitation or restlessness
-If you experience any of these symptoms for a period of several weeks, it might be time to seek help. Consider reaching out to a healthcare professional, therapist, or a depression hotline.
-
-Next steps
 Even if you have a few risk factors, it doesn’t mean you will definitely develop depression. But it’s always a good idea to do what you can to protect yourself when it’s in your power to do so.

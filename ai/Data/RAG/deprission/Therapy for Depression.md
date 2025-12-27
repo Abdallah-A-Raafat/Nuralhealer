@@ -7,10 +7,9 @@ language: English
 
 
 
-here are several different kinds of therapy that are considered evidence-based for treating depression, which means that they have been studied and clinically proven to be effective. Here is a breakdown of some of them:
+There are several different kinds of therapy that are considered evidence-based for managing depression, which means that they have been studied and clinically proven to be effective. Here is a breakdown of some of them:
 
-Cognitive behavioral therapy (CBT)
-Cognitive behavioral therapy is the gold standard for treating children and adolescents with depression. CBT works by giving people skills to cope with symptoms like depressed mood and unhelpful thoughts (like “no one likes me” or “things will always be like this”). In CBT, the child and their therapist collaborate to meet goals, like catching those unhelpful thought patterns and improving problem-solving ability.
+Cognitive behavioral therapy is a standard approach for managing depression in children and adolescents. CBT works by giving people skills to cope with symptoms like depressed mood and unhelpful thoughts (like “no one likes me” or “things will always be like this”). In CBT, the child and their therapist collaborate to meet goals, like catching those unhelpful thought patterns and improving problem-solving ability.
 
 Central to the treatment is teaching kids that their thoughts, feelings, and behaviors are all interconnected, so changing one of these points can change all three.
 
@@ -35,7 +34,7 @@ While its efficacy is still being measured in adolescents, mindfulness-based cog
 
 MBCT works by combiningcognitive behavioral therapy (CBT) methods with mindfulness. Mindfulness teaches people to be fully present in the moment and observe their thoughts and feelings without judgment. This can help them interrupt undesirable thought patterns that can maintain or lead to adepressive episode,  like being self-critical or fixating on negative things in ways that are not constructive.
 
-MBCT was initially developed to help people with recurring episodes of depression, but it can also be used for treating a first episode of depression.
+MBCT was initially developed to help people with recurring episodes of depression, but it can also be used for managing a first episode of depression.
 
 Acceptance and commitment therapy (ACT)
 Acceptance and commitment therapy, or ACT, is an offshoot of CBT that has also been effective for older kids with depression. CBT is about recognizing negative thoughts and then changing them. But in ACT, you observe negative thoughts and accept them as valid so you can work past them.

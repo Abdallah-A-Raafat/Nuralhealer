@@ -15,7 +15,7 @@ Depression, on the other hand, is a serious condition that affects your mental a
 
 Depression is a mental health condition that lasts two weeks or more in which you feel sad, emotionally sensitive, hopeless, or uninterested in things that you usually love.
 
-The good news is that depression is treatable, and help is available. Lots of treatments can help, including therapy, self-care, and in some cases, antidepressants.
+The good news is that depression is treatable, and help is available. Lots of treatments can help, including therapy and self-care.
 
 
 Are there different kinds of depression?
@@ -39,7 +39,7 @@ Major depression: Also known as clinical depression, this is the most common kin
 What are the symptoms of major depression?
 Major depression can cause a range of symptoms that last 2 weeks or longer.
 
-Depression appears differently for each person, and its symptoms are not always consistent or clear-cut. You don’t need to experience all of the following to receive a diagnosis of depression, but it usually involves a combination of these symptoms:
+Depression appears differently for each person, and its symptoms are not always consistent or clear-cut. Identifying depression usually involves observing a combination of these symptoms:
 
 Persistent feelings of sadness or hopelessness
 “[Depression] feels deeper than sadness.”
@@ -64,7 +64,7 @@ You find it hard to concentrate, get things done, or take care of yourself
 
 This can feel like being really low on energy.
 
-“Some people find it difficult to do things like showering or brushing their teeth,” she says.
+“Some people find it difficult to do things like showering or brushing their teeth,” experts say.
 
 Others struggle with simple chores or concentrating at work. Even making decisions can feel difficult if you have depression.
 
@@ -87,8 +87,6 @@ Changes in your appetite can affect your weight, too — and quickly. For exampl
 
 You feel anxious
 Depression doesn’t really cause anxiety, but a lot of people experience both conditions at the same time. So you might feel nervous, restless, or worried a lot. Your heart rate or breathing might change when you start to worry, or you might feel twitchy.
-
-Feeling anxious? Here are 9 ways that can help to relieve anxiety right away.
 
 Your body aches
 For some people, depression causes physical symptoms like aches, pains and lots of headaches or migraines. Other people might be more sensitive to pain than usual.
@@ -116,33 +114,15 @@ Trauma: Stressful or traumatic events can impact how your body reacts to fear an
 Medical conditions: Chronic illness or pain, insomnia, and attention-deficit hyperactivity disorder (ADHD) are some of the conditions that could put you at a higher risk of developing depression.
 Environmental factors: Exposure to abuse, violence, poverty, or trauma could make you more vulnerable to depression.
 
-How is depression diagnosed?
-If you are noticing the symptoms of depression, a healthcare professional can help get you a diagnosis.
+Determining whether someone is experiencing depression often involves looking at the type of symptoms, how long they have been present, and how severe they are.
 
-This will likely begin with a conversation and a physical examination. Your doctor will likely ask you about your family history to see if depression or other mental health conditions run in your family.
+This assessment considers the impact these symptoms have on the ability to function at home, work, and school. It is also common to consider whether other underlying factors might be contributing to the symptoms. Licensed mental health experts evaluate mood, behavior, and day-to-day activities to understand the situation.
 
-If you’re talking with your primary physician, they might also order blood tests to ensure that another medical condition isn’t the cause of your symptoms. For example, the fatigue or lethargy you can feel with depression could also be caused by vitamin deficiencies or a thyroid issue.
-
-If your doctor can’t find another cause for your symptoms, they will likely refer you to a licensed mental health expert who will evaluate your mood, behavior, and day-to-day activities.
-
-They will also ask you about your family’s psychological history. They may use a depression-rating questionnaire, such as the Hamilton Depression Rating Scale or the Patient Health Questionnaire 9 (PHQ-9), to diagnose the condition.
-
-According to the DSM-5, you have to display at least five of the main symptoms of depression for over two weeks to get a diagnosis.
-
-When to talk with a doctor
-If you are experiencing symptoms of depression, it’s always best to talk with a healthcare professional, especially since some symptoms can be caused by underlying medical conditions rather than depression. The sooner you talk with them, the sooner you can get the help you need to start feeling better.
-
-It’s OK if you’re feeling reluctant to talk to a mental health expert or doctor, but you have nothing to be ashamed of. It’s OK to ask for help. If you’re not comfortable sharing, then no one except you and your doctor has to know that you’re seeking treatment.
-
-“We go to a doctor when our body isn’t feeling well, and we go to a therapist when our emotions feel out of whack.” “Depression is not your fault, nor is it something you can just snap out of.”
-
-Wondering if your symptoms might be depression? You can take our depression test to find out.
+Standard tools like depression-rating scales are sometimes used to help in this evaluation. Generally, displaying a significant number of the main symptoms of depression for over two weeks is a key indicator for a formal diagnosis.
 
 If you’re ready to reach out, a therapist who practices interpersonal therapy or cognitive behavioral therapy may help.
 
-What’s next?
-Once you receive a diagnosis of depression, your mental health professional will discuss possible treatments for depression with you, including one or a combination of the following:
-
+Various approaches can help manage depression, including one or a combination of the following:
 
 Psychotherapy: Better known as talk therapy, psychotherapy can help you learn to problem-solve and recognize negative thinking. Your therapist can also help you maximize meaningful behaviors and activities during your week. This helps many people cope with challenges in a more adaptive way.
 Electroconvulsive therapy (ECT): This is reserved for people with the most severe kinds of depression who haven’t responded to other treatments. This is a safe and effective treatment.

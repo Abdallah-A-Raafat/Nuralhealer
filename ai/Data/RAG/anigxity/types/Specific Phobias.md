@@ -21,7 +21,7 @@ If you have a specific phobia, you probably realize that your fears are irration
 
 The symptoms of specific phobias usually first appear in childhood, with an average onset of 7 years old. Children’s fears often disappear by themselves, but in some, they persist into adulthood.
 
-According to the latest edition of the Diagnostic and Statistical Manual for Mental Disorders (DSM-5), the symptoms associated with specific phobias — fear, anxiety, and avoidance — persist for 6 months or more. Without treatment, they can persist for years or decades.
+According to the latest edition of the Diagnostic and Statistical Manual for Mental Disorders (DSM-5), the symptoms associated with specific phobias — fear, anxiety, and avoidance — persist for 6 months or more. Without therapy, they can persist for years or decades.
 
 Your symptoms may range from mild to severe. How often they arise depends partly on how often you encounter the feared object or situation. Even if encounters are rare, the anticipation of this event can provoke an anxious response.
 
@@ -86,7 +86,7 @@ thunder
 driving
 public transport
 elevators
-dental or medical procedures
+dental or clinical procedures
 It’s common for people to have multiple specific phobias. According to the DSM-5, around 75 percent of those with specific phobia fear more than one situation or object, with an average of three fears.
 
 Other phobia-related conditions
@@ -98,7 +98,7 @@ Separation anxiety disorder involves intense anxiety about being separated from 
 For some people, the symptoms can be explained by a different anxiety disorder, such as obsessive-compulsive disorder (OCD) or post-traumatic stress disorder (PTSD).
 
 What can I do about my phobia?
-Phobias are highly treatable using relaxation methods and behavioral therapies.
+Phobias are highly manageable using relaxation methods and behavioral therapies.
 
 Though we can’t always stop our anxiety from making an appearance, we can take steps to notice our symptoms and regain control when they arise.
 

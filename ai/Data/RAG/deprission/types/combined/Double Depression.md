@@ -86,7 +86,7 @@ How is it treated?
 Research from 2020 suggests that double depression may be harder to treat than other forms of depression. Still, research on treating double depression is ongoing, and treatment recommendations will likely improve as researchers learn more about the condition.
 
 Therapy
-Psychotherapy, or talk therapy, might be used alongside medication or other treatment approaches to help you manage double depression.
+Psychotherapy, or talk therapy, might be used alongside other treatment approaches to help you manage double depression.
 
 Cognitive behavioral therapy (CBT) is a common and effective therapy for many types of depression, but you have other therapy options, too.
 
@@ -108,5 +108,3 @@ Get the rest you need. If you’re more tired than usual, give yourself permissi
 Focus on fuel. It’s unlikely that any single food will banish your depression, but evaluating which food choices may best empower you to manage your symptoms is worth a try.
 Take some deep breaths. Some 2017 research found that people who practiced deep breathing exercises at home reduced their depression symptoms more significantly than people who received only standard care for depression.
 Add movement when you can. You probably won’t feel much like exercising in the traditional sense if you’re experiencing double depression, and that’s OK. Physical activity is still an effective option for people with moderate and severe depression, and even gentle movement like walking or stretching could help.
-Next steps
-Dealing with MDD on top of PDD can feel like a lot, but you don’t have to manage these symptoms alone. Double depression can mean more severe symptoms, so it’s important to reach out for help when you need it.

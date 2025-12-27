@@ -28,7 +28,7 @@ Rest assured, you didn’t do anything to cause these symptoms of postpartum dep
 
 Your body and mind are putting a filter on how you see yourself, the world, and your baby. But, with help, that filter can be lifted.
 
-A good first step is understanding what postpartum depression is and isn’t. An important follow-up is opening up about what you’re experiencing with family, friends, and health professionals.
+A good first step is understanding what postpartum depression is and isn’t. An important follow-up is opening up about what you’re experiencing with family, friends, and mental health professionals.
 
 Symptoms of postpartum depression
 The symptoms of postpartum depression can be very similar to those of other types of depression.
@@ -61,7 +61,7 @@ physical aches and pains
 recurrent suicidal thoughts
 This isn’t an all-inclusive list of symptoms. Postpartum depression doesn’t look the same way for everyone.
 
-These signs and symptoms of postpartum depression can last for a long period of time — from weeks to months. This is one of the reasons why it’s important you talk about it with family and health professionals as soon as you notice them.
+These signs and symptoms of postpartum depression can last for a long period of time — from weeks to months. This is one of the reasons why it’s important to talk about it with family and mental health professionals as soon as you notice them.
 
 Subtle symptoms of postpartum depression
 Sometimes, there are subtle symptoms of postnatal depression that might be missed but that affect parents and their children nonetheless.
@@ -126,7 +126,7 @@ grief or the recent loss of a loved one
 pregnancy and birth complications
 symptoms of depression during pregnancy
 alcohol and substance use
-Because there are still many other things that can play a role, the U.S. Preventive Services Task Force recommends that you’re screened for symptoms of depression during and after pregnancy, regardless of the presence of contributing factors.
+Because there are still many other things that can play a role, expert guidelines often recommend being aware of and screening for symptoms of depression during and after pregnancy, regardless of the presence of contributing factors.
 
 Is it postpartum depression or postpartum psychosis?
 Postpartum psychosis is rare and more severe than depression. It’s estimated to occur in just 1 to 5 people out of 1,000 who have recently given birth.
@@ -145,14 +145,11 @@ paranoia
 confusion and disorientation
 aggressive behavior
 refusal to sleep and eat
-Postpartum psychosis requires immediate medical attention. With timely treatment you can find ways to manage your symptoms.
+Postpartum psychosis requires immediate professional attention. With timely support you can find ways to manage your symptoms.
 
-Can postpartum depression be treated?
-Postpartum depression can be treated. The sooner you find support, the sooner you can work on relieving some of the symptoms you’re experiencing.
+Postpartum depression can be managed. The sooner you find support, the sooner you can work on relieving some of the symptoms you’re experiencing.
 
-If there’s an underlying condition that’s contributing to how you feel, your health team will want to address that first. For example, balancing your thyroid hormone levels.
-
-When that’s done, talking to a mental health professional can also help.
+Talking to a mental health professional can help in navigating these challenges.
 
 In general, postpartum depression is often treated with:
 
@@ -160,16 +157,11 @@ interpersonal psychotherapy
 cognitive behavioral therapy
 bright light therapy
 electroconvulsive therapy
-antidepressant medications
-Are medications safe during this time?
-You may wonder if you can take antidepressants if you’re breastfeeding. Even though not all antidepressants can be prescribed while you’re lactating, some of them have little risk of side effects for your baby.
-
-Talking with a health professional can help you weigh the risks versus benefits of specific drugs. Including your baby’s pediatrician in this conversation can provide you with additional insight.
 
 If left untreated, postpartum depression can last for months or years. With the right treatment, you can cope and start functioning better.
 
 Self-help strategies for postpartum depression
-While the most effective way of treating postpartum depression requires the support of a health team, you can be an active participant in your recovery.
+While the most effective way of finding relief from postpartum depression involves professional support, you can be an active participant in your recovery.
 
 Sleep as much as you can
 This is probably the most important thing you need to do after giving birth.
@@ -183,7 +175,7 @@ To improve your sleep hygiene, you can:
 make sure your room is at a comfortable temperature and as dark as possible
 listen to relaxing music or nature sounds during the day and when trying to sleep
 avoid caffeine
-If you’re having a hard time sleeping, consider talking to your doctor for additional ideas that work better for your specific situation. Consider leaning on your partner, family, and friends to get in a nap when you can.
+If you’re having a hard time sleeping, consider seeking professional guidance for additional ideas that work better for your specific situation. Consider leaning on your partner, family, and friends to get in a nap when you can.
 
 Save time for yourself
 Even though you might find it challenging at first, saving time for a few relaxation techniques, if possible, is one of the most effective ways to support your well-being.
@@ -209,7 +201,7 @@ pick up a few groceries or help you order them online
 watch your baby while you pamper yourself at a hair or nail salon
 run important errands for you
 bring their baby to spend some time together with yours
-help you find the information you need to make a decision (for example, finding a therapist online or printing a few questions to discuss with your doctor)
+help you find the information you need to make a decision (for example, finding a therapist online or printing a few questions to discuss with a professional)
 Don’t skip any meals
 It may sound like an odyssey to get all three meals or more during a busy day. But eating regularly is very important for your health and your baby’s.
 
@@ -231,7 +223,7 @@ stretching on the floor while your baby is on the mat or sleeping
 doing a couple of lunges while you walk toward the bathroom
 dancing your way around your home
 joining a mommy-and-me class
-Before doing any of these, or any other form of exercise, it might be a good idea to discuss with your health provider the best options for you.
+Before doing any of these, or any other form of exercise, it might be a good idea to discuss the best options for you with a professional.
 
 Breathe
 Take some time, every hour, to just pause for 1–3 minutes, and breathe deeply. This is particularly important at times when you’re feeling overwhelmed.
@@ -249,11 +241,3 @@ If you can, try getting at least 30 minutes of sunshine every day (weather permi
 It’s also important to let natural light come in through the windows during the day, and at times when you’re not trying to sleep.
 
 If you feel getting sunshine every day is challenging, you may want to consider a light therapy box for artificial sunlight.
-
-Next steps
-Postpartum depression is a formal condition that involves symptoms of depression after giving birth.
-
-Thankfully, help is available and coping is possible.
-
-No matter how intense your symptoms are, once you reach out for treatment, you’ll be on your way to mental wellness.
-

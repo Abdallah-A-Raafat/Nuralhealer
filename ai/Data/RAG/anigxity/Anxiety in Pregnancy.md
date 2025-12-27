@@ -104,9 +104,3 @@ You can also take this time to build your support system. Adding experienced or 
 Practice Meditation
 Experts indicate that practicing meditation can improve anxiety symptoms. Consider meditating during yoga, while listening to calming music, or during a prenatal massage.
 
-Next steps 
-Anxiety in pregnancy is common, but you can ease it by gathering the information you need. Untreated anxiety during pregnancy can reach a point where it begins to negatively impact you and your baby.
-
-What works for one person might not work for you, but options are available to help relieve your anxiety. Finding things that bring happiness and contentment depends on your preferences and symptoms.
-
-Consider reaching out for help so that you can live in fulfillment during this time in your life. You’re not alone and deserve to feel good during your pregnancy journey.

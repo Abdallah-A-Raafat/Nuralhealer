@@ -61,7 +61,7 @@ For some people, panic disorder can restrict their lives. They may begin to avoi
 
 They eventually begin to avoid any situation they fear may make them feel helpless if a panic attack occurs.
 
-But help is available. Your symptoms are treatable, and with the right treatment, you can learn to manage your symptoms.
+But support is available. Your symptoms are manageable, and with the right therapy and support, you can learn to navigate your experiences.
 
 How do I know it’s panic disorder?
 So, you’ve had a panic attack. Does that mean you have panic disorder?
@@ -70,7 +70,7 @@ Not necessarily.
 
 Although panic attacks are a defining characteristic of panic disorder, not everyone who experiences panic attacks will develop panic disorder.
 
-Based on guidelines from the Diagnostic and Statistical Manual of Mental Disorders (DSM-5), your healthcare provider may ask you questions, such as how often you’re having these attacks, to determine if you in fact have panic disorder.
+Based on guidelines from the Diagnostic and Statistical Manual of Mental Disorders (DSM-5), a mental health professional may ask you questions, such as how often you’re having these attacks, to assess the frequency and impact of your symptoms.
 
 A large 2016 survey found that about 13.2% of people worldwide have experienced a panic attack at some point in their lives. Of those people, only around 2 to 3% develop panic disorder.
 
@@ -80,13 +80,8 @@ Panic attacks can occur in disorders other than panic disorder, such as agorapho
 
 Whether you have access to a therapist or not, there are strategies and techniques you can use to manage your symptoms.
 
-So, now what?
-Now that you have a name for your symptoms, what’s next?
 
-The good news is that panic disorder is one of the most treatable mental health conditions. The key is to find the right treatment and stick to it.
+The good news is that panic disorder is one of the most manageable mental health conditions. The key is to find the right approach and stick to it.
 
-This may be a combination of psychotherapy (talk therapy), medication, and self-care strategies, such as meditation and exercise.
+This may be a combination of psychotherapy (talk therapy) and self-care strategies, such as meditation and exercise.
 
-Whatever path you take to manage your symptoms, be sure it’s the right one for you and your lifestyle. Don’t be afraid to switch things up if something isn’t working.
-
-Having support from family and friends who you trust to support you will go a long way in helping you manage your symptoms and learn how to live with panic disorder.

@@ -36,7 +36,7 @@ Postpartum depression
 
 There are several types of depression, each with specific causes, symptoms, and timelines. Whatever type you have, help is available.
 
-Depression is not only hard to endure, it is also a risk factor for heart disease and dementia. “Depressive symptoms can occur in adults for many reasons. If you are experiencing mood or cognitive changes that last for more than a few weeks, it's a good idea to bring this up with your doctor or consult a mental health specialist to help sort out possible causes.” The four most common types of depression are major depression, persistent depressive disorder (formerly known as dysthymia), bipolar disorder, and seasonal affective disorder.
+Depression is not only hard to endure, it is also a factor that can impact overall well-being. “Depressive symptoms can occur in adults for many reasons. If you are experiencing mood or cognitive changes that last for more than a few weeks, it's a good idea to consult a mental health professional to help sort out possible causes.” The four most common types of depression are major depression, persistent depressive disorder (formerly known as dysthymia), bipolar disorder, and seasonal affective disorder.
 
 The following are some of the common types of depression:
 
@@ -72,7 +72,7 @@ One of those symptoms needs to be a low mood or low interest in activities that 
 
 Major depression looks different in different people.
 
-A doctor can help determine if your symptoms are related to major depression, or if they result from conditions, including other types of depression. For example, if you also have periods of mania, a diagnosis of bipolar disorder, not depression, is possible.
+A mental health professional can help determine if your symptoms are related to major depression, or if they result from conditions, including other types of depression.
 
 Atypical depression
 
@@ -102,7 +102,7 @@ Symptoms of persistent depressive disorder (dysthymia) may include long-lasting 
 
 About 3% of U.S. people have persistent depressive disorder.
 
-Many people with PDD feel like this is just “how they are,” but you can always benefit from speaking with a doctor about how you’re feeling. They can help you find a treatment plan and care that helps you feel better.
+Many people with PDD feel like this is just “how they are,” but you can always benefit from speaking with a mental health professional about how you’re feeling. They can help you find supportive strategies and care that helps you feel better.
 
 Premenstrual dysphoric disorder
 
@@ -110,7 +110,7 @@ Premenstrual dysphoric disorder (PMDD) is a depressive disorder that’s similar
 
 While many people who menstruate will have PMS, not everyone will develop PMDD. This type of depression most likely occurs due to dropping hormone levels following ovulation.
 
-In order for a doctor to diagnose PMDD, they’ll want to know if you have depressive symptoms most of your menstrual cycles, and if these usually start within a week before menstruation starts.
+In order to accurately identify PMDD, it is important to observe if depressive symptoms occur during most menstrual cycles, and if these usually start within a week before menstruation begins.
 
 According to the DSM-5-TR, for a diagnosis of PMDD, at least 4 of the following must be present:
 
@@ -198,12 +198,4 @@ Some treatment options include:
 
 psychotherapy or counseling
 
-antidepressants
-
 in severe cases, hospitalization
-
-Next steps
-
-If you’re living with any type of depression, you’re not alone.
-
-There are many ways to find support and manage your condition.

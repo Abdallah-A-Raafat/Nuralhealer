@@ -13,7 +13,7 @@ This anxiety arises because you feel that the situation would be difficult to es
 
 Agoraphobia affects many people. The National Institute of Mental Health (NIMH) reports that around 1.3 percent of U.S. adults experience agoraphobia in their lifetimes.
 
-In this article, we take a closer look at the symptoms of agoraphobia, and we discuss when it’s a good time to talk with your doctor.
+In this article, we take a closer look at the symptoms of agoraphobia, and we discuss when it’s a good time to talk with a mental health professional.
 
 Symptoms of agoraphobia
 According to the Diagnostic and Statistical Manual of Mental Disorders (DSM-5), agoraphobia involves intense fear or anxiety that occurs in, or when anticipating, at least two of the following five situations:
@@ -23,9 +23,9 @@ being in open spaces such as parking lots, marketplaces, or bridges
 being in enclosed spaces such as shops, theaters, or cinemas
 standing in line or being in a crowd
 being outside the home alone
-You might receive an agoraphobia diagnosis if your symptoms persist for more than 6 months and occur nearly every time you encounter the place or situation.
+You might receive an assessment for agoraphobia if your symptoms persist for more than 6 months and occur nearly every time you encounter the place or situation.
 
-Agoraphobia is most often diagnosed in young adulthood and usually before the age of 35.
+Agoraphobia is usually identified in young adulthood and usually before the age of 35.
 
 By definition, the fears linked with agoraphobia are irrational. This means the anxiety is out of proportion with the actual danger posed by the situation.
 
@@ -93,26 +93,12 @@ According to survey data published in 2005, agoraphobia can have mild to severe 
 30.7 percent reported a moderate impact
 28.7 percent reported a mild impact
 
-When to talk with a doctor
-Talking with a doctor or a mental health professional, such as a psychologist or psychiatrist, about your anxiety may feel daunting, but it can really help.
 
-You can do this in a way that feels best to you. Many doctors will offer telephone consultations, online services, direct you to helpful sources, and provide treatment advice.
-
-Some symptoms of anxiety or panic overlap with the symptoms of other medical conditions. Your doctor can help rule out other causes. They can also rule out other anxiety disorders that can have similar symptoms, such as:
-
-social phobia: anxiety around social or performance situations
-specific phobia: anxiety and avoidance of a specific object or situation, such as spiders or heights
-obsessive-compulsive disorder: a condition that involves recurring thoughts or behaviors
-post-traumatic stress disorder: a condition that can arise months or years after exposure to trauma
-separation anxiety disorder: anxiety related to separation from people close to you
-As with all mental health conditions, the symptoms of agoraphobia cannot be explained by the direct bodily effects of substance use, including alcohol, drugs, or medications.
-
-Treatments
-Agoraphobia is a treatable condition. Psychotherapy, or talking therapy, is an especially effective treatment for agoraphobia. Cognitive behavioral therapy (CBT) is a common method for anxiety disorders.
+Management
+Agoraphobia is a manageable condition. Psychotherapy, or talking therapy, is an especially effective approach for agoraphobia. Cognitive behavioral therapy (CBT) is a common method for anxiety disorders.
 
 In CBT for agoraphobia, the therapist will work with you to develop a list of stressful situations that trigger your symptoms, starting from the least scary to those that are more triggering.
 
 You will learn skills to work through these situations, and, eventually, the scariest scenario will feel significantly less threatening.
 
-For some people, certain medications can also help.
 

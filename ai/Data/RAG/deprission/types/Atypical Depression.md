@@ -22,22 +22,22 @@ According to the Diagnostic and Statistical Manual of Mental Disorders, 5th edit
 major depressive disorder (MDD)
 bipolar disorder
 persistent depressive disorder (PDD)
-A specifier adds new information to the primary diagnosis. For instance, if you received a diagnosis of major depression with atypical features, you first met the criteria for MDD, and then atypical features were added to clarify your condition further.
+A specifier adds new information to help understand the symptoms. For instance, in clinical practice, atypical features might be added to a major depression assessment to clarify the condition further.
 
 What are the features and symptoms of atypical depression?
-To be diagnosed with atypical depression, you must show “mood reactivity,” meaning your mood can improve when something good happens.
+Atypical depression is characterized by “mood reactivity,” meaning your mood can improve when something good happens.
 
-In addition to mood reactivity, there should be at least two of the following symptoms for a diagnosis of atypical depression:
+In addition to mood reactivity, at least two of the following symptoms are typically present:
 
 significant increase in appetite
 oversleeping (hypersomnia)
 leaden paralysis, where your arms and legs feel heavy
 a long-term pattern of rejection sensitivity, when you interpret ordinary or slightly negative social cues as rejection
-Importantly, atypical depression isn’t always persistent. For example, a person diagnosed with atypical features may begin to experience symptoms of melancholy, which is another depression specifier. People who have depression with melancholic features have anhedonia (an inability to feel pleasure) and show no signs of mood reactivity.
+Importantly, atypical depression isn’t always persistent. For example, a person may begin to experience symptoms of melancholy, which is another depression specifier. People who have depression with melancholic features have anhedonia (an inability to feel pleasure) and show no signs of mood reactivity.
 
 In fact, research shows that depression subtypes diagnoses are stable only 22% to 29% of the time. It’s more common for people to experience fluctuations between atypical and melancholic episodes than to have one type consistently over time.
 
-Overall, it’s important that people with atypical symptoms receive a thorough evaluation before diagnosis.
+Overall, it’s important to have a thorough evaluation to accurately identify atypical symptoms.
 
 Atypical depression can be misdiagnosed as borderline personality disorder because of the overlap in symptoms, such as extreme sensitivity to rejection.
 
@@ -62,12 +62,12 @@ When compared to melancholic depression, people with atypical depression tend to
 Some evidence also suggests that atypical depression may be related to seasonal depression and obesity.
 
 How is atypical depression treated?
-Atypical depression is often treated with psychotherapy, medication, or both.
+Atypical depression is often treated with psychotherapy.
 
 Psychotherapy
 Psychotherapy, particularly cognitive behavioral therapy (CBT), is a common treatment for most forms of depression, including atypical depression. CBT teaches clients to identify and change any negative or unhelpful belief patterns.
 
-In a 2013 study, participants with depression were given either a course of antidepressants or a course of CBT. Both treatments reduced cognitive and suicidal symptoms; however, CBT was more effective at reducing certain atypical symptoms, such as overeating and oversleeping.
+In a 2013 study, participants with depression were given a course of CBT. The treatment reduced cognitive and suicidal symptoms, and was particularly effective at reducing certain atypical symptoms, such as overeating and oversleeping.
 
 Living with atypical depression
 If you live with atypical depression, there are several things you can do to assist in your treatment. These include exercise, a healthy diet, and reaching out for support.
@@ -97,6 +97,3 @@ Consider matching your cravings to healthier choices. For instance, instead of s
 
 Join a support group
 The simple act of giving and receiving support from others going through similar challenges can be very healing. Consider joining a support group for people with depression.
-
-Next steps
-Living with atypical depression isn’t easy, but know that you’re not alone, and the condition is highly treatable.

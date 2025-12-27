@@ -29,7 +29,7 @@ Stress also activates the immune system to release histamine, a compound known t
 
 In short-term stress, cortisol acts as an anti-inflammatory and helps balance out the histamine levels. However, during chronic stress, the body becomes less sensitive to cortisol, allowing for more inflammation and itching.
 
-When you reduce anxiety, you might find that your itching goes away. In fact, there’s evidence that anti-anxiety medications and psychosocial treatments for anxiety — including cognitive behavioral therapy (CBT) — can have anti-itch effects.
+When you reduce anxiety, you might find that your itching goes away. In fact, there’s evidence that psychosocial approaches for anxiety — including cognitive behavioral therapy (CBT) — can help manage itching.
 
 The cycle of itch and anxiety
 Anxiety and itching can result in a continuous itch-anxiety cycle. Anxiety leads to itching, which in turn leads to more anxiety, and so on.
@@ -61,7 +61,7 @@ Some people seem to get an itchy scalp when they have anxiety. Scientists aren�
 Internal stressors may also be linked to the growth of bacteria and fungi on the scalp, which can cause it to get dry and flaky, leading to itchiness.
 
 Are some people more likely to have anxiety-related itching than others?
-Psychogenic itching is still poorly understood, and researchers don’t know its true prevalence. That’s partly because people tend to visit their doctors, rather than mental health professionals, when they experience itchy skin of unknown cause.
+Psychogenic itching is still poorly understood, and researchers don’t know its true prevalence. That’s partly because people tend to visit primary healthcare providers, rather than mental health professionals, when they experience itchy skin of unknown cause.
 
 Some research suggests that psychogenic itch is most common in females between the ages of 30 and 45 years old.
 
@@ -75,10 +75,8 @@ substance use disorders
 mania
 schizophrenia and other psychotic disorders
 
-Diagnosis
-To find out the cause of your itching, your physician or dermatologist will likely take your medical history, give you a dermatological exam, and request any lab tests or biopsies as needed.
-
-If no medical source for the itching is found, your healthcare professional will work with you to explore other causes, which may include psychiatric reasons like anxiety.
+Assessment
+A professional evaluation can help identify the cause of persistent itching. If no direct physical source is found, exploring psychological factors like anxiety can be helpful.
 
 According to the International Forum for the Study of Itch (IFSI), psychogenic itching falls into one of six itch categories:
 
@@ -89,8 +87,8 @@ psychogenic or psychosomatic, linked with psychiatric or psychosomatic condition
 mixed
 other
 
-Treatment
-To date, clinical trials haven’t explored the treatments for psychogenic itching. However, experts suggest that certain medications might be useful for relieving psychogenic itch, depending on the symptoms.
+Management
+To date, clinical trials haven’t explored all the approaches for psychogenic itching. However, experts suggest that psychotherapy might be useful for relieving psychogenic itch, depending on the symptoms.
 You might also want to try some home remedies for itch, such as cool packs, wet wrap therapy, and applying moisturizer.
 
 Keeping your anxiety levels to a minimum may also help relieve the itch. Try out some anxiety-reducing activities, like:
@@ -101,8 +99,5 @@ meditation
 exercise
 acupuncture
 yoga
-
-Next steps
-If you experience chronic itching, you may benefit from talking with a healthcare professional. Seeing a dermatologist first can rule out skin-related causes.
 
 If you believe anxiety is causing your itching, consider trying some anxiety-reducing activities, such as meditation or yoga.

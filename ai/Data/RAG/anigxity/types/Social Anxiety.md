@@ -16,7 +16,7 @@ You may often feel a sense of isolation if you have social anxiety, but you’re
 According to the National Alliance on Mental Illness (NAMI), social anxiety disorder can also cause panic attacks. But learning about your own symptoms and what triggers them can make social anxiety much easier to manage.
 
 Social anxiety vs. shyness
-Some people confuse shyness with social anxiety. While social anxiety disorder is a diagnosable condition, shyness is better described as a personality trait.
+Some people confuse shyness with social anxiety. While social anxiety disorder is an identifiable condition, shyness is better described as a personality trait.
 
 Social anxiety disorder often disrupts day-to-day life in a way that shyness doesn’t.
 
@@ -45,7 +45,7 @@ nausea or vomiting
 irritable bowel syndrome (IBS)
 excessive sweating
 shaking or trembling
-While this list can give you an indication of whether you have social anxiety disorder, it’s not meant to be a substitute for diagnosis.
+While this list can give you an indication of whether you have social anxiety disorder, it’s not meant to be a substitute for professional evaluation.
 
 In some cases, these symptoms can actually feed your social anxiety disorder. For instance, blushing might make your embarrassment worse if you feel it’s drawing unwanted attention.
 
@@ -97,11 +97,11 @@ avoidant personality disorder
 If you talk with a therapist, they may also want to rule out some of these conditions if you have social anxiety symptoms. This way, they can make sure they’re using the best care approaches for you.
 
 Do I have social anxiety disorder?
-If you’re wondering whether you have social anxiety disorder, it can help to know how professionals diagnose it.
+If you’re wondering whether you have social anxiety disorder, it can help to know how professionals identify it.
 
-Mental health professionals use criteria, or a checklist of symptoms, from the Diagnostic and Statistical Manual of Mental Disorders (DSM-5) to learn more about you and whether a diagnosis makes sense in your case.
+Mental health professionals use criteria, or a checklist of symptoms, from the Diagnostic and Statistical Manual of Mental Disorders (DSM-5) to learn more about you and whether an assessment makes sense in your case.
 
-The DSM-5 includes specific diagnostic criteria for social anxiety disorder. If you talk with a therapist, they might ask questions like these to determine whether you’re experiencing symptoms of social anxiety disorder:
+The DSM-5 includes specific criteria for social anxiety disorder. If you talk with a therapist, they might ask questions like these to determine whether you’re experiencing symptoms of social anxiety disorder:
 
 Do you often worry about humiliating or embarrassing yourself?
 Do you feel anxious whenever you’re in certain social situations?
@@ -112,14 +112,14 @@ Do you have panic attacks related to social situations?
 Do you feel like you can’t stop worrying, even though you know your fear doesn’t make sense?
 Does your anxiety negatively impact your day-to-day life, including school, work, relationships, or hobbies?
 Has your anxiety lasted for 6 months or longer?
-Do you have any other medical or mental health conditions?
+Do you have any other health or mental health conditions?
 Do you use any medications or substances?
 If your social anxiety is related only to public speaking or performing in front of others, you may only have the performance type of social anxiety disorder.
 
 Social anxiety symptoms in children
 According to the DSM-5, 75% of people in the United States who develop social anxiety disorder do so between ages 8 and 15. But does social anxiety present differently in children than in adults?
 
-The short answer is yes. When it comes to figuring out whether a child has social anxiety disorder, there are a few key distinctions. Keep in mind that according to the DSM-5, a child should be able to form age-appropriate relationships for a social anxiety disorder diagnosis to fit.
+The short answer is yes. When it comes to figuring out whether a child has social anxiety disorder, there are a few key distinctions. Keep in mind that according to the DSM-5, a child should be able to form age-appropriate relationships for a social anxiety disorder assessment to fit.
 
 Here are two questions to ask if you’re wondering whether a child has social anxiety disorder:
 
@@ -127,8 +127,4 @@ Are they anxious when spending time with friends their own age, or just with adu
 Do they cry, throw tantrums, freeze, or hide from social situations or around strangers? While these symptoms may not be a sign of social anxiety in adults, they may be key manifestations of social anxiety disorder among children.
 Another important difference is that while adults tend to know that fear related to social anxiety is unnecessary, children may not. Children may have a harder time telling when a fear is appropriate for a situation and when it’s out of proportion.
 
-What now?
-You may need to seek help for social anxiety when you feel it’s stopping you from living day-to-day life. For example, you might feel social anxiety is holding you back from taking an important step for your career or making meaningful friendships.
-
-A therapist or other mental health professional can be a key source of support in navigating social anxiety disorder. You can work together to create a plan that addresses specific problems and symptoms related to your social anxiety.
 

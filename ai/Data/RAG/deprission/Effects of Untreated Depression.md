@@ -45,7 +45,7 @@ decreased sex drive or dyspareunia (pain during sex)
 increased chance of autoimmune disorders
 Depression can also increase your chance of developing physical conditions.
 
-For example, a 2014 literature review suggested that depression is linked to a significantly greater chance of myocardial infarction and coronary heart disease.
+For example, research has suggested that depression may be linked to certain physical health conditions, emphasizing the connection between mental and physical well-being.
 
 One of the greatest challenges with the physical effects of depression is that they, in turn, might make your other symptoms worse. For example, not being able to sleep can lead to more aches and pains.
 Psychosocial effects of depression
@@ -85,20 +85,15 @@ If you’ve experienced untreated depression for a long time, some effects might
 
 This is not always the case, though. Some effects and symptoms of depression can be fully reversed.
 
-Seeking the help of a health professional might help diminish the effects of depression on your body. It can also help you manage your current symptoms and prevent future occurrences.
+Seeking the support of a mental health professional can help manage the effects of depression on your well-being. It can also provide tools for managing symptoms and navigating future experiences.
 
-How is depression treated?
-There are different types of depression that may require specific treatment plans.
-
-In general, side effects of depression can be treated with:
-
+In general, the impact of depression can be managed with:
 
 Therapy. Counseling for people with depression is often built on evidence-based approaches like:
 interpersonal therapy (IPT)
 cognitive-behavioral therapy (CBT)
 acceptance and commitment therapy (ACT)
 mindfulness-based cognitive therapy (MBCT)
-Brain stimulation therapy. This type of therapy may include electroconvulsive therapy, vagus nerve stimulation, or repetitive transcranial magnetic stimulation. It might help you cope with some of the chronic effects of depression.
 Taking care of yourself
 Coping with the effects of depression sometimes begins with small lifestyle adjustments. This could complement the efforts of traditional treatment.
 
@@ -113,7 +108,6 @@ Open up. If possible, talk about your feelings and thoughts with someone you tru
 Set realistic expectations. This not only goes for your personal and professional life but also for your treatment.
 Learn more about depression. Understanding this condition is key to living with it.
 Set goals. Setting daily or weekly goals that are meaningful to you might help. A goal could be as simple as calling a friend, walking to your local park, or spending time outdoors every day.
-Next steps
 The effects of depression can be physical and mental.
 
 Effects and symptoms can be managed with the help of a mental health professional. When treatment is sought, it can be possible to improve your quality of life.

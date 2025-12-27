@@ -65,7 +65,7 @@ MDD with psychotic features
 With this type, you might experience symptoms of psychosis, such as hallucinations or delusions.
 
 Diagnostic criteria
-When you have symptoms of major depression, a qualified mental health professional or doctor can offer more insight into what might be going on.
+When you have symptoms of major depression, a qualified mental health professional can offer more insight into what might be going on.
 
 They’ll probably want to talk with you about your concerns, difficulties, and symptoms you’ve noticed. Then, they’ll compare this information to the criteria established by diagnostic manuals.
 
@@ -141,7 +141,7 @@ lose your appetite completely, forget to eat, or lack energy to prepare meals
 eat more than usual or crave certain comfort foods
 Many people with depression also experience physical symptoms, including aches and pains or stomach distress.
 
-A healthcare professional will likely diagnose MDD when your low mood has no clear cause and symptoms persist day in and day out, keeping you from going about life as you usually would.
+Major depression is typically identified when low mood has no clear cause and symptoms persist day in and day out, keeping a person from going about life as they usually would.
 
 What causes MDD? 
 Experts haven’t identified one specific root cause of depression. Existing evidence suggests a number of factors play a part in the development of symptoms.
@@ -186,12 +186,9 @@ Clinical depression, on the other hand, doesn’t involve changes in mood.
 
 Both MDD and bipolar disorder can in some instances involve psychotic symptoms such as hallucinations and delusions.
 
-Treatment options for clinical depression
-Therapy and medication are the primary treatments for major depression.
+Therapy is the primary treatment for major depression.
 
-The American Psychiatric Association notes that while both therapy and antidepressants can help ease symptoms, a combined approach may have the most benefit.
-
-Medication can improve symptoms, but a therapist can teach long-term coping skills to help navigate distress in a way that works for you.
+A therapist can teach long-term coping skills to help navigate distress in a way that works for you.
 
 Therapy options
 Talk therapy or psychotherapy involves regular (usually weekly) sessions with a mental health professional.
@@ -237,6 +234,4 @@ Remember, MDD is a health condition, not a choice. You can recover, but the proc
 
 Complete essential tasks first and remind yourself it’s OK to handle the rest another day.
 
-Next steps
-Even if it may feel this way, the distress you may be experiencing right now won’t last forever. Clinical depression can be treated, and recovery is possible.
 

@@ -11,7 +11,7 @@ It’s natural and not uncommon to feel concerned about the possible symptoms of
 
 Sometimes, identifying these symptoms or recognizing them as anxiety might even be difficult.
 
-In fact, if you’re wondering about some of your child’s behaviors, you may want to talk with a health professional. They can help you explore possible reasons behind your little one’s actions and attitudes.
+In fact, if you’re wondering about some of your child’s behaviors, you may want to talk with a mental health professional. They can help you explore possible reasons behind your little one’s actions and attitudes.
 
 You might feel tempted to blame yourself for your child’s anxiety. However, the cause of anxiety in children is likely a combination of factors — many of them out of your control.
 
@@ -276,7 +276,7 @@ If your child’s anxiety is persistent, severe, or affecting their everyday lif
 
 Symptom intensity and duration are two key aspects to keep in mind. Does your child repeatedly feel or act in the same anxious way? Are they anxious in only some instances, but it’s been a long time in between those instances?
 
-A pediatrist or children’s therapist might be able to assess your child’s symptoms and advise you on the next steps to take.
+A children’s therapist or mental health professional may be able to assess your child’s symptoms and provide guidance on supportive strategies.
 
 
 
@@ -293,15 +293,9 @@ In this case, talking with an expert can help you.
 
 You’ll want to write down specific behaviors your child has in most situations. You may want to observe how they behave at home, parties, school, restaurants, church, and other spaces they may frequent.
 
-The more information you gather yourself, the easiest it’ll be for a health professional to guide you.
+The more information you gather yourself, the easier it’ll be for a mental health professional to support you.
 
 Allowing your child or teen to have space and time to express themselves, if possible for them, is also advisable.
 
-Next steps
-Symptoms of anxiety in children can be concerning if you don’t understand what’s happening. Feeling this way is natural and not uncommon.
-
-Because there are many types of anxiety disorders in children, there’s not one unique list of symptoms. Most children with anxiety disorders will act differently in social settings or specific situations.
-
-Observing your child’s behaviors at home and when out and about can help you identify some of the signs of anxiety. This, in turn, might make it easier for a health professional to pinpoint the cause of your little one’s behaviors.
 
 

@@ -21,9 +21,9 @@ Loneliness can sometimes be a contributing factor, too.
 
 In fact, a 2018 literature review found that loneliness was considered a moderately significant variable in a sample of more than 40,000 people living with depression.
 
-“Depression can be triggered by loneliness following a breakup, divorce, or death of a loved one,” said Lori Ryland, a licensed clinical psychologist in Kalamazoo, Michigan.
+“Depression can be triggered by loneliness following a breakup, divorce, or death of a loved one.
 
-But that’s not all, she says, “[Loneliness] can even be experienced when in a crowded room filled with those who care about us.”
+Loneliness can even be experienced when in a crowded room filled with those who care about us.
 
 Feeling this way can make you experience sadness and hopelessness and affect your everyday life.
 
@@ -43,11 +43,11 @@ muscle stiffness or heaviness
 shortness of breath
 heart palpitations
 headaches
-The biggest difference between loneliness and depression is that one is classified as a feeling and the other as a formal mental health condition, says ​​Pareen Sehat, a registered clinical counselor in Vancouver, Canada.
+The biggest difference between loneliness and depression is that one is classified as a feeling and the other as a formal mental health condition.
 
 You can think of loneliness as a temporary emotional state, even if it may last a long time for some people.
 
-Loneliness means that your mind and body long for connection. Typically, once you find connection, you’ll feel much better, says Sehat.
+Loneliness means that your mind and body long for connection. Typically, once you find connection, you’ll feel much better.
 
 On the other hand, depression is a complex mental health condition that can be caused by multiple reasons, not just loneliness. Symptoms of depression often last longer and require professional support.
 
@@ -81,11 +81,11 @@ For some, it’s a painful cycle: depression, social isolation, more intense dep
 But this cycle can be broken.
 
 Being alone vs. feeling lonely
-If you’ve ever been to a party full of peers and felt isolated, that’s because being with people doesn‘t necessarily influence your feelings of loneliness, explains Ryland.
+If you’ve ever been to a party full of peers and felt isolated, that’s because being with people doesn‘t necessarily influence your feelings of loneliness.
 
 Being surrounded by people isn‘t always related to how you feel.
 
-“One person may be disconnected from others and experience a gripping sense of loneliness. Another person may be completely alone and disconnected, yet feel a sense of peace, independence, and freedom,” she said.
+One person may be disconnected from others and experience a gripping sense of loneliness. Another person may be completely alone and disconnected, yet feel a sense of peace, independence, and freedom.
 
 A lot of it comes down to how you perceive your interpersonal connections and the quality of your relationships.
 
@@ -93,7 +93,7 @@ Do you feel seen?
 Do you feel understood and accepted?
 Do you feel valued?
 Do you feel supported?
-“Even being surrounded by others does not prevent feelings of loneliness. You can be in the middle of a crowd and still feel extremely alone,” she added.
+Even being surrounded by others does not prevent feelings of loneliness. You can be in the middle of a crowd and still feel extremely alone.
 
 Your emotional resources, including coping skills, may also make a difference. That’s why some people can manage being alone without feeling lonely.
 
@@ -122,14 +122,13 @@ You may want to consider seeking support if:
 you’ve experienced symptoms of depression for 2 weeks or longer
 symptoms are interfering with your self-care, work or school life, and relationships
 you have contemplated suicide or self-harm
-“When your feelings of sadness, hopelessness, and loneliness make it difficult to function in day-to-day life, or when you feel like it is too painful to go on feeling this way, it is critical to seek help from your family doctor or a therapist,” said Ryland.
+When your feelings of sadness, hopelessness, and loneliness make it difficult to function in day-to-day life, or when you feel like it is too painful to go on feeling this way, it is critical to seek help from your family doctor or a therapist.
 
-“When you feel sad and lonely for a long time and it doesn’t seem to be lifting, there are therapies and medications that can help,” she added.
+When you feel sad and lonely for a long time and it doesn’t seem to be lifting, there are therapies and medications that can help.
 
-Let’s recap
 With the right support, both loneliness and depression can be managed. A good starting point may be reaching out to a licensed therapist and trying to prioritize your well-being.
 
-“Make sure to focus on yourself and your health. Surround yourself with positive people. This will have a good impact on your mental health,” says Sehat. “You should also understand that this feeling is not permanent. Time will pass.”
+“Make sure to focus on yourself and your health. Surround yourself with positive people. This will have a good impact on your mental health. “You should also understand that this feeling is not permanent. Time will pass.”
 
 It’s important to remember: Even if it doesn‘t feel like it sometimes, you’re strong enough to get through this.
 

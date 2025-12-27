@@ -42,14 +42,14 @@ Differences in the stress response system. The stress response system, called th
 Inflammatory markers. Inflammation appears to be much greater in people with atypical depression compared to other forms of depression and healthy controls. Atypical depression also has different inflammation patterns than melancholy depression.
 Leptin system (a hormone secreted from fat cells). Leptin regulation (resistance) may be an underlying mechanism linking obesity and depression. The concentration of this mood-regulating hormone has been significantly associated with clinical symptoms of atypical depression, such as excessive appetite, increased weight, and leaden paralysis.
 Brain structure or activity. People with atypical depression may have increased blood flow in the frontal, temporal, and parietal lobes of the brain along and decreased blood flow in the occipital lobe.
-Atypical depression is more common among people with bipolar disorder. A United States population survey published in 2011Trusted Source found that people with atypical depression had significantly higher rates of bipolar I disorder than those without atypical features.
+Atypical depression is more common among people with bipolar disorder. A United States population survey published in 2011 found that people with atypical depression had significantly higher rates of bipolar I disorder than those without atypical features.
 
 In addition, atypical depression can co-occur with other mental health disorders, such as:
 
 anxiety disorders
 eating disorders
 substance use disorders
-When compared to melancholic depression, people with atypical depression tend to have an earlier onsetTrusted Source and a more chronic course of the illness. They also are more likely to have family members who have chronic depression.
+When compared to melancholic depression, people with atypical depression tend to have an earlier onset and a more chronic course of the illness. They also are more likely to have family members who have chronic depression.
 
 Some evidenceTrusted Source also suggests that atypical depression may be related to seasonal depression and obesity.
 

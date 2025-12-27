@@ -99,8 +99,6 @@ bone loss
 kidney problems
 Treatments for anorexia may involve treating or preventing medical complications.
 
-Read more: Treatment for anorexia
-
 Bulimia
 Like anorexia, bulimia often involves low self-esteem or a hyper-focus on body image. Purging is more specific to bulimia and has its own physical effects.
 

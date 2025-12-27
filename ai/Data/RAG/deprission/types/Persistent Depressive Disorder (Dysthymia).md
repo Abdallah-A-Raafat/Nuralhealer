@@ -66,7 +66,7 @@ It can become difficult to build or maintain healthy relationships, and you may 
 
 PDD can also increase your chances of developing other mental health or mood conditions, such as major depressive, anxiety, or somatoform disorders.
 
-Research from 2012Trusted Source has also linked dysthymia to physical health issues, particularly cardiovascular disease.
+Research from 2012 has also linked dysthymia to physical health issues, particularly cardiovascular disease.
 
 Looking ahead
 Persistent depressive disorder (PDD) — or dysthymia, as it was once commonly called — is a chronic form of depression where symptoms last for 2 or more years. It can make you feel sad, hopeless, or pessimistic. It can also negatively impact your self-esteem and cause you to lose interest in things you once enjoyed.
@@ -76,6 +76,4 @@ When left untreated, PDD can affect your relationships with others and yourself.
 PDD can be challenging to live with, but there are ways to manage it.
 
 If you or a loved one is experiencing symptoms of depression (whether it be dysthymia or other forms), you may want to consider seeking support from a mental health professional. They can provide a diagnosis and recommend treatment options, such as medication, psychotherapy, or lifestyle changes.
-
-Want to learn more about depression? Psych Central’s Depression Resource Hub can help.
 

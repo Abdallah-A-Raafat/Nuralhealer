@@ -1,7 +1,9 @@
+---
 title: What Are the Symptoms of Generalized Anxiety Disorder?
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 
 
@@ -13,16 +15,16 @@ GAD is a type of anxiety disorder that’s chronic, involving excessive worry an
 
 While it can be challenging to live with this condition, you’re not alone.
 
-According to the National Institute of Mental HealthTrusted Source, 5.7% of U.S. adults will experience GAD at some point in their lives.
+According to the National Institute of Mental Health, 5.7% of U.S. adults will experience GAD at some point in their lives.
 
-In fact, according to data from the National Health Interview SurveyTrusted Source, more than 15% of adults in the United States experienced mild (9.5%), moderate (3.4%), or severe (2.7%) symptoms of anxiety in 2019 on the GAD-7 scaleTrusted Source.
+In fact, according to data from the National Health Interview Survey, more than 15% of adults in the United States experienced mild (9.5%), moderate (3.4%), or severe (2.7%) symptoms of anxiety in 2019 on the GAD-7 scale.
 
 This self-report scale helps identify if you have GAD, and assesses the severity of your symptoms.
 
 Symptoms of GAD will vary from person to person, as well as the causes of anxiety. But the condition is treatable.
 
 Symptoms of generalized anxiety disorder
-According to the DSM-5 criteriaTrusted Source, to be diagnosed with GAD you must experience your symptoms for most days over a 6-month period. You must have 3 or more of the following 6 symptoms in this period:
+According to the DSM-5 criteria, to be diagnosed with GAD you must experience your symptoms for most days over a 6-month period. You must have 3 or more of the following 6 symptoms in this period:
 
 feeling restless, keyed up, or on edge
 having difficulty concentrating or feeling like your mind is “blank”

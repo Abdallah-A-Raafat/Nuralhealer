@@ -1,17 +1,14 @@
-https://psychcentral.com/depression/types-and-symptoms-of-depression
-
-https://www.webmd.com/depression/depression-types?utm_source=chatgpt.com
-
-https://www.health.harvard.edu/mind-and-mood/six-common-depression-types?utm_source=chatgpt.com
-https://www.webmd.com/depression/atypical-depression?utm_source=chatgpt.com
-
-
+---
+title: What Are the Types of Depression?
+source: Psych Central
+category: Depression
+language: English
+---
 
 
 Types of Depression
 
-this article will discuss in short the roadmap of the types of the depression 
-as I founed the majored types can be shortcuted in 
+ 
 Major depressive disorder (MDD)
 (also called clinical depression)
 
@@ -39,7 +36,7 @@ Postpartum depression
 
 There are several types of depression, each with specific causes, symptoms, and timelines. Whatever type you have, help is available.
 
-Depression is not only hard to endure, it is also a risk factor for heart disease and dementia. “Depressive symptoms can occur in adults for many reasons. If you are experiencing mood or cognitive changes that last for more than a few weeks, it's a good idea to bring this up with your doctor or consult a mental health specialist to help sort out possible causes,” says Dr. Nancy Donovan, an instructor in psychiatry at Harvard Medical School. The four most common types of depression are major depression, persistent depressive disorder (formerly known as dysthymia), bipolar disorder, and seasonal affective disorder.
+Depression is not only hard to endure, it is also a risk factor for heart disease and dementia. “Depressive symptoms can occur in adults for many reasons. If you are experiencing mood or cognitive changes that last for more than a few weeks, it's a good idea to bring this up with your doctor or consult a mental health specialist to help sort out possible causes.” The four most common types of depression are major depression, persistent depressive disorder (formerly known as dysthymia), bipolar disorder, and seasonal affective disorder.
 
 The following are some of the common types of depression:
 

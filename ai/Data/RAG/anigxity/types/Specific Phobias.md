@@ -1,7 +1,9 @@
+---
 title: What Are the Symptoms of Specific Phobias?
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 
 A specific phobia is an intense fear of an object or situation. Phobias involve symptoms of both anxiety and avoidance.
@@ -19,7 +21,7 @@ If you have a specific phobia, you probably realize that your fears are irration
 
 The symptoms of specific phobias usually first appear in childhood, with an average onset of 7 years old. Children’s fears often disappear by themselves, but in some, they persist into adulthood.
 
-According to the latest edition of the Diagnostic and Statistical Manual for Mental Disorders (DSM-5), the symptoms associated with specific phobias — fear, anxiety, and avoidance — persist for 6 months or moreTrusted Source. Without treatment, they can persist for years or decades.
+According to the latest edition of the Diagnostic and Statistical Manual for Mental Disorders (DSM-5), the symptoms associated with specific phobias — fear, anxiety, and avoidance — persist for 6 months or more. Without treatment, they can persist for years or decades.
 
 Your symptoms may range from mild to severe. How often they arise depends partly on how often you encounter the feared object or situation. Even if encounters are rare, the anticipation of this event can provoke an anxious response.
 
@@ -68,11 +70,11 @@ The avoidance and anxious anticipation of the feared situation can lead to signi
 It can even lead to shame and guilt, especially if you find that others don’t understand your feelings.
 
 Common specific phobias
-Anxiety disorders, which include specific phobias, are very common. In fact, the National Institutes of Mental Health (NIMH)Trusted Source estimates that almost one-third of adults in the United States will experience an anxiety disorder during their lifetimes.
+Anxiety disorders, which include specific phobias, are very common. In fact, the National Institutes of Mental Health (NIMH) estimates that almost one-third of adults in the United States will experience an anxiety disorder during their lifetimes.
 
 Some specific phobias are more common than others. Women are twice as likely to have specific phobias as men.
 
-According to the Anxiety and Depression Association of America (ADAA) and the NIMHTrusted Source, common specific phobias include a fear of:
+According to the Anxiety and Depression Association of America (ADAA) and the NIMH, common specific phobias include a fear of:
 
 animals, such as spiders, snakes, dogs, or insects
 heights

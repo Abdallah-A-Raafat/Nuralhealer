@@ -1,7 +1,9 @@
+---
 title: Common Symptoms of Anxiety in Children
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 Not all kids experience anxiety in the same way. You can learn the signs and symptoms.
 
@@ -276,7 +278,7 @@ Symptom intensity and duration are two key aspects to keep in mind. Does your ch
 
 A pediatrist or children’s therapist might be able to assess your child’s symptoms and advise you on the next steps to take.
 
-Healthgrades is owned by RVO Health. By clicking on this link, we may receive a commission. Learn more.
+
 
 Is it anxiety or ADHD? 
 Sometimes, anxiety symptoms in children are misinterpreted as attention deficit hyperactivity disorder (ADHD) symptoms. In other cases, both conditions coexist.

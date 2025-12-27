@@ -1,7 +1,9 @@
+---
 title: What Are Anxiety Disorders?
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 What Are Anxiety Dreams and What Causes Them?
 
@@ -15,13 +17,13 @@ These dreams are often uncomfortable and distressing experiences, but you may be
 Anxiety dreams and stress: The link
 Anxiety dreams can be considered a type of stress dream, which can often feel intrusive and uncomfortable.
 
-These dreams can be considered reactions to something that’s worrying you, says Arlene B. Englander, a licensed psychotherapist from North Palm Beach, Florida. “They’re a wake-up call to the fact that a situation in our lives is causing us emotional pain and we need to deal with it more effectively,” she says.
+These dreams can be considered reactions to something that’s worrying you. “They’re a wake-up call to the fact that a situation in our lives is causing us emotional pain and we need to deal with it more effectively.”
 
 Anxiety and stress dreams aren’t the same thing, though. Not all stress dreams cause a sense of apprehension and wariness. By definition, all anxiety dreams do.
 
 Anxiety dreams can also commonly happen to people with certain mental health conditions, like generalized anxiety disorder (GAD).
 
-A 2013 studyTrusted Source found that older adults living with GAD had significantly more bad dreams than those living without GAD. In the study, the frequency of bad dreams was also associated with co-occurring symptoms of depression, anxiety, worry, and a perception of poor quality of life.
+A 2013 study found that older adults living with GAD had significantly more bad dreams than those living without GAD. In the study, the frequency of bad dreams was also associated with co-occurring symptoms of depression, anxiety, worry, and a perception of poor quality of life.
 
 Stress vs. anxiety
 Events that make you feel you’re out of resources to respond adequately can often be defined as sources of stress. That doesn’t mean they are emotionally distressing.
@@ -35,7 +37,7 @@ Just as with anxiety, anxiety dreams can be about both real or perceived threats
 Dreaming that your partner was unfaithful might not be grounded in any facts, but it could still have you feeling worried or be a manifestation of a lack of trust in the relationship.
 
 Can anxiety cause nightmares?
-“Yes, anxiety and stress can cause nightmares and anxiety dreams,” says Dr. Roberta Ballard, a clinical psychologist from Marietta, Georgia. “If you are under more stress than usual or there is a big change going on in your life, you might notice more themes of anxiety in your dreams.”
+“Yes, anxiety and stress can cause nightmares and anxiety dreams. If you are under more stress than usual or there is a big change going on in your life, you might notice more themes of anxiety in your dreams.”
 
 Nightmares, particularly when frequent, can also be signs of mental health conditions like post-traumatic stress disorder (PTSD).
 
@@ -64,12 +66,10 @@ Controlling the content of your dreams is rarely possible, unless you master luc
 1. Figuring out the source of your anxiety
 Self-awareness and emotional regulation may help you process your emotional states when you’re awake. This could reduce the chance of anxiety coming up when you’re asleep.
 
-Englander also says it’s important to acknowledge there’s a source of anxiety in your life. She explains that facing real-life challenges as effectively as you can may reduce the intensity and frequency of anxiety dreams.
+It’s also important to acknowledge there’s a source of anxiety in your life. Facing real-life challenges as effectively as you can may reduce the intensity and frequency of anxiety dreams.
 
 2. Writing an alternative ending
-Ballard says there’s a journaling exercise she asks her clients to do when they’re having anxiety dreams.
-
-“I ask them to write an alternative ending to the bad dream,” she says. “This exercise tends to be really effective at taking the steam out of a bad dream. If it’s been a recurring dream, it stops or changes and becomes less scary.”
+“Write an alternative ending to the bad dream. This exercise tends to be really effective at taking the steam out of a bad dream. If it’s been a recurring dream, it stops or changes and becomes less scary.”
 
 In fact, reframing negative or anxious thoughts with positive ones seems to decrease anxiety in general. A 2016 study suggests that focusing on positive mental images or positive affirmations instead of anxious thoughts could help people living with anxiety to worry less.
 

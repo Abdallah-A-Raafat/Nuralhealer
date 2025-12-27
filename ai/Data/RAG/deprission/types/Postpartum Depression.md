@@ -1,4 +1,12 @@
-Why Postpartum Depression Goes Beyond Baby Blues
+---
+title: Why Postpartum Depression Goes Beyond Baby Blues
+source: Psych Central
+category: Depression
+language: English
+---
+
+
+
 
 Postpartum depression is a mental health condition that presents with symptoms of depression right after giving birth and may last a long time if it goes untreated. It’s not the same as the baby blues.
 
@@ -27,7 +35,7 @@ The symptoms of postpartum depression can be very similar to those of other type
 
 Symptoms of postpartum depression typically appear within 4 weeks after childbirth. In some instances, they can also come on fast, even within the first 72 hours.
 
-In other cases, some symptoms might not appear until 6 months laterTrusted Source or even up to a year after delivery. This can sometimes make it difficult to identify postpartum depression.
+In other cases, some symptoms might not appear until 6 months later or even up to a year after delivery. This can sometimes make it difficult to identify postpartum depression.
 
 General symptoms of postpartum depression include:
 

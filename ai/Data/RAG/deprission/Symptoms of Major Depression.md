@@ -1,3 +1,10 @@
+---
+title: What Are the Symptoms of Major Depression?
+source: Psych Central
+category: Depression
+language: English
+---
+
 What Are the Symptoms of Major Depression?
 
 We all feel sad sometimes. But if you’ve been feeling very low for more than two weeks, you may be experiencing depression.
@@ -10,11 +17,11 @@ Depression is a mental health condition that lasts two weeks or more in which yo
 
 The good news is that depression is treatable, and help is available. Lots of treatments can help, including therapy, self-care, and in some cases, antidepressants.
 
-we will not mention them all but 
+
 Are there different kinds of depression?
 Yes. Depression isn’t a one-size-fits-all.
 
-“Many people with depression don’t even know they have it,” says Adrienne Meier, a clinical psychologist and telehealth practitioner. “Symptoms are often misattributed to fatigue or stress or even just ‘getting older.'”
+“Many people with depression don’t even know they have it.” “Symptoms are often misattributed to fatigue or stress or even just ‘getting older.'”
 
 These are different kinds of depression:
 
@@ -35,7 +42,7 @@ Major depression can cause a range of symptoms that last 2 weeks or longer.
 Depression appears differently for each person, and its symptoms are not always consistent or clear-cut. You don’t need to experience all of the following to receive a diagnosis of depression, but it usually involves a combination of these symptoms:
 
 Persistent feelings of sadness or hopelessness
-“[Depression] feels deeper than sadness,” Heinemann says.
+“[Depression] feels deeper than sadness.”
 
 You might find yourself wondering what’s the point of getting up, or you might cry more easily.
 
@@ -46,14 +53,14 @@ Others feel worthless or guilty. You might find yourself dwelling on things you 
 Or, you might not like yourself much right now. Self-loathing is a frequent symptom.
 
 You’re less interested in things you usually enjoy
-“Someone struggling [with depression] might lose interest in doing the things they used to be passionate about,” Heinemann says.
+“Someone struggling [with depression] might lose interest in doing the things they used to be passionate about.”
 
 For example, if you used to lovegoing for walks, playing sports, or painting, but now you dread the idea of doing any of those things, that’s a big red flag for depression.
 
 Depression can also impact your desire for sex, according to research.
 
 You find it hard to concentrate, get things done, or take care of yourself
-“Often those suffering from depression describe it as a weight on top of them, suffocating them, making it impossible to get out of bed or take care of their basic needs,” says Heinemann. “They feel drowned by depression.”
+“Often those suffering from depression describe it as a weight on top of them, suffocating them, making it impossible to get out of bed or take care of their basic needs.” “They feel drowned by depression.”
 
 This can feel like being really low on energy.
 
@@ -61,17 +68,17 @@ This can feel like being really low on energy.
 
 Others struggle with simple chores or concentrating at work. Even making decisions can feel difficult if you have depression.
 
-“Depression tends to hijack our brain, so the strategies we usually use or rely on [to get things done] aren’t helpful because our brains are lying to us,” explains Meier. “We are seeing the world through poop-covered glasses.”
+“Depression tends to hijack our brain, so the strategies we usually use or rely on [to get things done] aren’t helpful because our brains are lying to us.” “We are seeing the world through poop-covered glasses.”
 
 You feel irritable
-Research suggests that irritability is a symptom that’s most common in malesTrusted Source, but it can affect anyone. Irritability and aggression are also common signs of depression in children.
+Research suggests that irritability is a symptom that’s most common in males, but it can affect anyone. Irritability and aggression are also common signs of depression in children.
 
 So if you find yourself prone to anger, aggressiveness, or feel as if everyone around you is irritating, this could signal depression.
 
 Your sleep patterns have changed
 You might feel tired all the time and find yourself sleeping a lot more than usual. Or you might find it difficult to sleep even when you’re tired, so you spend long nights awake in bed.
 
-But research suggests that most peopleTrusted Source experience some sleep disturbance when they have depression.
+But research suggests that most people experience some sleep disturbance when they have depression.
 
 Your appetite has changed
 As with sleep, depression affects people’s appetites differently. Some people are hungry or feel the urge to eat all the time. Others don’t feel like eating at all.
@@ -105,7 +112,7 @@ A number of things that can cause or contribute to depression, including:
 Brain structure: Research suggests that the hippocampus is smaller in some people with depression. A less active frontal lobe could also cause it.
 Biochemistry: Differences in certain brain chemicals could contribute to depression.
 Family history: You are more likely to have depression if depression or another mental health condition runs in your family.
-Trauma: Stressful or traumatic events can impact how your body reacts to fear and stress in the future, which raises your risk of depression. This is especially trueTrusted Source for childhood trauma.
+Trauma: Stressful or traumatic events can impact how your body reacts to fear and stress in the future, which raises your risk of depression. This is especially true for childhood trauma.
 Medical conditions: Chronic illness or pain, insomnia, and attention-deficit hyperactivity disorder (ADHD) are some of the conditions that could put you at a higher risk of developing depression.
 Environmental factors: Exposure to abuse, violence, poverty, or trauma could make you more vulnerable to depression.
 
@@ -114,11 +121,11 @@ If you are noticing the symptoms of depression, a healthcare professional can he
 
 This will likely begin with a conversation and a physical examination. Your doctor will likely ask you about your family history to see if depression or other mental health conditions run in your family.
 
-If you’re talking with your primary physician, they might also order blood tests to ensure that another medical condition isn’t the cause of your symptoms. For example, the fatigue or lethargy you can feel with depression could also be caused by vitamin deficienciesTrusted Source or a thyroid issue.
+If you’re talking with your primary physician, they might also order blood tests to ensure that another medical condition isn’t the cause of your symptoms. For example, the fatigue or lethargy you can feel with depression could also be caused by vitamin deficiencies or a thyroid issue.
 
 If your doctor can’t find another cause for your symptoms, they will likely refer you to a licensed mental health expert who will evaluate your mood, behavior, and day-to-day activities.
 
-They will also ask you about your family’s psychological history. They may use a depression-rating questionnaire, such as the Hamilton Depression Rating Scale or the Patient Health Questionnaire 9 (PHQ-9)Trusted Source, to diagnose the condition.
+They will also ask you about your family’s psychological history. They may use a depression-rating questionnaire, such as the Hamilton Depression Rating Scale or the Patient Health Questionnaire 9 (PHQ-9), to diagnose the condition.
 
 According to the DSM-5, you have to display at least five of the main symptoms of depression for over two weeks to get a diagnosis.
 
@@ -127,7 +134,7 @@ If you are experiencing symptoms of depression, it’s always best to talk with 
 
 It’s OK if you’re feeling reluctant to talk to a mental health expert or doctor, but you have nothing to be ashamed of. It’s OK to ask for help. If you’re not comfortable sharing, then no one except you and your doctor has to know that you’re seeking treatment.
 
-“We go to a doctor when our body isn’t feeling well, and we go to a therapist when our emotions feel out of whack,” says Heinemann. “Depression is not your fault, nor is it something you can just snap out of.”
+“We go to a doctor when our body isn’t feeling well, and we go to a therapist when our emotions feel out of whack.” “Depression is not your fault, nor is it something you can just snap out of.”
 
 Wondering if your symptoms might be depression? You can take our depression test to find out.
 
@@ -136,6 +143,6 @@ If you’re ready to reach out, a therapist who practices interpersonal therapy 
 What’s next?
 Once you receive a diagnosis of depression, your mental health professional will discuss possible treatments for depression with you, including one or a combination of the following:
 
-Antidepressants: These can help you begin to see improvement in your symptoms within a few weeks, though it could be a couple of months before you truly begin to feel better.
+
 Psychotherapy: Better known as talk therapy, psychotherapy can help you learn to problem-solve and recognize negative thinking. Your therapist can also help you maximize meaningful behaviors and activities during your week. This helps many people cope with challenges in a more adaptive way.
 Electroconvulsive therapy (ECT): This is reserved for people with the most severe kinds of depression who haven’t responded to other treatments. This is a safe and effective treatment.

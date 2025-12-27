@@ -1,3 +1,11 @@
+---
+title: All About Double Depression
+source: Psych Central
+category: Depression
+language: English
+---
+
+
 Double depression is actually a combo of two diagnoses. It can be severe, so getting good support is important.
 
 Depression comes in different forms, or subtypes. If you have double depression, it means your depression follows a couple of different patterns rather than just one.
@@ -7,7 +15,7 @@ When double depression arises, it can make the depression symptoms you already h
 What is double depression?
 Although the Diagnostic and Statistical Manual of Mental Disorders, 5th edition (DSM-5) doesn‘t recognize the term “double depression,“ it does recognize the two diagnoses that make up double depression: persistent depressive disorder (PDD) and major depressive disorder (MDD).
 
-Double depression happens when someone with PDD also meets the diagnostic criteria for MDD. If you live with PDD, chances are you’ll experience double depression at some point — in fact, up to 3 in 4Trusted Source people with PDD will also experience MDD in their lifetime.
+Double depression happens when someone with PDD also meets the diagnostic criteria for MDD. If you live with PDD, chances are you’ll experience double depression at some point — in fact, up to 3 in 4 people with PDD will also experience MDD in their lifetime.
 
 Persistent depressive disorder (PDD)
 PDD used to be called dysthymia or dysthymic disorder. Some people also know it as high-functioning depression.
@@ -36,13 +44,13 @@ thoughts of death or suicide
 How is double depression different from other forms of depression?
 Double depression tends to be more severe than other forms of depression because you’re experiencing symptoms of two different, overlapping conditions.
 
-Research from 2015Trusted Source found that people with double depression had the most severe symptoms of any group with a depressive disorder.
+Research from 2015 found that people with double depression had the most severe symptoms of any group with a depressive disorder.
 
-The same research also found higher rates of suicidal thoughts in people with double depression — just over 1 in 2Trusted Source people with double depression reported suicidal ideation, and the study considered people with double depression to also be at a higher risk of suicide attempts.
+The same research also found higher rates of suicidal thoughts in people with double depression — just over 1 in 2 people with double depression reported suicidal ideation, and the study considered people with double depression to also be at a higher risk of suicide attempts.
 
-Research from 2018Trusted Source suggests that people with double depression have a higher chance of developing heart disease than those with other depression diagnoses. Experts think this is because the longer-lasting PDD symptoms mixed with the severity of MDD can increase exposure to more of depression’s health impacts than either diagnosis on its own.
+Research from 2018 suggests that people with double depression have a higher chance of developing heart disease than those with other depression diagnoses. Experts think this is because the longer-lasting PDD symptoms mixed with the severity of MDD can increase exposure to more of depression’s health impacts than either diagnosis on its own.
 
-Researchers also foundTrusted Source that people with double depression experienced more hopelessness than those with other types of depression, which could affect long-term health.
+Researchers also found that people with double depression experienced more hopelessness than those with other types of depression, which could affect long-term health.
 
 What causes double depression?
 The same factors that cause PDD and MDD are at the root of what causes double depression, but experts still haven’t identified one clear cause.
@@ -87,9 +95,9 @@ If you’re already seeing a therapist to manage PDD, letting them know about an
 Brain stimulation
 When depression doesn’t respond to other forms of treatment, certain types of brain stimulation have been shown to help, including electroconvulsive therapy (ECT) and repetitive transcranial magnetic stimulation (rTMS).
 
-Research from 2018Trusted Source suggests that deep brain stimulation could be beneficial for people living with forms of depression that are harder to treat, but further studies are needed.
+Research from 2018 suggests that deep brain stimulation could be beneficial for people living with forms of depression that are harder to treat, but further studies are needed.
 
-Healthgrades is owned by RVO Health. By clicking on this link, we may receive a commission. Learn more.
+
 
 Self-care strategies
 Professional support is often an important part of managing depression symptoms, especially when they’re severe and difficult to treat. But you can take steps to manage those symptoms at home, too.

@@ -1,7 +1,9 @@
+---
 title: What Are Anxiety Disorders?
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 What Are Anxiety Disorders?
 
@@ -9,7 +11,7 @@ Everyone experiences anxiety sometimes. But when anxiety feels extreme and gets 
 
 Anxiety disorders are one of the most common mental health conditions in the United States. So if you’re feeling concerned about your anxiety, know that you’re not alone.
 
-In fact, the National Institute of Mental Health (NIMH)Trusted Source estimates that almost one-third of U.S. adults will have an anxiety disorder during their lifetimes.
+In fact, the National Institute of Mental Health (NIMH) estimates that almost one-third of U.S. adults will have an anxiety disorder during their lifetimes.
 
 Anxiety disorders involve excessive fear, anxiety, or worries that interfere with your well-being and ability to function. For example, recurring anxious thoughts and behaviors can have a big impact on your work life, school life, hobbies, or relationships.
 
@@ -133,7 +135,7 @@ Anxiety disorders are very treatable, though the ADAA estimates that only 36.9% 
 
 Most types of anxiety respond well to psychotherapy alone.
 
-In particular, researchTrusted Source suggests that cognitive behavioral therapy (CBT) and other behavioral therapies are effective for many people.
+In particular, research suggests that cognitive behavioral therapy (CBT) and other behavioral therapies are effective for many people.
 
 Everyday Coping Methods
 

@@ -1,3 +1,11 @@
+---
+title: Effects of Untreated Depression: What to Look For
+source: Psych Central
+category: Depression
+language: English
+---
+
+
 Effects of Untreated Depression: What to Look For
 
 Fatigue, irritability, hopelessness, and pains and aches are all effects of depression. They can be managed, though.
@@ -37,7 +45,7 @@ decreased sex drive or dyspareunia (pain during sex)
 increased chance of autoimmune disorders
 Depression can also increase your chance of developing physical conditions.
 
-For example, a 2014 literature reviewTrusted Source suggested that depression is linked to a significantly greater chance of myocardial infarction and coronary heart disease.
+For example, a 2014 literature review suggested that depression is linked to a significantly greater chance of myocardial infarction and coronary heart disease.
 
 One of the greatest challenges with the physical effects of depression is that they, in turn, might make your other symptoms worse. For example, not being able to sleep can lead to more aches and pains.
 Psychosocial effects of depression
@@ -99,7 +107,7 @@ There are some things that you can do in your daily life to help you or someone 
 Some self-care tips for depression include:
 
 Move more often. Consider adding a few minutes of exercise and activity to your daily routine. Staying active will help you feel better in time.
-Follow a nutrient-rich diet. One 2017 studyTrusted Source found that people who followed diets rich in fruits and vegetables carried a lower chance of developing depression.
+Follow a nutrient-rich diet. One 2017 study found that people who followed diets rich in fruits and vegetables carried a lower chance of developing depression.
 Keep connected with friends and relatives. This could include spending some time on the phone, video calls, or having a cup of coffee together.
 Open up. If possible, talk about your feelings and thoughts with someone you trust. This might be challenging, but explaining your symptoms to other people might help them provide you the support you need.
 Set realistic expectations. This not only goes for your personal and professional life but also for your treatment.

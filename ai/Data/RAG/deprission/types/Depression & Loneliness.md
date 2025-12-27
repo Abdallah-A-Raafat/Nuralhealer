@@ -1,4 +1,11 @@
-Can Loneliness Cause Depression?
+---
+title: Can Loneliness Cause Depression?
+source: Psych Central
+category: Depression
+language: English
+---
+
+
 Could feeling lonely turn into depression? Or does depression make you feel lonely? Understanding the link between the two may help you cope.
 
 Loneliness can hit you hard sometimes. It can come with feelings of hopelessness, sadness, and lack of motivation. So, is it depression?
@@ -55,7 +62,7 @@ Sometimes, depression makes it harder to want to reach out and connect with othe
 
 There’s also the matter of how long loneliness and depression last.
 
-Loneliness can come and go or only last a short while. It can also last longer, depending on your situation. A diagnosis of depression, on the other hand, means you’ve experienced symptoms for at least 2 weeks, Sehat clarifies.
+Loneliness can come and go or only last a short while. It can also last longer, depending on your situation. A diagnosis of depression, on the other hand, means you’ve experienced symptoms for at least 2 weeks.
 
 The best way to know if what you‘re experiencing is loneliness or symptoms of depression is to reach out to a mental health professional.
 
@@ -98,9 +105,9 @@ Even being surrounded by others does not prevent feelings of loneliness. You can
 Your emotional resources, including coping skills, may also make a difference. That’s why some people can manage being alone without feeling lonely.
 
 What about social or physical isolation?
-As you might expect, social and physical isolation from the COVID-19 pandemic caused a spikeTrusted Source in both loneliness and depression.
+As you might expect, social and physical isolation from the COVID-19 pandemic caused a spike in both loneliness and depression.
 
-“Many people lost their loved ones during the pandemic,” says Sehat. “Moreover, people could not travel to meet their families or be with them. That lack of social connection, and the loss that many faced, worsened the loneliness factor in people.”
+“Many people lost their loved ones during the pandemic.” “Moreover, people could not travel to meet their families or be with them. That lack of social connection, and the loss that many faced, worsened the loneliness factor in people.”
 
 In fact, one study found that one-third of participants reported symptoms of depression as a direct result of the pandemic.
 

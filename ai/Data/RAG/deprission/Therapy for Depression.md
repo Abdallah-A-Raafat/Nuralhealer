@@ -1,3 +1,12 @@
+---
+title: Therapy for Depression
+source: Psych Central
+category: Depression
+language: English
+---
+
+
+
 here are several different kinds of therapy that are considered evidence-based for treating depression, which means that they have been studied and clinically proven to be effective. Here is a breakdown of some of them:
 
 Cognitive behavioral therapy (CBT)

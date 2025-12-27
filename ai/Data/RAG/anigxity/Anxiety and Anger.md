@@ -1,7 +1,9 @@
+---
 title: When Anxiety Manifests in Anger
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 Anger and anxiety are two sides of the same coin: agitated unease. These emotional states are closely intertwined but have key differences.
 
@@ -22,7 +24,7 @@ The body goes into fight, flight, or freeze mode, causing the release of adrenal
 
 Anger and anxiety might start physically in similar ways, but they culminate differently.
 
-“Fight or flight is a biologically driven response that is here to protect us, however, can sometimes lead us to wrongly label situations as threatening,” explains Corey Connelly, a counselor out of Charlotte, North Carolina.
+“Fight or flight is a biologically driven response that is here to protect us, however, can sometimes lead us to wrongly label situations as threatening.”
 
 “When this instinct kicks in and riles up our heart rate and our breathing, it’s much more challenging to appropriately judge a situation, leading us to either exhibit fear [or] freeze and symptoms of anxiety (such as sweaty palms, panic, inability to communicate), or fight and symptoms of anger (clenched fists, yelling, and physical harm).”
 
@@ -36,15 +38,13 @@ exhausting ruminating or catastrophic thinking
 a perceived inability to control the situation
 Anxiety, like anger, lowers the threshold to tolerate everyday life events, which then may culminate in increased episodes of anger.
 
-“While anger is the emotion we typically exhibit on the surface, there can be so many other feelings that are underneath,” says Connelly.
+“While anger is the emotion we typically exhibit on the surface, there can be so many other feelings that are underneath.”
 
 “For example, to a romantic partner, we may respond with anger, but what I’m actually feeling is, ‘I’m scared that you’re going to leave me.’ Showing anger oftentimes feels safer than opening up and being vulnerable about what we’re actually feeling.”
 
 It’s also helpful to understand the difference between anger attacks and panic attacks.
 
-Dr. Gregory Scott Brown is a psychiatrist and author of “The Self-Healing Mind.”
-
-“While anger attacks aren’t an official diagnosis, and panic attacks are more clearly defined by mental health professionals (uncontrollable episodes of intense fear or loss of control that may be accompanied by physical symptoms like clammy palms, tunnel vision, or shortness of breath), symptoms of both anger and panic may be similar,” Brown says.
+“While anger attacks aren’t an official diagnosis, and panic attacks are more clearly defined by mental health professionals (uncontrollable episodes of intense fear or loss of control that may be accompanied by physical symptoms like clammy palms, tunnel vision, or shortness of breath), symptoms of both anger and panic may be similar.”
 
 One difference, however, may be that usually, anger attacks are preceded by a thought, event, or situation that causes you to feel angry. You may find yourself dwelling over the source of your anger before an anger attack.
 
@@ -82,7 +82,7 @@ How to manage anxious anger
 Practice mindfulness
 Mindfulness can be effective in treating anxiety and anger. Knowing where the emotion is showing up physically is the first step in learning to manage it.
 
-“Being able to feel the first signs of anger or anxiety in our body physically helps us appropriately use the coping skills that we need to bring our emotions back down,” says Connelly. “The most important coping skill once you feel and recognize your anger is to first and foremost take some space.”
+“Being able to feel the first signs of anger or anxiety in our body physically helps us appropriately use the coping skills that we need to bring our emotions back down. The most important coping skill once you feel and recognize your anger is to first and foremost take some space.”
 
 For instance, if there’s another person in the room, you might want to calmly separate yourself from the immediate stimuli, perhaps go outside.
 
@@ -91,19 +91,19 @@ Even if you’re feeling angry at your work desk over a frustrating email, you c
 Engage in a distracting activity
 Once space is taken, it’s helpful to find a distraction (short term) to get out of our thought cycles feeding the anger or anxiety.
 
-“Playing a quick game on your phone, doing a crossword puzzle are good distraction techniques, but be mindful that once the emotion does not feel as overwhelming anymore, we need to explore it,” Connelly says. “For anxiety and panic attacks, taking space and utilizing distractions can be helpful as well.”
+“Playing a quick game on your phone, doing a crossword puzzle are good distraction techniques, but be mindful that once the emotion does not feel as overwhelming anymore, we need to explore it. For anxiety and panic attacks, taking space and utilizing distractions can be helpful as well.”
 
 Tune into your senses
 Grounding skills and using your senses to orient yourself to your environment are useful for anxiety.
 
-“Once you register that you’re feeling anxious, trying to notice the space around you by identifying sights, sounds, smells can help bring the initial feeling of panic down a few notches,” says Connelly.
+“Once you register that you’re feeling anxious, trying to notice the space around you by identifying sights, sounds, smells can help bring the initial feeling of panic down a few notches.”
 
-“If you can, trying to regulate your breathing can be effective coping for both anger and anxiety. As both these feelings trigger rising heart rate and breathing, similar coping skills often work across both,” she says.
+“If you can, trying to regulate your breathing can be effective coping for both anger and anxiety. As both these feelings trigger rising heart rate and breathing, similar coping skills often work across both.”
 
 Communication
 Communicating how you’re feeling can help with anger and anxiety.
 
-“Anger and anxiety (especially when it’s uncontrollable) can make you feel ashamed,” says Brown. “Talking to someone about what you are feeling is usually the first step to overcoming uncomfortable feelings anger and anxiety can produce.”
+“Anger and anxiety (especially when it’s uncontrollable) can make you feel ashamed. Talking to someone about what you are feeling is usually the first step to overcoming uncomfortable feelings anger and anxiety can produce.”
 
 Let’s recap
 Like all emotions, becoming aware of how they affect us can significantly improve our overall well-being.

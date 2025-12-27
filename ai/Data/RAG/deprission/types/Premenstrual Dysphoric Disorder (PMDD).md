@@ -1,10 +1,18 @@
-All About Premenstrual Dysphoric Disorder (PMDD)
+---
+title: All About Premenstrual Dysphoric Disorder (PMDD)
+source: Psych Central
+category: Depression
+language: English
+---
+
+
+
 
 How is PMDD different from PMS? Is there any relief? Here’s what to know about premenstrual dysphoric disorder.
 
 For the vast majority of women worldwide, premenstrual symptoms are a certainty, like clockwork.
 
-Premenstrual syndrome (PMS) affects up to 90%Trusted Source of women during their reproductive years.
+Premenstrual syndrome (PMS) affects up to 90% of women during their reproductive years.
 
 For 3–8% of menstruating women, the mental and physical symptoms brought on by their menstrual cycle are so severe that PMS doesn’t accurately describe them.
 
@@ -44,13 +52,13 @@ reduced sex drive
 Why do some people get premenstrual dysphoric disorder?
 We still don’t totally understand what causes PMDD, but experts are beginning to get a better idea.
 
-Some researchTrusted Source indicates that women with PMDD are unusually sensitive to hormonal changes in the body.
+Some research indicates that women with PMDD are unusually sensitive to hormonal changes in the body.
 
 That would help explain why the luteal phase of the menstrual cycle — 1 to 2 weeks before your period — would trigger symptoms, as estrogen and progesterone levels dramatically rise and fall.
 
 These hormone changes also spur a drop in serotonin, which may be responsible for PMDD symptoms like low mood, anxiety, and sleeping problems.
 
-Recent researchTrusted Source has shown a connection between PMDD and the naturally-produced steroid, allopregnanolone (ALLO), which is metabolized by progesterone. ALLO has anti-anxiety and antidepressant properties, but according to the research, brains of people with PMDD appear to be less sensitive to its helpful functions.
+Recent research has shown a connection between PMDD and the naturally-produced steroid, allopregnanolone (ALLO), which is metabolized by progesterone. ALLO has anti-anxiety and antidepressant properties, but according to the research, brains of people with PMDD appear to be less sensitive to its helpful functions.
 
 Contributing factors
 Though these alone won’t cause PMDD, certain factors may increase your chances of developing it. They include:
@@ -116,23 +124,6 @@ reducing intake of alcohol, caffeine, and sugar
 increasing intake of protein
 stress management and relaxation techniques
 For women with symptoms that can’t be managed by these changes alone, medication and therapy may be necessary.
-
-Selective serotonin reuptake inhibitors (SSRIs) are generally regarded as the first line of pharmaceutical treatment for PMDD.
-
-Unlike SSRI use for major depressive disorder (MDD), research indicates that even low doses can significantly reduce symptoms and go into effect almost immediately.
-
-Birth control pills are also commonly used as a treatment for PMDD, but evidence of their efficacy is lacking.
-
-Although research findingsTrusted Source have been largely inconclusive, some women find that supplements and vitamins help relieve symptoms.
-
-Examples include:
-
-vitamin B6 (Pxridoxine)
-calcium
-chasteberry (Vitex agnus castus)
-magnesium
-ginger
-valerian
 Cognitive behavioral therapy (CBT) is also a sound form of treatment that can help you learn how to manage your mental and physical symptoms.
 
 Let’s recap

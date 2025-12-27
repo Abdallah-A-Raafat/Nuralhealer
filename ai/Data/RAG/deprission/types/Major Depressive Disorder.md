@@ -1,4 +1,12 @@
-What Is Major Depressive Disorder?
+---
+title: What Is Major Depressive Disorder?
+source: Psych Central
+category: Depression
+language: English
+---
+
+
+
 
 Depression is a formal mental health condition, not a personal choice. It can’t be reversed by just “thinking positive,” and it doesn’t need to be permanent.
 
@@ -140,7 +148,7 @@ Experts haven’t identified one specific root cause of depression. Existing evi
 
 Potential causes of major depressive disorder include:
 
-Genetics. According to the DSM-5, you’re two to four times more likely to develop MDD if a first-degree relative also has the condition. Research from 2016Trusted Source supports family history as a key factor in MDD.
+Genetics. According to the DSM-5, you’re two to four times more likely to develop MDD if a first-degree relative also has the condition. Research from 2016 supports family history as a key factor in MDD.
 Biology. Imbalances in serotonin, dopamine, and other important brain chemicals might contribute to MDD symptoms.
 Environment. Neglect, abuse, violence, and other negative experiences in childhood can cause significant stress and contribute to MDD later in life.
 Other contributing factors can increase your chances for developing MDD, especially when combined with biology, genetic, or environmental factors.
@@ -197,8 +205,8 @@ developing a self-care plan
 Cognitive behavioral therapy is widely used to treat MDD, but other approaches can also offer benefits:
 
 interpersonal therapy
-psychodynamic therapyTrusted Source
-mindfulness-based cognitive therapyTrusted Source
+psychodynamic therapy
+mindfulness-based cognitive therapy
 humanistic therapy
 
 Self-care for major depression
@@ -220,7 +228,7 @@ Check in with loved ones on a regular basis.
 Try to stay active
 Exercise can’t cure depression, but it can help you feel better, especially when you take it outside.
 
-It’s natural and not uncommon to feel you’re not up for an intense workout. Low-impact exercise like walkingTrusted Source or yoga can also help lift your mood and improve your outlook overall.
+It’s natural and not uncommon to feel you’re not up for an intense workout. Low-impact exercise like walking or yoga can also help lift your mood and improve your outlook overall.
 
 Take it slow
 Consider treating yourself kindly as you work to manage your symptoms.

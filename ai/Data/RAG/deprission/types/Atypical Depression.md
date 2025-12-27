@@ -1,3 +1,11 @@
+---
+title: All About Atypical Depression
+source: Psych Central
+category: Depression
+language: English
+---
+
+
 All About Atypical Depression
 
 Compared to other forms of depression, people with atypical depression might feel sleepier, hungrier, and more responsive to positive events.
@@ -6,7 +14,7 @@ Do you experience depression but still get a mood lift when good things happen? 
 
 These are some of the symptoms of “atypical depression.”
 
-Though the name makes it sound rare, atypical depression is actually fairly common, occurring in about 18% to 36%Trusted Source of people with depression.
+Though the name makes it sound rare, atypical depression is actually fairly common, occurring in about 18% to 36% of people with depression.
 
 What is the definition of atypical depression?
 According to the Diagnostic and Statistical Manual of Mental Disorders, 5th edition (DSM-5), atypical depression — also called “depression with atypical features” — is a “specifier” that mental health professionals may add to the following disorders:
@@ -27,7 +35,7 @@ leaden paralysis, where your arms and legs feel heavy
 a long-term pattern of rejection sensitivity, when you interpret ordinary or slightly negative social cues as rejection
 Importantly, atypical depression isn’t always persistent. For example, a person diagnosed with atypical features may begin to experience symptoms of melancholy, which is another depression specifier. People who have depression with melancholic features have anhedonia (an inability to feel pleasure) and show no signs of mood reactivity.
 
-In fact, research shows that depression subtypes diagnoses are stable only 22% to 29%Trusted Source of the time. It’s more common for people to experience fluctuations between atypical and melancholic episodes than to have one type consistently over time.
+In fact, research shows that depression subtypes diagnoses are stable only 22% to 29% of the time. It’s more common for people to experience fluctuations between atypical and melancholic episodes than to have one type consistently over time.
 
 Overall, it’s important that people with atypical symptoms receive a thorough evaluation before diagnosis.
 
@@ -36,7 +44,7 @@ Atypical depression can be misdiagnosed as borderline personality disorder becau
 What causes atypical depression?
 The exact cause of atypical depression is unknown, but there are a few theories. The causes of depression are likely similar for different subtypes of depression — a mixture of genetic and environmental factors.
 
-A 2017 reviewTrusted Source notes the following specific differences that might contribute to atypical depression:
+A 2017 review notes the following specific differences that might contribute to atypical depression:
 
 Differences in the stress response system. The stress response system, called the hypothalamic–pituitary–adrenal (HPA) axis, may act differently in depression with atypical vs. melancholic features. It appears to be overactive in those with melancholic depression, and underactive in those with atypical depression.
 Inflammatory markers. Inflammation appears to be much greater in people with atypical depression compared to other forms of depression and healthy controls. Atypical depression also has different inflammation patterns than melancholy depression.
@@ -51,7 +59,7 @@ eating disorders
 substance use disorders
 When compared to melancholic depression, people with atypical depression tend to have an earlier onset and a more chronic course of the illness. They also are more likely to have family members who have chronic depression.
 
-Some evidenceTrusted Source also suggests that atypical depression may be related to seasonal depression and obesity.
+Some evidence also suggests that atypical depression may be related to seasonal depression and obesity.
 
 How is atypical depression treated?
 Atypical depression is often treated with psychotherapy, medication, or both.
@@ -59,7 +67,7 @@ Atypical depression is often treated with psychotherapy, medication, or both.
 Psychotherapy
 Psychotherapy, particularly cognitive behavioral therapy (CBT), is a common treatment for most forms of depression, including atypical depression. CBT teaches clients to identify and change any negative or unhelpful belief patterns.
 
-In a 2013 studyTrusted Source, participants with depression were given either a 16-week course of the antidepressant paroxetine or a course of CBT. Both treatments reduced cognitive and suicidal symptoms; however, CBT was more effective at reducing certain atypical symptoms, such as overeating and oversleeping.
+In a 2013 study, participants with depression were given either a course of antidepressants or a course of CBT. Both treatments reduced cognitive and suicidal symptoms; however, CBT was more effective at reducing certain atypical symptoms, such as overeating and oversleeping.
 
 Living with atypical depression
 If you live with atypical depression, there are several things you can do to assist in your treatment. These include exercise, a healthy diet, and reaching out for support.
@@ -67,12 +75,12 @@ If you live with atypical depression, there are several things you can do to ass
 Exercise
 Exercise may be the last thing on your mind when you’re dealing with the fatigue and heaviness of atypical depression.
 
-But 2016 researchTrusted Source shows that people with MDD with atypical features have better treatment outcomes when they engage in aerobic exercise. The authors also report that people with hypersomnia and increased BMI (symptoms of atypical depression) may have a greater response to exercise.
+But 2016 research shows that people with MDD with atypical features have better treatment outcomes when they engage in aerobic exercise. The authors also report that people with hypersomnia and increased BMI (symptoms of atypical depression) may have a greater response to exercise.
 
 Healthy diet
 Several studies over the years have suggested that a healthy diet may play a role in reducing certain types of depression. Similarly, a poor diet, including one full of sweets, processed foods, and refined grains, may contribute to the risk of depression.
 
-A 2018 reviewTrusted Source of 41 studies found that consistently eating a healthy diet — particularly a traditional Mediterranean diet, or at least avoiding a pro-inflammatory diet — appears to offer some protection against depression.
+A 2018 review of 41 studies found that consistently eating a healthy diet — particularly a traditional Mediterranean diet, or at least avoiding a pro-inflammatory diet — appears to offer some protection against depression.
 
 The Mediterranean diet is characterized by vegetables, fruit, nuts, fish, olive oil, and whole grains.
 

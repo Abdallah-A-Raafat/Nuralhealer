@@ -1,7 +1,9 @@
+---
 title: What Are the Symptoms of Social Anxiety?
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 Social anxiety symptoms tend to come from fear involving social situations. With the right coping strategies, it’s possible to greatly reduce your symptoms.
 
@@ -9,7 +11,7 @@ When you’re around others, you may feel like you’re always onstage — and t
 
 For people with social anxiety disorder — previously called social phobia — these thoughts can be frustratingly common.
 
-You may often feel a sense of isolation if you have social anxiety, but you’re not alone. In fact, an estimated 12.1% of adultsTrusted Source in the United States experience social anxiety disorder at some point in life.
+You may often feel a sense of isolation if you have social anxiety, but you’re not alone. In fact, an estimated 12.1% of adults in the United States experience social anxiety disorder at some point in life.
 
 According to the National Alliance on Mental Illness (NAMI), social anxiety disorder can also cause panic attacks. But learning about your own symptoms and what triggers them can make social anxiety much easier to manage.
 
@@ -25,7 +27,7 @@ Having social anxiety disorder also doesn’t always mean that you’re shy. You
 Psychological and physical social anxiety symptoms
 Even if you know a fear doesn’t make logical sense, that might not stop it from causing anxiety. The ability to identify symptoms can be one of the first steps toward learning to manage social anxiety disorder.
 
-The National Institute of Mental Health (NIMH)Trusted Source estimates that social anxiety disorder affects 7.1% of U.S. adults a year. Women are slightly more likely than men to experience SAD.
+The National Institute of Mental Health (NIMH) estimates that social anxiety disorder affects 7.1% of U.S. adults a year. Women are slightly more likely than men to experience SAD.
 
 Social anxiety disorder isn’t the same for everyone. Below are some physical and psychological signs and symptoms you may recognize if you experience social anxiety.
 
@@ -64,7 +66,7 @@ Having social anxiety disorder can feel isolating, but you’re not alone. Many 
 Types of social anxiety disorder
 Social anxiety disorder can look different from person to person. If you have social anxiety disorder, your symptoms might present as mild, moderate, or severe. Your symptoms can also cause mild, moderate, or severe impairment in terms of day-to-day functioning.
 
-NIMHTrusted Source reports that in a survey led by Harvard University from 2001 to 2003, it’s estimated that out of U.S. adults with social anxiety disorder:
+NIMH reports that in a survey led by Harvard University from 2001 to 2003, it’s estimated that out of U.S. adults with social anxiety disorder:
 
 31.3% had mild impairment
 38.8% had moderate impairment
@@ -80,7 +82,7 @@ being watched while working
 This list highlights some common fears people with social anxiety disorder may experience, but it’s not comprehensive. You may find that a completely different social situation triggers your social anxiety.
 
 Social anxiety disorder and related conditions
-Up to 90%Trusted Source of people with social anxiety disorder have a co-occurring condition, meaning that they have two conditions simultaneously. It’s not uncommon for someone with social anxiety disorder to also experience depression or substance use issues, for instance.
+Up to 90% of people with social anxiety disorder have a co-occurring condition, meaning that they have two conditions simultaneously. It’s not uncommon for someone with social anxiety disorder to also experience depression or substance use issues, for instance.
 
 It can also be easy to confuse another condition for social anxiety disorder because they have symptoms in common. Some conditions that have symptoms in common with social anxiety include:
 
@@ -115,7 +117,7 @@ Do you use any medications or substances?
 If your social anxiety is related only to public speaking or performing in front of others, you may only have the performance type of social anxiety disorder.
 
 Social anxiety symptoms in children
-According to the DSM-5, 75% of peopleTrusted Source in the United States who develop social anxiety disorder do so between ages 8 and 15. But does social anxiety present differently in children than in adults?
+According to the DSM-5, 75% of people in the United States who develop social anxiety disorder do so between ages 8 and 15. But does social anxiety present differently in children than in adults?
 
 The short answer is yes. When it comes to figuring out whether a child has social anxiety disorder, there are a few key distinctions. Keep in mind that according to the DSM-5, a child should be able to form age-appropriate relationships for a social anxiety disorder diagnosis to fit.
 

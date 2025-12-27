@@ -1,9 +1,15 @@
-https://www.verywellmind.com/sadness-is-not-depression-2330492
+---
+title: Sadness vs. Clinical Depression
+source: Verywell Mind
+category: Depression
+language: English
+---
+
+
 
 Sadness vs. Clinical Depression
 
-Table of Contents
-View All
+
 Is Sadness a Feeling or Emotion?
 Coping With Sadness
 Important Distinctions
@@ -11,7 +17,7 @@ Symptoms of Depression
 Diagnosis
 
 
-Key Takeaways
+
 Sadness is temporary and often occurs after disappointing events, while depression lasts longer and affects daily life.
 If feelings of sadness or depression last more than two weeks, talk to your doctor.
 Sadness is an emotional state characterized by unhappiness and low mood. It is considered one of the basic human emotions. It is a normal response to situations that are upsetting, painful, or disappointing. Sometimes, these feelings can be more intense, while in other cases, they might be fairly mild.
@@ -112,21 +118,16 @@ Childhood trauma
 It is important also to be aware that feelings of sadness in response to a situation in your life can turn into depression. This is why it is essential to seek help if you suspect that what you are feeling is more than normal sadness.
 
 Treatment for Depression
-Depression is usually treated using medications called antidepressants or through talk therapy. Usually, the best treatment plans include both.
+Depression is usually treated through talk therapy. Usually, the best treatment plans include a variety of approaches.
 
-Medications
-Some popular medication choices for depression include:
 
-Selective serotonin reuptake inhibitors (SSRIs) like Paxil (paroxetine), Prozac (fluoxetine), and Zoloft (sertraline)
-Serotonin and norepinephrine reuptake inhibitors (SNRIs) like Cymbalta (duloxetine), Effexor (venlafaxine), and Pristiq (desvenlafaxine).
-Your doctor will discuss with you which option is best for you.
 
 Psychotherapy
 Cognitive therapy is a popular type of psychotherapy for depression.6﻿ It teaches people to take their negative patterns of thinking and replace them with more positive ones. This is helpful because our thoughts and what we say to ourselves impacts our mood and motivation.
 
 If we frequently say negative things, we're creating a mental environment relevant to depression. Positive thinking, on the other hand, triggers positive emotions. And while controlling all aspects of depression isn't possible, this is one aspect we do have some power over.
 
-The Best Online Therapy Programs We've tried, tested and written unbiased reviews of the best online therapy programs including Talkspace, Betterhelp, and Regain.
+
 Lifestyle
 Your doctor may also recommend lifestyle changes that you can make that may help you cope with your symptoms. Doing things like getting regular exercise, eating a healthy diet, getting adequate sleep, and staying connected with loved ones can help you manage your condition.
 

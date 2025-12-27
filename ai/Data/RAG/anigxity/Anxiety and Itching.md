@@ -1,7 +1,9 @@
+---
 title: Can Anxiety Cause Your Skin to Itch?
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 
 You’re anxious, and your skin keeps itching. Are these symptoms related?
@@ -19,7 +21,7 @@ Psychogenic itching, or psychogenic pruritus, occurs when psychological factors 
 
 So, how does this happen?
 
-ResearchTrusted Source into anxiety and itching says that the brain plays a critical role in the sensation of itching. The brain’s sensory, motor, and emotion-related areas are activated when we’re feeling itchy, and even when we just think about scratching. The central nervous system (CNS), which is responsible for regulating anxiety, is particularly involved.
+Research into anxiety and itching says that the brain plays a critical role in the sensation of itching. The brain’s sensory, motor, and emotion-related areas are activated when we’re feeling itchy, and even when we just think about scratching. The central nervous system (CNS), which is responsible for regulating anxiety, is particularly involved.
 
 More research is needed to identify the specific mechanisms behind why anxiety and itching go together. But researchers do know that when the body’s “fight, flight, or freeze” response is activated under stress, it releases a flood of hormones and other chemicals, such as cortisol and adrenaline.
 
@@ -27,25 +29,25 @@ Stress also activates the immune system to release histamine, a compound known t
 
 In short-term stress, cortisol acts as an anti-inflammatory and helps balance out the histamine levels. However, during chronic stress, the body becomes less sensitive to cortisol, allowing for more inflammation and itching.
 
-When you reduce anxiety, you might find that your itching goes away. In fact, there’s evidenceTrusted Source that anti-anxiety medications and psychosocial treatments for anxiety — including cognitive behavioral therapy (CBT) — can have anti-itch effects.
+When you reduce anxiety, you might find that your itching goes away. In fact, there’s evidence that anti-anxiety medications and psychosocial treatments for anxiety — including cognitive behavioral therapy (CBT) — can have anti-itch effects.
 
 The cycle of itch and anxiety
 Anxiety and itching can result in a continuous itch-anxiety cycle. Anxiety leads to itching, which in turn leads to more anxiety, and so on.
 
-Psychogenic itching, as well as other types of chronic itching, can significantly affect a person’s mental health and well-being. Many people with chronic itch reportTrusted Source that psychological stress is a factor that aggravates their itching.
+Psychogenic itching, as well as other types of chronic itching, can significantly affect a person’s mental health and well-being. Many people with chronic itch report that psychological stress is a factor that aggravates their itching.
 
-ResearchTrusted Source has also shown a link between itching and symptoms of depression. People who report severe depression also report higher itch intensity, compared to people who report low symptoms of depression.
+Research has also shown a link between itching and symptoms of depression. People who report severe depression also report higher itch intensity, compared to people who report low symptoms of depression.
 
-One studyTrusted Source found that when people with a chronic itch condition viewed stressful images — such as a snake preparing to strike or a person being pulled from a burning building — their itch severity increased.
+One study found that when people with a chronic itch condition viewed stressful images — such as a snake preparing to strike or a person being pulled from a burning building — their itch severity increased.
 
-In another studyTrusted Source, healthy women with no chronic itch conditions reported greater itching sensations due to histamine reactions when they experienced negative emotions from distressing film clips.
+In another study, healthy women with no chronic itch conditions reported greater itching sensations due to histamine reactions when they experienced negative emotions from distressing film clips.
 
 You might also have experienced the “contagious itch” phenomenon.
 
 If you see your friend scratching, or you’re reading about itching or watching a movie with a person scratching, it can make you feel itchy too! Everyone can experience this at some level, but it tends to happen to a greater degree among people with neurotic personalities.
 
 Does anxiety make you more itchy at night?
-Some people with anxiety-related itching report that their itching is worse at night. Itchy skin at night is also called nocturnal pruritus. While researchers don’t know exactly why this happens, there are a few theoriesTrusted Source.
+Some people with anxiety-related itching report that their itching is worse at night. Itchy skin at night is also called nocturnal pruritus. While researchers don’t know exactly why this happens, there are a few theories.
 
 First, your body increases blood flow to the skin at night, and your skin tends to retain less moisture — both of which could potentially worsen itchy sensations.
 
@@ -59,9 +61,9 @@ Some people seem to get an itchy scalp when they have anxiety. Scientists aren�
 Internal stressors may also be linked to the growth of bacteria and fungi on the scalp, which can cause it to get dry and flaky, leading to itchiness.
 
 Are some people more likely to have anxiety-related itching than others?
-Psychogenic itching is still poorly understood, and researchers don’t know its true prevalenceTrusted Source. That’s partly because people tend to visit their doctors, rather than mental health professionals, when they experience itchy skin of unknown cause.
+Psychogenic itching is still poorly understood, and researchers don’t know its true prevalence. That’s partly because people tend to visit their doctors, rather than mental health professionals, when they experience itchy skin of unknown cause.
 
-Some researchTrusted Source suggests that psychogenic itch is most common in females between the ages of 30 and 45 years old.
+Some research suggests that psychogenic itch is most common in females between the ages of 30 and 45 years old.
 
 Psychogenic itching may also accompany other psychiatric disorders, such as:
 
@@ -88,12 +90,7 @@ mixed
 other
 
 Treatment
-To date, clinical trials haven’t explored the treatments for psychogenic itching. However, expertsTrusted Source suggest that the following medications might be useful for relieving psychogenic itch, depending on the symptoms:
-
-hydroxyzine (antihistamine)
-tricyclic antidepressants (mainly doxepin)
-selective serotonin reuptake inhibitors (SSRIs)
-in some cases, antipsychotics and antiepileptics
+To date, clinical trials haven’t explored the treatments for psychogenic itching. However, experts suggest that certain medications might be useful for relieving psychogenic itch, depending on the symptoms.
 You might also want to try some home remedies for itch, such as cool packs, wet wrap therapy, and applying moisturizer.
 
 Keeping your anxiety levels to a minimum may also help relieve the itch. Try out some anxiety-reducing activities, like:

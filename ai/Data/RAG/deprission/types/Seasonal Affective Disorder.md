@@ -1,4 +1,12 @@
-What Is Seasonal Affective Disorder (SAD)?
+---
+title: What Is Seasonal Affective Disorder (SAD)?
+source: Psych Central
+category: Depression
+language: English
+---
+
+
+
 
 Seasonal affective disorder, or seasonal depression, is triggered by the changing seasons. It’s more common during fall and winter but can also occur in the summer.
 
@@ -23,17 +31,17 @@ Because most people experience these shifts in mood during winter, it’s someti
 
 If your symptoms are less severe, the episode can be referred to as the “winter blues.” The official reference for this milder version is winter-type or winter-pattern subsyndromal seasonal affective disorder.
 
-Growing researchTrusted Source has found that in some countries, notably in North America, there’s a clear connection between latitude, or how far north or south you live, and the occurrence of seasonal depression.
+Growing research has found that in some countries, notably in North America, there’s a clear connection between latitude, or how far north or south you live, and the occurrence of seasonal depression.
 
 In other parts of the world, like parts of Europe, this connection is less clear.
 
-Overall, it’s estimated that between 1% and 10%Trusted Source of people experience seasonal depression. This can vary by country.
+Overall, it’s estimated that between 1% and 10% of people experience seasonal depression. This can vary by country.
 
-Some researchTrusted Source has found that 20% of people in the United Kingdom experience winter blues, while 2% experience winter depression.
+Some research has found that 20% of people in the United Kingdom experience winter blues, while 2% experience winter depression.
 
 In Canada, the numbers are 15% for winter blues and 2%–6% for winter depression. Plus, in the United States, about 1% of people living in Florida experience seasonal depression, compared with 9% of Alaska’s population.
 
-Women are 4 times more likelyTrusted Source to experience seasonal affective disorder than men, and the condition often begins when you’re between ages 18 and 30.
+Women are 4 times more likely to experience seasonal affective disorder than men, and the condition often begins when you’re between ages 18 and 30.
 
 Does seasonal affective disorder occur only in the winter?
 Though symptoms in winter are much more common, some people experience changes in mood at the onset of summer.
@@ -51,7 +59,7 @@ In comparison, a 2000 study of Chinese college students noted that summer depres
 Similarly, in an early study conducted in Thailand, the prevalence of summer depression and summer blues were 6.19% and 8.25%, respectively, compared with 1.03% for winter depression. Only 97 people were included in the study.
 
 What causes seasonal affective disorder?
-We don’t know exactly what causes seasonal affective disorder. Though a few factorsTrusted Source are thought to play a role.
+We don’t know exactly what causes seasonal affective disorder. Though a few factors are thought to play a role.
 
 It’s possible that people who experience seasonal affective disorder have lower levels of serotonin, or the “feel good” hormone, which helps regulate your mood. Because sunlight exposure can impact serotonin levels in the body, winter depression may be brought on by lack of sunlight.
 
@@ -66,7 +74,7 @@ Winter and summer depression also have some specific symptoms, which will be out
 
 Keep in mind that not everyone experiences all of the symptoms listed.
 
-SymptomsTrusted Source of major depression may include:
+Symptoms of major depression may include:
 
 feeling depressed nearly every day for most of the day
 losing interest in activities you enjoyed in the past
@@ -115,7 +123,7 @@ Light therapy is thought to improve seasonal depression. The increased exposure 
 
 cause your brain to reduce the production of the hormone melatonin, which makes you sleepy
 increase the production of the hormone serotonin, which affects your mood
-Though light therapy is recognizedTrusted Source as a first-line treatment for seasonal affective disorder, the lamps can be a bit pricy.
+Though light therapy is recognized as a first-line treatment for seasonal affective disorder, the lamps can be a bit pricy.
 
 Some insurance plans may cover the cost of the light therapy box, especially if your healthcare professional recommends light therapy. If you have medical insurance, then checking with your insurance provider is a good idea.
 
@@ -144,7 +152,7 @@ Overeating and, particularly, craving carbs are common symptoms of winter depres
 
 There’s nothing wrong with enjoying a tasty treat from time to time, but try to eat a balanced diet rich in lean protein, fruits, and vegetables. These foods contain nutrients and compounds that may positively affect mood.
 
-For example, there’s some researchTrusted Source on the potential effects of omega-3s in relieving the severity of depressive symptoms.
+For example, there’s some research on the potential effects of omega-3s in relieving the severity of depressive symptoms.
 
 Fatty fish is particularly rich in omega-3s. The fatty acids can also be found in plant foods like seeds and nuts, though the type of omega-3s in plant foods aren’t as active in your body.
 

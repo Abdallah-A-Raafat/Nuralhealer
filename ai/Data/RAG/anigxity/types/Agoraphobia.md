@@ -1,7 +1,9 @@
+---
 title: What Are the Symptoms of Agoraphobia?
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 The main symptom of agoraphobia is an intense fear of being in public or crowded places. Though this is a challenging condition, there are many ways to manage and overcome your fears.
 
@@ -14,16 +16,16 @@ Agoraphobia affects many people. The National Institute of Mental Health (NIMH) 
 In this article, we take a closer look at the symptoms of agoraphobia, and we discuss when it’s a good time to talk with your doctor.
 
 Symptoms of agoraphobia
-According to the Diagnostic and Statistical Manual of Mental Disorders (DSM-5)Trusted Source, agoraphobia involves intense fear or anxiety that occurs in, or when anticipating, at least two of the following five situations:
+According to the Diagnostic and Statistical Manual of Mental Disorders (DSM-5), agoraphobia involves intense fear or anxiety that occurs in, or when anticipating, at least two of the following five situations:
 
 using public transportation such as cars, buses, trains, ships, or planes
 being in open spaces such as parking lots, marketplaces, or bridges
 being in enclosed spaces such as shops, theaters, or cinemas
 standing in line or being in a crowd
 being outside the home alone
-You might receive an agoraphobia diagnosis if your symptoms persist for more than 6 monthsTrusted Source and occur nearly every time you encounter the place or situation.
+You might receive an agoraphobia diagnosis if your symptoms persist for more than 6 months and occur nearly every time you encounter the place or situation.
 
-Agoraphobia is most often diagnosed in young adulthood and usually before the age of 35Trusted Source.
+Agoraphobia is most often diagnosed in young adulthood and usually before the age of 35.
 
 By definition, the fears linked with agoraphobia are irrational. This means the anxiety is out of proportion with the actual danger posed by the situation.
 
@@ -85,7 +87,7 @@ The feelings can cause significant distress and impairment in your life, making 
 
 Agoraphobia affects each person in different ways. The symptoms can range from serious to mild, depending on how much it affects the person’s life.
 
-According to survey data published in 2005, agoraphobia can have mild to severe impacts on a person’s life. The NIMHTrusted Source states:
+According to survey data published in 2005, agoraphobia can have mild to severe impacts on a person’s life. The NIMH states:
 
 40.6 percent of people say agoraphobia had a serious impact on their lives
 30.7 percent reported a moderate impact
@@ -112,5 +114,5 @@ In CBT for agoraphobia, the therapist will work with you to develop a list of st
 
 You will learn skills to work through these situations, and, eventually, the scariest scenario will feel significantly less threatening.
 
-For some people, certain medications can also help. These include antidepressants and benzodiazepines.
+For some people, certain medications can also help.
 

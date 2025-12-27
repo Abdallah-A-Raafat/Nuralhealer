@@ -1,7 +1,9 @@
+---
 title: Anxiety in Pregnancy: Causes, Symptoms, and Tips to Cope
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 Becoming a parent is an overwhelming life change that may trigger anxiety during pregnancy. Learning how it affects you and your baby can help you find ways to cope.
 
@@ -23,18 +25,18 @@ While pregnancy is a joyful time, it can also bring about a lot of worrisome tho
 Becoming overly panicky or experiencing a rapid heartbeat or shortness of breath could indicate the need for professional help.
 
 Does anxiety in pregnancy affect the baby? 
-According to 2020 researchTrusted Source, experiencing anxiety during pregnancy can negatively impact how you bond with your baby before and after birth.
+According to 2020 research, experiencing anxiety during pregnancy can negatively impact how you bond with your baby before and after birth.
 
-A study from 2015Trusted Source suggests that severe anxiety and stress during pregnancy can also affect your baby’s development. It can increase the chances of preterm birth or low birth weight.
+A study from 2015 suggests that severe anxiety and stress during pregnancy can also affect your baby’s development. It can increase the chances of preterm birth or low birth weight.
 
 Anxiety in pregnancy can also contribute to emotional or behavioral challenges for the child as they age.
 
-A 2019 studyTrusted Source indicates that high anxiety levels in mothers can increase the risk of attention deficit hyperactivity disorder (ADHD) in children. Experiencing anxiety doesn’t mean your child will have ADHD, but it could increase the chances.
+A 2019 study indicates that high anxiety levels in mothers can increase the risk of attention deficit hyperactivity disorder (ADHD) in children. Experiencing anxiety doesn’t mean your child will have ADHD, but it could increase the chances.
 
 Pregnancy anxiety symptoms  
 Anxiety symptoms can vary. Symptoms can occur before, during, and after pregnancy.
 
-Anxiety symptomsTrusted Source vary, and you likely won’t experience all of them. They include:
+Anxiety symptoms vary, and you likely won’t experience all of them. They include:
 
 feeling worried about your life most of the time
 frequent negative thoughts
@@ -77,19 +79,19 @@ You might experience morning sickness one day and feel fine the next. Pregnancy 
 
 You will notice movement as early as 20 weeks, which can be a reassuring reminder that your baby is alive.
 
-Once you reach 28 weeksTrusted Source you should start monitoring or evaluating the movement. Once a day, lay on your left side and count movements until you get to 10. Expect those 10 movements in an hour or less.
+Once you reach 28 weeks you should start monitoring or evaluating the movement. Once a day, lay on your left side and count movements until you get to 10. Expect those 10 movements in an hour or less.
 
 Consider talking with your doctor if you have concerns.
 
 Get plenty of sleep
-Research showsTrusted Source that not getting enough sleep can exacerbate anxiety symptoms.
+Research shows that not getting enough sleep can exacerbate anxiety symptoms.
 
 Try to get at least 7 to 8 hours of sleep each night to help ease symptoms. Consider speaking with your doctor if you have trouble sleeping; they can help you discover treatment options that best suit your needs.
 
 Eat healthy food
-What you eat can influence your mental health. 2018 research showsTrusted Source that eating a well-balanced diet of nutrient-dense foods can make a difference.
+What you eat can influence your mental health. 2018 research shows that eating a well-balanced diet of nutrient-dense foods can make a difference.
 
-Consider whole foods instead of processed or fast foods. It can promote healthy gut bacteriaTrusted Source, decreasing anxiety.
+Consider whole foods instead of processed or fast foods. It can promote healthy gut bacteria, decreasing anxiety.
 
 Stay active
 Physical activity can help decrease anxiety. Consider speaking with your birthing team to find exercises safe for you and the baby before engaging in physical activity.
@@ -100,7 +102,7 @@ Spending time with people who want the best for you can help ease your anxiety. 
 You can also take this time to build your support system. Adding experienced or expecting parents to your circle allows you to talk with people with similar feelings.
 
 Practice Meditation
-Experts indicateTrusted Source that practicing meditation can improve anxiety symptoms. Consider meditating during yoga, while listening to calming music, or during a prenatal massage.
+Experts indicate that practicing meditation can improve anxiety symptoms. Consider meditating during yoga, while listening to calming music, or during a prenatal massage.
 
 Next steps 
 Anxiety in pregnancy is common, but you can ease it by gathering the information you need. Untreated anxiety during pregnancy can reach a point where it begins to negatively impact you and your baby.

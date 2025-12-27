@@ -1,13 +1,15 @@
+---
 title: Panic Disorder Symptoms
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 Do you sometimes have overwhelming feelings of anxiety and intense fear that appear almost out of nowhere?
 
 You may feel your heart pounding, have a hard time catching your breath, become sweaty, and notice your hands are shaky.
 
-These panic attack symptoms can be scary if you don’t know what’s going on. Some people who have a panic attack for the first time believe they’re having a heart attack. This is why so manyTrusted Source of them visit the emergency room during a panic attack.
+These panic attack symptoms can be scary if you don’t know what’s going on. Some people who have a panic attack for the first time believe they’re having a heart attack. This is why so many of them visit the emergency room during a panic attack.
 
 If these attacks happen often and without warning and last for several minutes, you may have panic disorder.
 
@@ -70,7 +72,7 @@ Although panic attacks are a defining characteristic of panic disorder, not ever
 
 Based on guidelines from the Diagnostic and Statistical Manual of Mental Disorders (DSM-5), your healthcare provider may ask you questions, such as how often you’re having these attacks, to determine if you in fact have panic disorder.
 
-A large 2016 surveyTrusted Source found that about 13.2% of people worldwide have experienced a panic attack at some point in their lives. Of those people, only around 2 to 3% develop panic disorder.
+A large 2016 survey found that about 13.2% of people worldwide have experienced a panic attack at some point in their lives. Of those people, only around 2 to 3% develop panic disorder.
 
 Many people have a single panic attack and never experience another.
 

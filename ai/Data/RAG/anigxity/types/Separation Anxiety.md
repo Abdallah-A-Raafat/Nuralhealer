@@ -1,7 +1,9 @@
+---
 title: All About Separation Anxiety Disorder
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 How are parents supposed to respond when what first seemed like developmentally appropriate separation anxiety never goes away?
 
@@ -31,12 +33,12 @@ refusing to go to school
 not being able to sleep outside the home or when their main attachment figures are absent
 nightmares
 physical symptoms like headaches, nausea, or vomiting
-While most commonly seen in children and adolescents, the current Diagnostic and Statistical Manual of Mental Disorders, 5th edition (DSM-5)Trusted Source recognizes that adults can also experience separation anxiety disorder.
+While most commonly seen in children and adolescents, the current Diagnostic and Statistical Manual of Mental Disorders, 5th edition (DSM-5) recognizes that adults can also experience separation anxiety disorder.
 
-In fact, research from 2008Trusted Source indicates that approximately 4.1% of children will deal with separation anxiety disorder — and 36.1% of them will continue living with the condition into adulthood if it’s left untreated.
+In fact, research from 2008 indicates that approximately 4.1% of children will deal with separation anxiety disorder — and 36.1% of them will continue living with the condition into adulthood if it’s left untreated.
 
 Separation anxiety in children vs. adults
-Only in the last decade or so has separation anxiety disorder been recognized in adults, according to a 2010 studyTrusted Source. And even still, it’s diagnosed only when symptoms fail to meet the criteria for other panic and anxiety disorders.
+Only in the last decade or so has separation anxiety disorder been recognized in adults, according to a 2010 study. And even still, it’s diagnosed only when symptoms fail to meet the criteria for other panic and anxiety disorders.
 
 For the most part, childhood separation anxiety disorder and adult separation anxiety disorder appear very similar, with just a few minor exceptions.
 
@@ -56,7 +58,7 @@ being away from home
 being alone
 Other symptoms include an inability to sleep without a major attachment figure nearby and nightmares about being separated from a major attachment figure.
 
-While many kids may experiences some of the above from time to time, the DSM-5Trusted Source explains that in order to qualify for a diagnosis of separation anxiety disorder, these symptoms must be:
+While many kids may experiences some of the above from time to time, the DSM-5 explains that in order to qualify for a diagnosis of separation anxiety disorder, these symptoms must be:
 
 persistent
 excessive to the point of impairing social or academic functioning
@@ -66,11 +68,11 @@ In children, the symptoms must last for at least 4 weeks, while the timeline is 
 What causes separation anxiety?
 There’s no one known cause for the development of separation anxiety disorder, but several factors appear to increase a child’s risk of developing the disorder.
 
-Research from 2009Trusted Source suggested possible genetic components in the development of separation anxiety disorder.
+Research from 2009 suggested possible genetic components in the development of separation anxiety disorder.
 
 In other words, some people may be predisposed to higher levels of anxiety and fear surrounding separation from major attachment figures. If a child has a family history of anxiety or depression, they may be at greater risk.
 
-That said, research from 2008Trusted Source concluded that separation anxiety disorder is more influenced by environmental factors than many other childhood anxiety disorders.
+That said, research from 2008 concluded that separation anxiety disorder is more influenced by environmental factors than many other childhood anxiety disorders.
 
 Some of those environmental risk factors include:
 
@@ -108,9 +110,9 @@ As mentioned, the main risk factor for adult separation anxiety disorder is untr
 
 That’s just one more reason to commit to treatment for your child once a mental health professional makes a diagnosis of separation anxiety disorder.
 
-The good news is several treatment options are available, and many have proven successfulTrusted Source in the treatment of separation anxiety disorder.
+The good news is several treatment options are available, and many have proven successful in the treatment of separation anxiety disorder.
 
-The treatment option with the most research behindTrusted Source it is cognitive behavior therapy (CBT). Plus, research from 2018 indicates that this form of therapy may be effective long term.
+The treatment option with the most research behind it is cognitive behavior therapy (CBT). Plus, research from 2018 indicates that this form of therapy may be effective long term.
 
 The goal of CBT is to challenge thought distortions and teach the person undergoing therapy better coping strategies.
 

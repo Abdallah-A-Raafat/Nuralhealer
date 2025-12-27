@@ -1,4 +1,11 @@
-How Does It Feel to Live with Persistent Depressive Disorder (Dysthymia)?
+---
+title: How Does It Feel to Live with Persistent Depressive Disorder (Dysthymia)?
+source: Psych Central
+category: Depression
+language: English
+---
+
+
 
 Dysthymia, or PDD, is a chronic form of depression that may cause feelings of hopelessness, inadequacy, or pessimism for years.
 
@@ -11,7 +18,7 @@ Knowing what dysthymia is will help you determine whether you or someone you lov
 What is PDD (dysthymia)?
 Persistent depressive disorder (PDD) is a type of chronic depression that’s, well, persistent. While other types of depression can cause episodes that go on for days, weeks, or sometimes months before resolving, PDD symptoms generally last for 2 or more years.
 
-About 2.5%Trusted Source of U.S. adults experience PDD during their lives. Nearly half of them will be severely impaired by the disorder.
+About 2.5% of U.S. adults experience PDD during their lives. Nearly half of them will be severely impaired by the disorder.
 
 Experts aren’t sure what exactly causes PDD, but many believe it may be the result of a chemical imbalance in the brain or triggered by stress brought on by environmental factors, genetics, or trauma.
 

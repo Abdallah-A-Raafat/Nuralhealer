@@ -1,7 +1,9 @@
+---
 title: What Does a Panic Attack Feel Like? 12 Symptoms
-source: psychcentral.com
+source: Psych Central
 category: Anxiety
-language: eng
+language: English
+---
 
 Your heart’s racing, it’s hard to breathe, and you can’t think straight — these could be some of the intense symptoms of a panic attack.
 

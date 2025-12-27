@@ -121,7 +121,7 @@ alcohol and substance use
 Because there are still many other things that can play a role, the U.S. Preventive Services Task Force recommends that you’re screened for symptoms of depression during and after pregnancy, regardless of the presence of contributing factors.
 
 Is it postpartum depression or postpartum psychosis?
-Postpartum psychosis is rare and more severe than depression. It’s estimated to occur in just 1 to 5 people out of 1,000Trusted Source who have recently given birth.
+Postpartum psychosis is rare and more severe than depression. It’s estimated to occur in just 1 to 5 people out of 1,000 who have recently given birth.
 
 Symptoms of postpartum psychosis usually appear within the first 2 weeks after childbirth but can also show up after a few months. They involve losing touch with reality.
 
@@ -248,6 +248,4 @@ Postpartum depression is a formal condition that involves symptoms of depression
 Thankfully, help is available and coping is possible.
 
 No matter how intense your symptoms are, once you reach out for treatment, you’ll be on your way to mental wellness.
-
-Here are some resources that can help you take the first step to feeling better:
 

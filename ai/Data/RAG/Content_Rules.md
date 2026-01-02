@@ -22,7 +22,7 @@ Remove the following items entirely from all files:
 - **Personal Stories/Anecdotes**: Remove first-person narratives or case studies.
 - **Specific Medication Names**: Remove proprietary or generic drug names (e.g., Prozac, Xanax, Zoloft).
 - **Medication Sections**: Remove entire sections dedicated to listing specific drugs or dosage details. General mentions of "medication" as a treatment option are acceptable if they don't list specific drugs.
-- **Advertisements & Affiliate Links**: Remove lines like "Healthgrades is owned by..." or "Click here to learn more".
+- **Advertisements & Affiliate Links**: Remove lines like "Healthgrades is owned by..." or "Click here to learn more", "MORE: Learn more about".
 - **Junk Text**: Remove formatting artifacts like "Table of Contents", "Key Takeaways", or "Next steps" if they are just navigational fluff.
 
 ## 3. Metadata Header Requirements

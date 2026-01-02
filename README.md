@@ -43,7 +43,7 @@
 NeuralHealer/
 ├── 🎨 web/              # Frontend Web Application (React)
 ├── 📱 mobile/           # Mobile Application (React Native)
-├── ⚙️ backend/          # Backend API Server (Node.js/Express)
+├── ⚙️ backend/          # Backend API Server (Spring Boot / Java)
 ├── 🤖 ai/               # AI/ML Models & Microservice (Python)
 ├── 📚 docs/             # Documentation
 ├── 🔄 shared/           # Shared Code & Types
@@ -105,13 +105,13 @@ npm run dev
 
 ```bash
 cd backend
-npm install
+./mvnw clean install
 cp .env.example .env
-# Configure database in .env
-npm run dev
+# Configure PostgreSQL & JWT in .env
+./mvnw spring-boot:run
 ```
 
-🔧 API runs on: http://localhost:5000
+🔧 API runs on: http://localhost:8080
 
 ### 4️⃣ Setup AI Service
 
@@ -151,7 +151,7 @@ npx react-native run-ios       # iOS
                    ▼
             ┌─────────────┐
             │   Backend   │◄──────┐
-            │     API     │       │
+            │ Spring Boot │       │
             └──────┬──────┘       │
                    │              │
                    ▼              ▼
@@ -203,12 +203,16 @@ npx react-native run-ios       # iOS
 - **UI Library**: React Native Paper
 
 ### Backend
-- **Runtime**: Node.js
-- **Framework**: Express.js
+- **Language**: Java 21
+- **Framework**: Spring Boot
+- **Build Tool**: Maven
 - **Database**: PostgreSQL
-- **Cache**: Redis
-- **Authentication**: JWT
-- **Email**: Nodemailer
+- **Authentication**: JWT (Stateless)
+- **Security**: Spring Security
+- **ORM**: JPA / Hibernate
+- **Configuration**: Environment-based (dev / prod)
+- **Deployment Ready**: Docker (planned)
+
 
 ### AI/ML
 - **Language**: Python
@@ -252,6 +256,10 @@ npx react-native run-ios       # iOS
 - Session insights
 - Progress tracking
 
+> **Note:** Backend modules are fully implemented and maintained using Spring Boot.
+> Frontend, Mobile, and AI services are handled by other team members.
+
+
 ---
 
 ## 🧪 Testing | الاختبار
@@ -261,7 +269,9 @@ npx react-native run-ios       # iOS
 cd web && npm test
 
 # Test Backend
-cd backend && npm test
+cd backend
+./mvnw test
+
 
 # Test AI Service
 cd ai && pytest

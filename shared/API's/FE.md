@@ -1,164 +1,341 @@
-# NeuralHealer API v0.1
+---
 
-> **Hint for Frontend Collaborator:** This API uses HTTP-only cookies for JWT token storage. When making requests from the React app (localhost:5173), ensure you include `credentials: 'include'` or `withCredentials: true` in your fetch/axios configuration to automatically send cookies with cross-origin requests.
+# 🧠 NeuralHealer API — Frontend Integration Guide (Enhanced)
 
-**CORS Configuration:** The backend is configured to accept requests from `http://localhost:5173` (React dev server). No changes needed to your frontend host port.
+> **Auth Model:** JWT stored in **HTTP-only cookie**
+> **Frontend:** React (`localhost:5173`)
+> **Backend:** Spring Boot (`localhost:8080`)
+> **Important:** Always use `credentials: 'include'`
 
 ---
 
-## 🔌 Working API Endpoints
+## 🔌 Base Configuration (Frontend)
 
-### Base URL
-```
-http://localhost:8080
-```
+```js
+const API_BASE = "http://localhost:8080";
 
-### Authentication System
-
-| Method | Endpoint | Description | Required Role |
-|--------|----------|-------------|---------------|
-| POST | `/api/auth/register` | Register new user (Doctor/Patient) | None |
-| POST | `/api/auth/login` | Authenticate user, returns JWT in HTTP-only cookie | None |
-| GET | `/api/users/me` | Get current user profile | DOCTOR or PATIENT |
-
-### Engagement System
-
-| Method | Endpoint | Description | Required Role |
-|--------|----------|-------------|---------------|
-| POST | `/api/engagements/initiate` | Doctor initiates engagement with patient | DOCTOR |
-| POST | `/api/engagements/verify-start` | Patient verifies engagement start | PATIENT |
-| GET | `/api/engagements/my-engagements` | List user's engagements | DOCTOR or PATIENT |
-| POST | `/api/engagements/{id}/messages` | Send message in engagement | DOCTOR or PATIENT |
-| GET | `/api/engagements/{id}/messages` | Get engagement messages | DOCTOR or PATIENT |
-| POST | `/api/engagements/{id}/end-request` | Request to end engagement | DOCTOR |
-| POST | `/api/engagements/{id}/verify-end` | Verify/end engagement | DOCTOR or PATIENT |
-
----
-
-## 📡 Request Examples (React/JavaScript)
-
-### Authentication
-```javascript
-// Register Doctor
-const registerDoctor = async () => {
-  const response = await fetch('http://localhost:8080/api/auth/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: "doctor@test.com",
-      password: "Test1234",
-      firstName: "John",
-      lastName: "Doe",
-      role: "DOCTOR"
-    }),
-    credentials: 'include'  // Important for cookies
+const apiFetch = (url, options = {}) =>
+  fetch(`${API_BASE}${url}`, {
+    credentials: "include", //HTTP only cookie
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    },
+    ...options
   });
-  return await response.json();
-};
-
-// Login
-const login = async (email, password) => {
-  const response = await fetch('http://localhost:8080/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-    credentials: 'include'  // Important for cookies
-  });
-  return await response.json();
-};
-
-// Get Current User (automatically uses cookie)
-const getCurrentUser = async () => {
-  const response = await fetch('http://localhost:8080/api/users/me', {
-    credentials: 'include'  // Automatically sends the HTTP-only cookie
-  });
-  return await response.json();
-};
-```
-
-### Engagement Flow
-```javascript
-// Initiate Engagement (Doctor)
-const initiateEngagement = async (patientId) => {
-  const response = await fetch('http://localhost:8080/api/engagements/initiate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      patientId,
-      accessRuleName: "FULL_ACCESS"
-    }),
-    credentials: 'include'
-  });
-  return await response.json();
-};
-
-// Send Message
-const sendMessage = async (engagementId, content) => {
-  const response = await fetch(`http://localhost:8080/api/engagements/${engagementId}/messages`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ content }),
-    credentials: 'include'
-  });
-  return await response.json();
-};
 ```
 
 ---
 
-## 🔧 Important Notes for Frontend
-
-1. **Cookie Authentication**: JWT tokens are automatically stored in HTTP-only cookies. No need to manually handle tokens in localStorage or state.
-
-2. **CORS Configuration**: Backend accepts requests from:
-   - Origin: `http://localhost:5173`
-   - Credentials: Included (cookies)
-
-3. **Required Headers**: For POST/PUT requests, always include:
-   ```javascript
-   headers: {
-     'Content-Type': 'application/json'
-   }
-   ```
-
-4. **Credentials**: Always include `credentials: 'include'` in fetch requests.
-
-5. **Error Handling**: Check response status and handle 401 (Unauthorized) by redirecting to login.
+## 🔐 Authentication System
 
 ---
 
-## 🚀 Quick Start for Frontend
+### ✅ Register User
 
-1. **Start Backend**: Ensure the Spring Boot app is running on `localhost:8080`
+**POST** `/api/auth/register`
 
-2. **Start Frontend**: Keep React app on `localhost:5173` (no port changes needed)
+#### Request Body
 
-3. **Test Connection**: 
-   ```javascript
-   // Test if backend is accessible
-   fetch('http://localhost:8080/api/auth/health', { credentials: 'include' })
-     .then(res => console.log('Backend connected:', res.ok))
-     .catch(err => console.error('Connection failed:', err));
-   ```
+```json
+{
+  "email": "doctor@test.com",
+  "password": "Test1234",
+  "firstName": "John",
+  "lastName": "Doe",
+  "role": "DOCTOR"
+}
+```
+
+🔹 `role` → `"DOCTOR"` | `"PATIENT"`
+
+#### Response (201)
+
+```json
+{
+  "id": "uuid",
+  "email": "doctor@test.com",
+  "role": "DOCTOR",
+  "createdAt": "2024-04-10T12:30:00Z"
+}
+```
 
 ---
 
-## 📋 Status Codes
+### ✅ Login
 
-| Code | Meaning | Action |
-|------|---------|--------|
-| 200 | Success | Proceed normally |
-| 201 | Created | Resource created successfully |
-| 400 | Bad Request | Check request body/parameters |
-| 401 | Unauthorized | User not authenticated - redirect to login |
-| 403 | Forbidden | User lacks required role |
-| 404 | Not Found | Resource doesn't exist |
-| 500 | Server Error | Backend issue - check server logs |
+**POST** `/api/auth/login`
+
+#### Request Body
+
+```json
+{
+  "email": "doctor@test.com",
+  "password": "Test1234"
+}
+```
+
+#### Behavior
+
+* JWT is stored automatically in **HTTP-only cookie**
+* No token handling in frontend
+
+#### Response (200)
+
+```json
+{
+  "message": "Login successful"
+}
+```
 
 ---
 
-**Version:** 0.1  
-**Last Updated:** April 2024  
-**Backend Port:** 8080  
-**Frontend Port:** 5173 (Keep as is)  
-**CORS:** Configured for `http://localhost:5173`
+### ✅ Get Current User (Protected)
+
+**GET** `/api/users/me`
+
+#### Response
+
+```json
+{
+  "id": "uuid",
+  "email": "doctor@test.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "role": "DOCTOR"
+}
+```
+
+🔹 Use this endpoint:
+
+* On app load
+* After refresh
+* To restore auth state
+
+---
+
+## 🤝 Engagement System
+
+---
+
+### ✅ Initiate Engagement (Doctor)
+
+**POST** `/api/engagements/initiate`
+
+#### Request Body
+
+```json
+{
+  "patientId": "uuid",
+  "accessRuleName": "FULL_ACCESS"
+}
+```
+
+🔹 Access rules:
+
+* `FULL_ACCESS`
+* `READ_ONLY`
+* `WRITE_ONLY`
+* `TEMPORARY`
+* `EMERGENCY`
+
+#### Response
+
+```json
+{
+  "id": "engagement-uuid",
+  "token": "START_VERIFICATION_TOKEN",
+  "status": "PENDING"
+}
+```
+
+📌 **Important for UI**
+
+* Show QR / token to patient
+* Status is NOT active yet
+
+---
+
+### ✅ Verify Engagement Start (Patient)
+
+**POST** `/api/engagements/verify-start`
+
+#### Request Body
+
+```json
+{
+  "token": "START_VERIFICATION_TOKEN"
+}
+```
+
+#### Response
+
+```json
+{
+  "id": "engagement-uuid",
+  "status": "ACTIVE"
+}
+```
+
+📌 Engagement becomes usable after this step.
+
+---
+
+### ✅ Get My Engagements
+
+**GET** `/api/engagements/my-engagements`
+
+#### Response
+
+```json
+[
+  {
+    "id": "engagement-uuid",
+    "doctorId": "uuid",
+    "patientId": "uuid",
+    "status": "ACTIVE",
+    "accessRule": "FULL_ACCESS",
+    "createdAt": "2024-04-10T13:00:00Z"
+  }
+]
+```
+
+---
+
+### ✅ Send Message
+
+**POST** `/api/engagements/{id}/messages`
+
+#### Request Body
+
+```json
+{
+  "content": "Hello, how are you feeling today?"
+}
+```
+
+#### Response
+
+```json
+{
+  "id": "message-uuid",
+  "senderId": "uuid",
+  "content": "Hello, how are you feeling today?",
+  "createdAt": "2024-04-10T13:05:00Z"
+}
+```
+
+---
+
+### ✅ Get Messages
+
+**GET** `/api/engagements/{id}/messages`
+
+#### Response
+
+```json
+[
+  {
+    "id": "msg-uuid",
+    "senderId": "uuid",
+    "content": "Hello Doctor",
+    "createdAt": "2024-04-10T13:06:00Z",
+    "system": false
+  }
+]
+```
+
+📌 `system: true` → auto system messages (status changes)
+
+---
+
+### ✅ Request End Engagement (Doctor)
+
+**POST** `/api/engagements/{id}/end-request`
+
+#### Request Body
+
+```json
+{
+  "reason": "Treatment completed successfully"
+}
+```
+
+#### Response
+
+```json
+{
+  "token": "END_VERIFICATION_TOKEN"
+}
+```
+
+---
+
+### ✅ Verify Engagement End
+
+**POST** `/api/engagements/{id}/verify-end`
+
+#### Request Body
+
+```json
+{
+  "token": "END_VERIFICATION_TOKEN"
+}
+```
+
+#### Response
+
+```json
+{
+  "status": "ENDED"
+}
+```
+
+---
+
+## 🧠 State Machine (Frontend Logic)
+
+```
+PENDING → ACTIVE → END_REQUESTED → ENDED
+```
+
+Use this to:
+
+* Enable / disable UI
+* Show banners
+* Lock messaging
+
+---
+
+## 🚨 Error Handling (Frontend)
+
+```js
+if (response.status === 401) {
+  navigate("/login");
+}
+
+if (!response.ok) {
+  const err = await response.json();
+  toast.error(err.message);
+}
+```
+
+---
+
+## ✅ Why This Fix Matters
+
+### Before ❌
+
+* Abstract endpoints
+* Missing request bodies
+* Unclear field meanings
+* Hard for frontend dev to guess behavior
+
+### After ✅
+
+* **Backend-accurate**
+* **UI-friendly**
+* **State-aware**
+* **Production-ready**
+
+---

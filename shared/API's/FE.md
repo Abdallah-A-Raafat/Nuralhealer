@@ -1,11 +1,12 @@
 ---
 
-# 🧠 NeuralHealer API — Frontend Integration Guide (Enhanced)
+# 🧠 NeuralHealer API — Frontend Integration Guide (v0.2)
 
 > **Auth Model:** JWT stored in **HTTP-only cookie**
-> **Frontend:** React (`localhost:5173`)
-> **Backend:** Spring Boot (`localhost:8080`)
+> **Frontend:** React (`http://localhost:5173`)
+> **Backend:** Spring Boot (`http://localhost:8080`)
 > **Important:** Always use `credentials: 'include'`
+> **ID Format:** All IDs are **UUIDs only**
 
 ---
 
@@ -16,7 +17,7 @@ const API_BASE = "http://localhost:8080";
 
 const apiFetch = (url, options = {}) =>
   fetch(`${API_BASE}${url}`, {
-    credentials: "include", //HTTP only cookie
+    credentials: "include", // HTTP-only cookie
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {})
@@ -29,6 +30,12 @@ const apiFetch = (url, options = {}) =>
 
 ## 🔐 Authentication System
 
+### 🛡️ Authentication Behavior
+
+* Login/Register sets a `neuralhealer_token` cookie (HTTP-only)
+* Cookie is automatically sent with every request
+* No JWT handling in frontend code
+
 ---
 
 ### ✅ Register User
@@ -40,9 +47,9 @@ const apiFetch = (url, options = {}) =>
 ```json
 {
   "email": "doctor@test.com",
-  "password": "Test1234",
+  "password": "Test1234!",
   "firstName": "John",
-  "lastName": "Doe",
+  "lastName": "Smith",
   "role": "DOCTOR"
 }
 ```
@@ -53,10 +60,10 @@ const apiFetch = (url, options = {}) =>
 
 ```json
 {
-  "id": "uuid",
+  "userId": "uuid",
   "email": "doctor@test.com",
   "role": "DOCTOR",
-  "createdAt": "2024-04-10T12:30:00Z"
+  "createdAt": "2026-01-03T15:10:00Z"
 }
 ```
 
@@ -71,14 +78,9 @@ const apiFetch = (url, options = {}) =>
 ```json
 {
   "email": "doctor@test.com",
-  "password": "Test1234"
+  "password": "Test1234!"
 }
 ```
-
-#### Behavior
-
-* JWT is stored automatically in **HTTP-only cookie**
-* No token handling in frontend
 
 #### Response (200)
 
@@ -88,9 +90,22 @@ const apiFetch = (url, options = {}) =>
 }
 ```
 
+📌 JWT is stored in an **HTTP-only cookie**
+
 ---
 
-### ✅ Get Current User (Protected)
+### ✅ Logout
+
+**POST** `/api/auth/logout`
+
+#### Behavior
+
+* Clears authentication cookie
+* Frontend should reset auth state
+
+---
+
+### ✅ Get Current User (Session Restore)
 
 **GET** `/api/users/me`
 
@@ -98,23 +113,26 @@ const apiFetch = (url, options = {}) =>
 
 ```json
 {
-  "id": "uuid",
+  "userId": "uuid",
   "email": "doctor@test.com",
   "firstName": "John",
-  "lastName": "Doe",
+  "lastName": "Smith",
   "role": "DOCTOR"
 }
 ```
 
-🔹 Use this endpoint:
+📌 Use this:
 
 * On app load
 * After refresh
-* To restore auth state
+* To restore login state
 
 ---
 
 ## 🤝 Engagement System
+
+> **Important:** Engagement IDs are **UUIDs**, not business codes
+> Example UUID: `550e8400-e29b-41d4-a716-446655440000`
 
 ---
 
@@ -131,7 +149,7 @@ const apiFetch = (url, options = {}) =>
 }
 ```
 
-🔹 Access rules:
+🔹 Access Rules:
 
 * `FULL_ACCESS`
 * `READ_ONLY`
@@ -144,15 +162,19 @@ const apiFetch = (url, options = {}) =>
 ```json
 {
   "id": "engagement-uuid",
-  "token": "START_VERIFICATION_TOKEN",
-  "status": "PENDING"
+  "status": "PENDING",
+  "verificationInfo": {
+    "token": "START_VERIFICATION_TOKEN",
+    "qrCodeData": "neuralhealer://verify/START_VERIFICATION_TOKEN"
+  }
 }
 ```
 
-📌 **Important for UI**
+📌 **Frontend Responsibilities**
 
-* Show QR / token to patient
-* Status is NOT active yet
+* Convert `qrCodeData` string → visual QR image
+* Show token or QR to patient
+* Engagement is **not active yet**
 
 ---
 
@@ -177,40 +199,19 @@ const apiFetch = (url, options = {}) =>
 }
 ```
 
-📌 Engagement becomes usable after this step.
+📌 Messaging becomes available only after this step.
 
 ---
 
-### ✅ Get My Engagements
+### ✅ Messaging
 
-**GET** `/api/engagements/my-engagements`
+#### Send Message
 
-#### Response
-
-```json
-[
-  {
-    "id": "engagement-uuid",
-    "doctorId": "uuid",
-    "patientId": "uuid",
-    "status": "ACTIVE",
-    "accessRule": "FULL_ACCESS",
-    "createdAt": "2024-04-10T13:00:00Z"
-  }
-]
-```
-
----
-
-### ✅ Send Message
-
-**POST** `/api/engagements/{id}/messages`
-
-#### Request Body
+**POST** `/api/engagements/{engagementId}/messages`
 
 ```json
 {
-  "content": "Hello, how are you feeling today?"
+  "content": "Welcome to NeuralHealer."
 }
 ```
 
@@ -220,18 +221,17 @@ const apiFetch = (url, options = {}) =>
 {
   "id": "message-uuid",
   "senderId": "uuid",
-  "content": "Hello, how are you feeling today?",
-  "createdAt": "2024-04-10T13:05:00Z"
+  "content": "Welcome to NeuralHealer.",
+  "createdAt": "2026-01-03T16:00:00Z",
+  "system": false
 }
 ```
 
 ---
 
-### ✅ Get Messages
+#### Get Messages
 
-**GET** `/api/engagements/{id}/messages`
-
-#### Response
+**GET** `/api/engagements/{engagementId}/messages`
 
 ```json
 [
@@ -239,19 +239,46 @@ const apiFetch = (url, options = {}) =>
     "id": "msg-uuid",
     "senderId": "uuid",
     "content": "Hello Doctor",
-    "createdAt": "2024-04-10T13:06:00Z",
+    "createdAt": "2026-01-03T16:01:00Z",
     "system": false
+  },
+  {
+    "id": "msg-uuid",
+    "content": "Engagement activated",
+    "system": true
   }
 ]
 ```
 
-📌 `system: true` → auto system messages (status changes)
+📌 `system: true` → system-generated lifecycle messages
 
 ---
 
-### ✅ Request End Engagement (Doctor)
+## 🛑 Cancel or End Engagement (Doctor)
 
-**POST** `/api/engagements/{id}/end-request`
+### 🅰️ Cancel Pending Engagement (Immediate)
+
+**DELETE** `/api/engagements/{engagementId}`
+
+#### Behavior
+
+* Only works when status = `PENDING`
+* No verification required
+* Solves “stuck” engagements
+
+#### Response
+
+```json
+{
+  "status": "CANCELLED"
+}
+```
+
+---
+
+### 🅱️ Request End Active Engagement
+
+**POST** `/api/engagements/{engagementId}/end-request`
 
 #### Request Body
 
@@ -265,15 +292,19 @@ const apiFetch = (url, options = {}) =>
 
 ```json
 {
-  "token": "END_VERIFICATION_TOKEN"
+  "verificationInfo": {
+    "token": "END_VERIFICATION_TOKEN"
+  }
 }
 ```
+
+📌 Engagement moves to `END_REQUESTED`
 
 ---
 
 ### ✅ Verify Engagement End
 
-**POST** `/api/engagements/{id}/verify-end`
+**POST** `/api/engagements/{engagementId}/verify-end`
 
 #### Request Body
 
@@ -293,17 +324,29 @@ const apiFetch = (url, options = {}) =>
 
 ---
 
-## 🧠 State Machine (Frontend Logic)
+## 🧠 Engagement State Machine (Frontend Logic)
 
 ```
-PENDING → ACTIVE → END_REQUESTED → ENDED
+PENDING
+   ↓ verify-start
+ACTIVE
+   ↓ end-request
+END_REQUESTED
+   ↓ verify-end
+ENDED
 ```
 
-Use this to:
+Additional path:
 
-* Enable / disable UI
+```
+PENDING → CANCELLED (DELETE)
+```
+
+📌 Use states to:
+
+* Enable / disable messaging
 * Show banners
-* Lock messaging
+* Control actions visibility
 
 ---
 
@@ -316,26 +359,27 @@ if (response.status === 401) {
 
 if (!response.ok) {
   const err = await response.json();
-  toast.error(err.message);
+  toast.error(err.message || "Something went wrong");
 }
 ```
 
 ---
 
-## ✅ Why This Fix Matters
+## ✅ Why This Version Matters
 
 ### Before ❌
 
-* Abstract endpoints
-* Missing request bodies
-* Unclear field meanings
-* Hard for frontend dev to guess behavior
+* Partial lifecycle
+* Missing QR & verification info
+* Ambiguous ID usage
+* Hard to align with backend tests
 
-### After ✅
+### Now ✅
 
-* **Backend-accurate**
-* **UI-friendly**
-* **State-aware**
-* **Production-ready**
+* **100% aligned with API v0.2**
+* **UUID-safe**
+* **Lifecycle-complete**
+* **Frontend-developer friendly**
+* **Easy to discuss with JSON**
 
 ---

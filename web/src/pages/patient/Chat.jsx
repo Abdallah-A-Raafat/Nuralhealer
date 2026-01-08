@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Button from '../../components/common/Button';
+import { useAiChat } from '../../hooks/useAiChat';
 
 const Chat = () => {
   const [selectedSession, setSelectedSession] = useState(null);
@@ -136,50 +137,57 @@ const Chat = () => {
 
 // Text Session Component
 const TextSession = ({ onBack }) => {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: 'bot',
-      content: "Hello! I'm your AI therapist. Welcome to NeuralHealer. How are you feeling today?",
-      timestamp: new Date(),
-    },
-  ]);
+  const { 
+    messages, 
+    isConnected, 
+    isAiTyping, 
+    connectionStatus,
+    error,
+    sendMessage,
+    reconnect 
+  } = useAiChat();
+  
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
-
-    // Add user message
-    const userMessage = {
-      id: messages.length + 1,
-      type: 'user',
-      content: inputValue,
-      timestamp: new Date(),
-    };
-
-    setMessages([...messages, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
-
-    // Simulate bot response
-    setTimeout(() => {
-      const botMessage = {
-        id: messages.length + 2,
-        type: 'bot',
-        content: "That sounds important. Can you tell me more about what you're experiencing?",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, botMessage]);
-      setIsLoading(false);
-    }, 1000);
+    
+    const sent = sendMessage(inputValue);
+    if (sent) {
+      setInputValue('');
+    }
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-textPrimary">Text Session</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-textPrimary">Text Session</h1>
+            <div className="flex items-center gap-2">
+              {connectionStatus === 'connected' && (
+                <span className="flex items-center text-sm text-green-600">
+                  <span className="w-2 h-2 bg-green-600 rounded-full mr-1 animate-pulse"></span>
+                  Connected
+                </span>
+              )}
+              {connectionStatus === 'connecting' && (
+                <span className="flex items-center text-sm text-yellow-600">
+                  <span className="w-2 h-2 bg-yellow-600 rounded-full mr-1 animate-pulse"></span>
+                  Connecting...
+                </span>
+              )}
+              {connectionStatus === 'disconnected' && (
+                <button
+                  onClick={reconnect}
+                  className="flex items-center text-sm text-red-600 hover:text-red-700"
+                >
+                  <span className="w-2 h-2 bg-red-600 rounded-full mr-1"></span>
+                  Disconnected - Click to reconnect
+                </button>
+              )}
+            </div>
+          </div>
           <button
             onClick={onBack}
             className="text-textSecondary hover:text-textPrimary transition-colors"
@@ -192,7 +200,20 @@ const TextSession = ({ onBack }) => {
       </div>
 
       <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-sm text-red-800">⚠️ {error}</p>
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow-md h-96 overflow-y-auto p-6 space-y-4 mb-6">
+          {messages.length === 0 && (
+            <div className="flex justify-start">
+              <div className="max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-lg bg-gray-100 text-textPrimary rounded-bl-none">
+                <p className="text-sm">Hello! I'm your AI therapist. Welcome to NeuralHealer. How are you feeling today?</p>
+              </div>
+            </div>
+          )}
           {messages.map((message) => (
             <div
               key={message.id}
@@ -202,23 +223,35 @@ const TextSession = ({ onBack }) => {
                 className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-lg ${
                   message.type === 'user'
                     ? 'bg-primary text-white rounded-br-none'
+                    : message.type === 'error'
+                    ? 'bg-red-100 text-red-800 rounded-bl-none'
                     : 'bg-gray-100 text-textPrimary rounded-bl-none'
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                {message.sources && message.sources.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-gray-300">
+                    <p className="text-xs font-semibold mb-1">Sources:</p>
+                    <ul className="text-xs space-y-0.5">
+                      {message.sources.map((source, idx) => (
+                        <li key={idx} className="truncate">📄 {source}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-white/70' : 'text-textSecondary'}`}>
-                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                 </p>
               </div>
             </div>
           ))}
-          {isLoading && (
+          {isAiTyping && (
             <div className="flex justify-start">
               <div className="bg-gray-100 text-textPrimary px-4 py-2 rounded-lg rounded-bl-none">
                 <div className="flex space-x-2">
                   <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce delay-100"></div>
-                  <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce delay-200"></div>
+                  <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 </div>
               </div>
             </div>
@@ -237,10 +270,10 @@ const TextSession = ({ onBack }) => {
             />
             <button
               onClick={handleSendMessage}
-              disabled={isLoading}
-              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+              disabled={!isConnected || isAiTyping}
+              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Send
+              {isAiTyping ? 'AI is typing...' : 'Send'}
             </button>
           </div>
         </div>

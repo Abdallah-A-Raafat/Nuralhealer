@@ -23,11 +23,9 @@ const Login = () => {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
-  const { loginUser, accountType } = useAuth();
+  const { loginUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  const from = location.state?.from?.pathname || (accountType === 'doctor' ? '/doctor-dashboard' : '/chat');
 
   const {
     register,
@@ -44,6 +42,11 @@ const Login = () => {
     const result = await loginUser(data);
 
     if (result.success) {
+      // Redirect based on user role from backend
+      const userRole = result.data.role; // 'DOCTOR' or 'PATIENT'
+      const defaultPath = userRole === 'DOCTOR' ? '/doctor-dashboard' : '/doctors';
+      const from = location.state?.from?.pathname || defaultPath;
+      
       navigate(from, { replace: true });
     } else {
       setApiError(result.error);

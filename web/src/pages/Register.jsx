@@ -70,8 +70,9 @@ const Register = () => {
     const result = await registerUser(userData);
 
     if (result.success) {
-      // Navigate based on account type
-      navigate(userData.accountType === 'doctor' ? '/doctor-dashboard' : '/chat');
+      // Navigate based on role from backend response
+      const userRole = result.data.role; // 'DOCTOR' or 'PATIENT'
+      navigate(userRole === 'DOCTOR' ? '/doctor-dashboard' : '/doctors');
     } else {
       setApiError(result.error);
     }

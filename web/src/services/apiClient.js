@@ -1,23 +1,22 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-// Base API configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// Base API configuration - Backend runs on port 8080
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // CRITICAL: Enable HTTP-only cookie authentication
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor - No need to add Bearer token (cookies handle auth)
 apiClient.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().token;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Cookies are automatically sent by the browser
+    // No manual token management needed
     return config;
   },
   (error) => {

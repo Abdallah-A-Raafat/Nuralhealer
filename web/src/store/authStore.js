@@ -1,45 +1,76 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+/**
+ * Authentication Store
+ * Manages user authentication state
+ * Note: JWT token is stored in HTTP-only cookie by backend, not in this store
+ */
 export const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
-      token: null,
       isLoggedIn: false,
-      accountType: null, // 'patient' or 'doctor'
+      role: null, // 'DOCTOR' or 'PATIENT' (uppercase from backend)
       
-      login: (userData, token, accountType = null) => set({ 
+      /**
+       * Login user - Store user data (token handled by cookies)
+       * @param {Object} userData - User data from backend { userId, email, firstName, lastName, role }
+       */
+      login: (userData) => set({ 
         user: userData, 
-        token, 
         isLoggedIn: true,
-        accountType: accountType || userData.accountType || null
+        role: userData.role // Backend returns 'DOCTOR' or 'PATIENT'
       }),
       
+      /**
+       * Logout user - Clear all auth state
+       */
       logout: () => set({ 
         user: null, 
-        token: null, 
         isLoggedIn: false,
-        accountType: null
+        role: null
       }),
       
-      updateUser: (userData) => set({ user: userData }),
+      /**
+       * Update user data
+       */
+      updateUser: (userData) => set({ 
+        user: userData,
+        role: userData.role
+      }),
       
-      setAccountType: (accountType) => set({ accountType }),
+      /**
+       * Check if user is authenticated
+       */
+      isAuthenticated: () => get().isLoggedIn,
       
-      isAuthenticated: () => get().isLoggedIn && get().token,
+      /**
+       * Check if user is a doctor
+       */
+      isDoctor: () => get().role === 'DOCTOR',
       
-      isDoctor: () => get().accountType === 'doctor',
+      /**
+       * Check if user is a patient
+       */
+      isPatient: () => get().role === 'PATIENT',
       
-      isPatient: () => get().accountType === 'patient',
+      /**
+       * Get account type in lowercase for compatibility
+       * @returns {'doctor' | 'patient' | null}
+       */
+      getAccountType: () => {
+        const role = get().role;
+        return role ? role.toLowerCase() : null;
+      }
     }),
     {
-      name: 'soothe-auth',
+      name: 'neuralhealer-auth',
       partialize: (state) => ({ 
         user: state.user, 
-        token: state.token, 
         isLoggedIn: state.isLoggedIn,
-        accountType: state.accountType
+        role: state.role
+        // Note: No token stored - backend manages via HTTP-only cookies
       }),
     }
   )

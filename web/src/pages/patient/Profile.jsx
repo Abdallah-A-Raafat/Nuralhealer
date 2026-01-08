@@ -1,80 +1,60 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/common/Button';
+import userService from '../../services/userService';
 
 const Profile = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [profileData, setProfileData] = useState(null);
+  const [stats, setStats] = useState({
+    totalSessions: 0,
+    totalMinutes: 0,
+    voiceSessions: 0,
+    textSessions: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Sample past sessions data
-  const [pastSessions] = useState([
-    {
-      id: 1,
-      date: '2025-11-20',
-      time: '2:00 PM',
-      duration: '45 minutes',
-      type: 'Text Session',
-      emotion: 'Calm',
-      notes: 'Discussed work-life balance and stress management techniques',
-      mood_before: 'Anxious',
-      mood_after: 'Relaxed',
-    },
-    {
-      id: 2,
-      date: '2025-11-18',
-      time: '3:30 PM',
-      duration: '50 minutes',
-      type: 'Sound Session',
-      emotion: 'Improved',
-      notes: 'Voice session focusing on breathing exercises and mindfulness',
-      mood_before: 'Stressed',
-      mood_after: 'Calm',
-    },
-    {
-      id: 3,
-      date: '2025-11-15',
-      time: '10:00 AM',
-      duration: '45 minutes',
-      type: 'Text Session',
-      emotion: 'Positive',
-      notes: 'Explored coping strategies for anxiety',
-      mood_before: 'Worried',
-      mood_after: 'Optimistic',
-    },
-    {
-      id: 4,
-      date: '2025-11-12',
-      time: '4:00 PM',
-      duration: '55 minutes',
-      type: 'Text Session',
-      emotion: 'Good',
-      notes: 'Discussed goal-setting and personal development',
-      mood_before: 'Neutral',
-      mood_after: 'Motivated',
-    },
-    {
-      id: 5,
-      date: '2025-11-10',
-      time: '2:15 PM',
-      duration: '45 minutes',
-      type: 'Sound Session',
-      emotion: 'Improved',
-      notes: 'Practiced meditation and relaxation techniques',
-      mood_before: 'Tired',
-      mood_after: 'Refreshed',
-    },
-    {
-      id: 6,
-      date: '2025-11-08',
-      time: '11:00 AM',
-      duration: '50 minutes',
-      type: 'Text Session',
-      emotion: 'Positive',
-      notes: 'Initial assessment and treatment plan discussion',
-      mood_before: 'Uncertain',
-      mood_after: 'Hopeful',
-    },
-  ]);
+  const [pastSessions, setPastSessions] = useState([]);
+
+  // Fetch user profile data and statistics
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch user profile data
+        const userData = await userService.getCurrentUser();
+        setProfileData(userData);
+        
+        // Fetch user statistics
+        const userStats = await userService.getUserStats();
+        setStats(userStats);
+        
+        // Fetch session history
+        const sessions = await userService.getSessionHistory();
+        setPastSessions(sessions);
+        
+      } catch (error) {
+        console.error('Failed to load profile data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
+
+  // Format date from ISO string to readable format
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Not available';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
 
   const getMoodColor = (mood) => {
     const colors = {
@@ -161,18 +141,22 @@ const Profile = () => {
                 <div className="space-y-6">
                   <div>
                     <label className="text-sm text-textSecondary">Full Name</label>
-                    <p className="text-lg font-medium text-textPrimary">{user?.firstName} {user?.lastName}</p>
+                    <p className="text-lg font-medium text-textPrimary">
+                      {isLoading ? 'Loading...' : `${profileData?.firstName || user?.firstName || ''} ${profileData?.lastName || user?.lastName || ''}`}
+                    </p>
                   </div>
 
                   <div>
                     <label className="text-sm text-textSecondary">Email Address</label>
-                    <p className="text-lg font-medium text-textPrimary">{user?.email}</p>
+                    <p className="text-lg font-medium text-textPrimary">
+                      {isLoading ? 'Loading...' : (profileData?.email || user?.email || 'N/A')}
+                    </p>
                   </div>
 
                   <div>
                     <label className="text-sm text-textSecondary">Account Type</label>
                     <p className="inline-block mt-1 px-3 py-1 rounded-full bg-primary/10 text-primary font-medium text-sm">
-                      Patient
+                      {isLoading ? 'Loading...' : (profileData?.role || user?.role || 'Patient')}
                     </p>
                   </div>
                 </div>
@@ -181,7 +165,9 @@ const Profile = () => {
                 <div className="space-y-6">
                   <div>
                     <label className="text-sm text-textSecondary">Member Since</label>
-                    <p className="text-lg font-medium text-textPrimary">November 26, 2025</p>
+                    <p className="text-lg font-medium text-textPrimary">
+                      {isLoading ? 'Loading...' : formatDate(profileData?.createdAt)}
+                    </p>
                   </div>
 
                   <div>
@@ -192,9 +178,13 @@ const Profile = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm text-textSecondary">Verification Status</label>
-                    <p className="inline-block mt-1 px-3 py-1 rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      Verified
+                    <label className="text-sm text-textSecondary">Email Verification</label>
+                    <p className={`inline-block mt-1 px-3 py-1 rounded-full font-medium text-sm ${
+                      profileData?.emailVerified 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {isLoading ? 'Loading...' : (profileData?.emailVerified ? 'Verified' : 'Not Verified')}
                     </p>
                   </div>
                 </div>
@@ -211,27 +201,36 @@ const Profile = () => {
             <div className="bg-white rounded-lg shadow-md p-8">
               <h2 className="text-2xl font-bold text-textPrimary mb-6">Therapy Progress</h2>
               
-              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="text-center p-4 bg-primary/5 rounded-lg">
-                  <div className="text-3xl font-bold text-primary mb-2">6</div>
-                  <p className="text-sm text-textSecondary">Total Sessions</p>
+              {isLoading ? (
+                <div className="text-center py-8 text-textSecondary">Loading statistics...</div>
+              ) : stats.totalSessions === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-textSecondary mb-4">No therapy sessions yet</p>
+                  <p className="text-sm text-textSecondary">Start your first AI chat session to track your progress</p>
                 </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6">
+                  <div className="text-center p-4 bg-primary/5 rounded-lg">
+                    <div className="text-3xl font-bold text-primary mb-2">{stats.totalSessions}</div>
+                    <p className="text-sm text-textSecondary">Total Sessions</p>
+                  </div>
 
-                <div className="text-center p-4 bg-secondary/5 rounded-lg">
-                  <div className="text-3xl font-bold text-secondary mb-2">285</div>
-                  <p className="text-sm text-textSecondary">Total Minutes</p>
-                </div>
+                  <div className="text-center p-4 bg-secondary/5 rounded-lg">
+                    <div className="text-3xl font-bold text-secondary mb-2">{stats.totalMinutes}</div>
+                    <p className="text-sm text-textSecondary">Total Minutes</p>
+                  </div>
 
-                <div className="text-center p-4 bg-accent/20 rounded-lg">
-                  <div className="text-3xl font-bold text-accent mb-2">3</div>
-                  <p className="text-sm text-textSecondary">Voice Sessions</p>
-                </div>
+                  <div className="text-center p-4 bg-accent/20 rounded-lg">
+                    <div className="text-3xl font-bold text-accent mb-2">{stats.voiceSessions}</div>
+                    <p className="text-sm text-textSecondary">Voice Sessions</p>
+                  </div>
 
-                <div className="text-center p-4 bg-green-100 rounded-lg">
-                  <div className="text-3xl font-bold text-green-600 mb-2">83%</div>
-                  <p className="text-sm text-textSecondary">Mood Improvement</p>
+                  <div className="text-center p-4 bg-green-100 rounded-lg">
+                    <div className="text-3xl font-bold text-green-600 mb-2">{stats.textSessions}</div>
+                    <p className="text-sm text-textSecondary">Text Sessions</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Recommended Actions */}
@@ -251,8 +250,16 @@ const Profile = () => {
         {activeTab === 'sessions' && (
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              {/* Sessions List */}
-              <div className="divide-y divide-gray-200">
+              {isLoading ? (
+                <div className="p-8 text-center text-textSecondary">Loading session history...</div>
+              ) : pastSessions.length === 0 ? (
+                <div className="p-8 text-center">
+                  <p className="text-textSecondary mb-4">No sessions recorded yet</p>
+                  <p className="text-sm text-textSecondary">Your AI chat sessions will appear here once you start using the service</p>
+                </div>
+              ) : (
+                /* Sessions List */
+                <div className="divide-y divide-gray-200">
                 {pastSessions.map((session) => (
                   <div key={session.id} className="p-6 hover:bg-gray-50 transition-colors">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -308,11 +315,13 @@ const Profile = () => {
                     </div>
                   </div>
                 ))}
-              </div>
+                </div>
+              )}
 
-              {/* Pagination */}
-              <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
-                <p className="text-sm text-textSecondary">Showing 6 of 6 sessions</p>
+              {/* Pagination - Only show if there are sessions */}
+              {!isLoading && pastSessions.length > 0 && (
+                <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
+                  <p className="text-sm text-textSecondary">Showing {pastSessions.length} of {pastSessions.length} sessions</p>
                 <div className="space-x-2">
                   <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 transition-colors disabled:opacity-50" disabled>
                     Previous
@@ -321,7 +330,8 @@ const Profile = () => {
                     Next
                   </button>
                 </div>
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}

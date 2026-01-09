@@ -72,6 +72,7 @@
 	.dark .text-textPrimary { color: #ECE8F5; }
 	.dark .text-textSecondary { color: #C5B8D9; }
 
+	.dark nav.bg-white { background-color: #241D30; }
 	.dark .bg-white { background-color: #1C1A2B; }
 	.dark .bg-background { background-color: #1A1625; }
 	.dark .bg-gray-100 { background-color: #241D30; }
@@ -119,4 +120,20 @@ body.rtl .space-x-4 > :not([hidden]) ~ :not([hidden]) {
 body.rtl .ml- {
 	margin-right: var(--margin);
 	margin-left: 0;
+}
+
+/* Chat animations */
+@keyframes fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-fade-in {
+	animation: fade-in 0.3s ease-out;
 }

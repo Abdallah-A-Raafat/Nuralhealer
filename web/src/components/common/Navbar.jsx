@@ -5,12 +5,14 @@ import LanguageToggle from './LanguageToggle';
 import DarkModeToggle from './DarkModeToggle';
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../hooks/useLanguage.jsx';
+import { useDarkMode } from '../../hooks/useDarkMode';
 import navLogo from '../../assets/nav-logo.png';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isLoggedIn, accountType, logoutUser } = useAuth();
   const { t } = useLanguage();
+  const { isDarkMode } = useDarkMode();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -41,7 +43,11 @@ const Navbar = () => {
   const navigation = isLoggedIn && accountType === 'doctor' ? doctorNav : patientNav;
 
   return (
-    <nav className="bg-white dark:bg-[#241D30] shadow-lg dark:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.4)] transition-colors duration-300">
+    <nav className={`shadow-md border-b transition-all duration-300 ${
+      isDarkMode 
+        ? 'bg-[#241D30] border-[#3F3651]' 
+        : 'bg-[#FFFFFF] border-purple-200'
+    }`}>
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-15">
           {/* Logo */}
@@ -60,10 +66,14 @@ const Navbar = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                   item.current
-                    ? 'text-primary bg-primary/10 dark:text-primary dark:bg-primary/20'
-                    : 'text-textSecondary dark:text-[#C5B8D9] hover:text-primary hover:bg-accent/20 dark:hover:text-primary dark:hover:bg-accent/10'
+                    ? isDarkMode
+                      ? 'text-[#E5DEFF] bg-gradient-to-r from-primary/30 to-purple-900/40 shadow-sm ring-1 ring-primary/40'
+                      : 'text-primary bg-gradient-to-r from-primary/15 to-purple-100/60 shadow-sm ring-1 ring-primary/20'
+                    : isDarkMode
+                      ? 'text-[#C5B8D9] hover:text-[#E5DEFF] hover:bg-gradient-to-r hover:from-purple-900/30 hover:to-purple-800/20 hover:shadow-sm'
+                      : 'text-gray-700 hover:text-primary hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100/40 hover:shadow-sm'
                 }`}
               >
                 {item.name}
@@ -72,27 +82,57 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden md:flex items-center space-x-3">
             <DarkModeToggle />
             <LanguageToggle />
             {isLoggedIn ? (
               <div className="flex items-center space-x-4">
-                <div className="flex flex-col items-end">
-                  <span className="text-textSecondary text-sm">
+                <div className={`flex flex-col items-end px-3 py-2 rounded-lg bg-gradient-to-r ${
+                  isDarkMode 
+                    ? 'from-purple-900/40 to-purple-800/30' 
+                    : 'from-purple-50 to-purple-100/40'
+                }`}>
+                  <span className={`text-sm font-medium ${
+                    isDarkMode ? 'text-[#E5DEFF]' : 'text-gray-700'
+                  }`}>
                     {t.common.welcome}, {user?.firstName || 'User'}
                   </span>
                 </div>
-                <Button variant="ghost" onClick={handleLogout}>
+                <Button 
+                  variant="ghost" 
+                  onClick={handleLogout}
+                  className={`transition-colors ${
+                    isDarkMode
+                      ? 'hover:bg-red-900/20 hover:text-red-400'
+                      : 'hover:bg-red-50 hover:text-red-600'
+                  }`}
+                >
                   {t.common.logout}
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
                 <Link to="/login">
-                  <Button variant="ghost">{t.common.signIn}</Button>
+                  <Button 
+                    variant="ghost"
+                    className={isDarkMode 
+                      ? 'hover:bg-purple-900/30 text-[#C5B8D9] hover:text-[#E5DEFF]'
+                      : 'hover:bg-purple-50'
+                    }
+                  >
+                    {t.common.signIn}
+                  </Button>
                 </Link>
                 <Link to="/register">
-                  <Button variant="ghost">{t.common.getStarted}</Button>
+                  <Button 
+                    className={`shadow-md hover:shadow-lg transition-all ${
+                      isDarkMode
+                        ? 'bg-gradient-to-r from-purple-600 to-primary hover:from-purple-600/90 hover:to-primary/90'
+                        : 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90'
+                    }`}
+                  >
+                    {t.common.getStarted}
+                  </Button>
                 </Link>
               </div>
             )}
@@ -102,7 +142,11 @@ const Navbar = () => {
           <div className="md:hidden flex items-center space-x-2">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-textSecondary hover:text-primary focus:outline-none focus:text-primary"
+              className={`p-2 rounded-lg transition-colors focus:outline-none ${
+                isDarkMode
+                  ? 'text-[#C5B8D9] hover:text-primary hover:bg-purple-900/30'
+                  : 'text-gray-700 hover:text-primary hover:bg-purple-50'
+              }`}
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMenuOpen ? (
@@ -118,15 +162,23 @@ const Navbar = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-[#241D30] border-t dark:border-[#3F3651] transition-colors duration-300">
+            <div className={`px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t transition-all duration-300 rounded-b-lg ${
+              isDarkMode
+                ? 'bg-gradient-to-b from-[#241D30] to-[#1a1625] border-[#3F3651]'
+                : 'bg-gradient-to-b from-white to-purple-50/20 border-purple-100'
+            }`}>
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                  className={`block px-3 py-2 rounded-lg text-base font-medium transition-all ${
                     item.current
-                      ? 'text-primary bg-primary/10 dark:text-primary dark:bg-primary/20'
-                      : 'text-textSecondary dark:text-[#C5B8D9] hover:text-primary hover:bg-accent/20 dark:hover:text-primary dark:hover:bg-accent/10'
+                      ? isDarkMode
+                        ? 'text-[#E5DEFF] bg-gradient-to-r from-primary/30 to-purple-900/40 shadow-sm'
+                        : 'text-primary bg-gradient-to-r from-primary/15 to-purple-100/60 shadow-sm'
+                      : isDarkMode
+                        ? 'text-[#C5B8D9] hover:text-[#E5DEFF] hover:bg-gradient-to-r hover:from-purple-900/30 hover:to-purple-800/20'
+                        : 'text-gray-700 hover:text-primary hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100/40'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -135,19 +187,27 @@ const Navbar = () => {
               ))}
               
               {/* Mobile Auth */}
-              <div className="pt-4 border-t border-accent/30 dark:border-[#3F3651]">
+              <div className={`pt-4 border-t ${isDarkMode ? 'border-[#3F3651]' : 'border-purple-100'}`}>
                 <div className="px-3 py-2 pb-3 flex items-center space-x-2">
                   <DarkModeToggle />
                   <LanguageToggle />
                 </div>
                 {isLoggedIn ? (
                   <div className="space-y-2">
-                    <div className="px-3 py-2 text-textSecondary dark:text-[#C5B8D9]">
+                    <div className={`px-3 py-2 rounded-lg font-medium ${
+                      isDarkMode 
+                        ? 'text-[#E5DEFF] bg-purple-900/40' 
+                        : 'text-gray-700 bg-purple-50'
+                    }`}>
                       {t.common.welcome}, {user?.firstName || 'User'}
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-textPrimary dark:text-[#ECE8F5] hover:text-primary hover:bg-accent/20 dark:hover:text-primary dark:hover:bg-accent/10"
+                      className={`block w-full text-left px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                        isDarkMode
+                          ? 'text-red-400 hover:bg-red-900/20'
+                          : 'text-red-600 hover:bg-red-50'
+                      }`}
                     >
                       {t.common.logout}
                     </button>
@@ -156,14 +216,22 @@ const Navbar = () => {
                   <div className="space-y-2">
                     <Link
                       to="/login"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-textPrimary dark:text-[#ECE8F5] hover:text-primary hover:bg-accent/20 dark:hover:text-primary dark:hover:bg-accent/10"
+                      className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                        isDarkMode
+                          ? 'text-[#C5B8D9] hover:text-[#E5DEFF] hover:bg-purple-900/30'
+                          : 'text-gray-700 hover:text-primary hover:bg-purple-50'
+                      }`}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {t.common.signIn}
                     </Link>
                     <Link
                       to="/register"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/80"
+                      className={`block px-3 py-2 rounded-lg text-base font-medium text-white shadow-md transition-all ${
+                        isDarkMode
+                          ? 'bg-gradient-to-r from-purple-600 to-primary'
+                          : 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90'
+                      }`}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {t.common.getStarted}

@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const DoctorDashboard = () => {
+  const { t } = useLanguage();
   const stats = [
     {
-      label: 'Total Patients',
+      label: t.doctor.dashboard.totalPatients,
       value: '24',
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -13,7 +15,7 @@ const DoctorDashboard = () => {
       ),
     },
     {
-      label: 'Appointments This Week',
+      label: t.doctor.dashboard.appointmentsThisWeek,
       value: '8',
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,7 +24,7 @@ const DoctorDashboard = () => {
       ),
     },
     {
-      label: 'Sessions Completed',
+      label: t.doctor.dashboard.sessionsCompleted,
       value: '156',
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,8 +45,8 @@ const DoctorDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-textPrimary mb-2">Welcome back, Doctor</h1>
-          <p className="text-textSecondary">Here's your practice overview</p>
+          <h1 className="text-4xl font-bold text-textPrimary mb-2">{t.doctor.dashboard.welcomeBack}</h1>
+          <p className="text-textSecondary">{t.doctor.dashboard.practiceOverview}</p>
         </div>
 
         {/* Stats Grid */}
@@ -62,16 +64,16 @@ const DoctorDashboard = () => {
 
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-bold text-textPrimary mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-bold text-textPrimary mb-4">{t.doctor.dashboard.quickActions}</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <Link to="/doctor-appointments">
               <Button variant="outline" size="large" className="w-full">
-                View Appointments
+                {t.doctor.dashboard.viewAppointments}
               </Button>
             </Link>
             <Link to="/doctor-patients">
               <Button variant="outline" size="large" className="w-full">
-                Manage Patients
+                {t.doctor.dashboard.managePatients}
               </Button>
             </Link>
           </div>
@@ -79,7 +81,7 @@ const DoctorDashboard = () => {
 
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold text-textPrimary mb-4">Recent Activity</h2>
+          <h2 className="text-xl font-bold text-textPrimary mb-4">{t.doctor.dashboard.recentActivity}</h2>
           <div className="space-y-4">
             {recentActivities.map((activity, index) => (
               <div key={index} className="flex items-start justify-between pb-4 border-b last:border-b-0">

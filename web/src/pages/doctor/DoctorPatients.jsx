@@ -5,6 +5,7 @@ import * as yup from 'yup';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const patientSchema = yup.object({
   firstName: yup
@@ -32,6 +33,7 @@ const patientSchema = yup.object({
 });
 
 const DoctorPatients = () => {
+  const { t } = useLanguage();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [patients, setPatients] = useState([
     {
@@ -82,7 +84,7 @@ const DoctorPatients = () => {
       email: data.email,
       phone: data.phone,
       dateOfBirth: data.dateOfBirth,
-      condition: data.medicalCondition || 'Not specified',
+      condition: data.medicalCondition || t.doctor.patients.notSpecified,
       lastVisit: new Date().toISOString().split('T')[0],
       status: 'active',
     };
@@ -102,8 +104,8 @@ const DoctorPatients = () => {
         {/* Header with Add Patient Button */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-textPrimary mb-2">My Patients</h1>
-            <p className="text-textSecondary">Manage your patient list and profiles</p>
+            <h1 className="text-4xl font-bold text-textPrimary mb-2">{t.doctor.patients.title}</h1>
+            <p className="text-textSecondary">{t.doctor.patients.description}</p>
           </div>
           <Button
             variant="primary"
@@ -114,7 +116,7 @@ const DoctorPatients = () => {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
             </svg>
-            Add Patient
+            {t.doctor.patients.addPatient}
           </Button>
         </div>
 
@@ -128,7 +130,7 @@ const DoctorPatients = () => {
                   <p className="text-sm text-textSecondary">{patient.condition}</p>
                 </div>
                 <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {patient.status}
+                  {t.doctor.patients.active}
                 </span>
               </div>
 
@@ -149,7 +151,7 @@ const DoctorPatients = () => {
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  Last visit: {patient.lastVisit}
+                  {t.doctor.patients.lastVisit}: {patient.lastVisit}
                 </div>
               </div>
 
@@ -157,7 +159,7 @@ const DoctorPatients = () => {
                 onClick={() => handleViewProfile(patient)}
                 className="w-full py-2 px-4 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium text-sm"
               >
-                View Profile
+                {t.doctor.patients.viewProfile}
               </button>
             </div>
           ))}
@@ -167,58 +169,58 @@ const DoctorPatients = () => {
         <Modal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
-          title="Add New Patient"
+          title={t.doctor.patients.addNewPatient}
           size="medium"
         >
           <form className="space-y-4" onSubmit={handleSubmit(handleAddPatient)}>
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="First Name"
-                placeholder="First name"
+                label={t.common.firstName}
+                placeholder={t.common.firstName}
                 error={errors.firstName?.message}
                 {...register('firstName')}
               />
               <Input
-                label="Last Name"
-                placeholder="Last name"
+                label={t.common.lastName}
+                placeholder={t.common.lastName}
                 error={errors.lastName?.message}
                 {...register('lastName')}
               />
             </div>
 
             <Input
-              label="Email"
+              label={t.common.email}
               type="email"
-              placeholder="Email address"
+              placeholder={t.common.email}
               error={errors.email?.message}
               {...register('email')}
             />
 
             <Input
-              label="Phone Number"
+              label={t.doctor.patients.phoneNumber}
               placeholder="+1-555-0000"
               error={errors.phone?.message}
               {...register('phone')}
             />
 
             <Input
-              label="Date of Birth"
+              label={t.doctor.patients.dateOfBirth}
               type="date"
               error={errors.dateOfBirth?.message}
               {...register('dateOfBirth')}
             />
 
             <Input
-              label="Medical Condition (Optional)"
-              placeholder="e.g., Anxiety Disorder"
+              label={t.doctor.patients.medicalCondition}
+              placeholder={t.doctor.patients.medicalConditionPlaceholder}
               error={errors.medicalCondition?.message}
               {...register('medicalCondition')}
             />
 
             {/* 2FA Notice */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs text-blue-800">
-                <strong>Note:</strong> Two-factor authentication will be enabled for added patients in a future update.
+              <p className="text-xs text-blue-800" dir="rtl">
+                <strong>{t.chat.note}:</strong> {t.doctor.patients.twoFactorNote}
               </p>
             </div>
 
@@ -228,7 +230,7 @@ const DoctorPatients = () => {
                 variant="primary"
                 className="flex-1"
               >
-                Add Patient
+                {t.doctor.patients.addPatient}
               </Button>
               <Button
                 type="button"
@@ -236,7 +238,7 @@ const DoctorPatients = () => {
                 className="flex-1"
                 onClick={() => setIsAddModalOpen(false)}
               >
-                Cancel
+                {t.common.cancel}
               </Button>
             </div>
           </form>

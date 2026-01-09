@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import Button from '../../components/common/Button';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const DoctorAppointments = () => {
+  const { t } = useLanguage();
   const [appointments] = useState([
     {
       id: 1,
@@ -54,8 +56,25 @@ const DoctorAppointments = () => {
     }
   };
 
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'confirmed':
+        return t.doctor.appointments.confirmed;
+      case 'pending':
+        return t.doctor.appointments.pending;
+      case 'cancelled':
+        return t.doctor.appointments.cancelled;
+      default:
+        return status;
+    }
+  };
+
   const getTypeColor = (type) => {
     return type === 'Online' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
+  };
+
+  const getTypeText = (type) => {
+    return type === 'Online' ? t.doctor.appointments.online : t.doctor.appointments.inPerson;
   };
 
   return (
@@ -63,8 +82,8 @@ const DoctorAppointments = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-textPrimary mb-2">Appointments</h1>
-          <p className="text-textSecondary">Manage your upcoming and past appointments</p>
+          <h1 className="text-4xl font-bold text-textPrimary mb-2">{t.doctor.appointments.title}</h1>
+          <p className="text-textSecondary">{t.doctor.appointments.description}</p>
         </div>
 
         {/* Appointments Table */}
@@ -73,12 +92,12 @@ const DoctorAppointments = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">Patient</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">Date & Time</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">Type</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">Duration</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">Actions</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">{t.doctor.appointments.patient}</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">{t.doctor.appointments.dateTime}</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">{t.doctor.appointments.type}</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">{t.doctor.appointments.duration}</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">{t.doctor.appointments.status}</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-textPrimary">{t.doctor.appointments.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -91,21 +110,21 @@ const DoctorAppointments = () => {
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(appointment.type)}`}>
-                        {appointment.type}
+                        {getTypeText(appointment.type)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-textSecondary">{appointment.duration}</td>
                     <td className="px-6 py-4 text-sm">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
-                        {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                        {getStatusText(appointment.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm space-x-2">
                       <button className="text-primary hover:text-primary/80 font-medium">
-                        View
+                        {t.doctor.appointments.view}
                       </button>
                       <button className="text-secondary hover:text-secondary/80 font-medium">
-                        Reschedule
+                        {t.doctor.appointments.reschedule}
                       </button>
                     </td>
                   </tr>
@@ -118,8 +137,8 @@ const DoctorAppointments = () => {
         {/* No appointments message */}
         {appointments.length === 0 && (
           <div className="bg-white rounded-lg shadow p-8 text-center">
-            <p className="text-textSecondary mb-4">No appointments scheduled</p>
-            <Button variant="primary">Schedule Appointment</Button>
+            <p className="text-textSecondary mb-4">{t.doctor.appointments.noAppointments}</p>
+            <Button variant="primary">{t.doctor.appointments.scheduleAppointment}</Button>
           </div>
         )}
       </div>

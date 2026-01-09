@@ -4,44 +4,7 @@ import { useLanguage } from '../../hooks/useLanguage';
 
 const DoctorAppointments = () => {
   const { t } = useLanguage();
-  const [appointments] = useState([
-    {
-      id: 1,
-      patientName: 'Sarah Johnson',
-      date: '2025-11-27',
-      time: '10:00 AM',
-      status: 'confirmed',
-      type: 'Online',
-      duration: '1 hour',
-    },
-    {
-      id: 2,
-      patientName: 'Michael Chen',
-      date: '2025-11-27',
-      time: '2:00 PM',
-      status: 'confirmed',
-      type: 'In-Person',
-      duration: '1 hour',
-    },
-    {
-      id: 3,
-      patientName: 'Emma Wilson',
-      date: '2025-11-28',
-      time: '11:00 AM',
-      status: 'pending',
-      type: 'Online',
-      duration: '45 minutes',
-    },
-    {
-      id: 4,
-      patientName: 'David Martinez',
-      date: '2025-11-28',
-      time: '3:30 PM',
-      status: 'confirmed',
-      type: 'In-Person',
-      duration: '1 hour',
-    },
-  ]);
+  const [appointments] = useState([]);
 
   const getStatusColor = (status) => {
     switch (status) {

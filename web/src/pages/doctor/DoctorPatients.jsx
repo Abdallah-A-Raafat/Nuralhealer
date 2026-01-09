@@ -35,38 +35,7 @@ const patientSchema = yup.object({
 const DoctorPatients = () => {
   const { t } = useLanguage();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      email: 'sarah.j@email.com',
-      phone: '+1-555-0101',
-      dateOfBirth: '1990-05-15',
-      condition: 'Anxiety Disorder',
-      lastVisit: '2025-11-20',
-      status: 'active',
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      email: 'michael.c@email.com',
-      phone: '+1-555-0102',
-      dateOfBirth: '1988-03-22',
-      condition: 'Depression',
-      lastVisit: '2025-11-19',
-      status: 'active',
-    },
-    {
-      id: 3,
-      name: 'Emma Wilson',
-      email: 'emma.w@email.com',
-      phone: '+1-555-0103',
-      dateOfBirth: '1995-07-08',
-      condition: 'PTSD',
-      lastVisit: '2025-11-15',
-      status: 'active',
-    },
-  ]);
+  const [patients, setPatients] = useState([]);
 
   const {
     register,

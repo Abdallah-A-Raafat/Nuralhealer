@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Button from '../../components/common/Button';
 import { useAiChat } from '../../hooks/useAiChat';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const Chat = () => {
   const [selectedSession, setSelectedSession] = useState(null);
+  const { t } = useLanguage();
 
   if (selectedSession === 'text') {
     return <TextSession onBack={() => setSelectedSession(null)} />;
@@ -18,9 +20,9 @@ const Chat = () => {
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="max-w-3xl mx-auto text-center mb-12">
-          <h1 className="text-4xl font-bold text-textPrimary mb-4">AI Therapy Session</h1>
+          <h1 className="text-4xl font-bold text-textPrimary mb-4">{t.chat.aiTherapySession}</h1>
           <p className="text-lg text-textSecondary">
-            Choose how you'd like to connect with your AI therapist today
+            {t.chat.chooseConnection}
           </p>
         </div>
 
@@ -34,32 +36,32 @@ const Chat = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-textPrimary text-center mb-2">Text Session</h2>
+              <h2 className="text-2xl font-bold text-textPrimary text-center mb-2">{t.chat.textSession}</h2>
               <p className="text-textSecondary text-center">
-                Chat with your AI therapist using text. Take your time to express your thoughts and feelings.
+                {t.chat.textSessionDesc}
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-2">
-              <p className="text-sm font-semibold text-textPrimary">Features:</p>
+              <p className="text-sm font-semibold text-textPrimary">{t.chat.features}:</p>
               <ul className="text-sm text-textSecondary space-y-1">
                 <li className="flex items-center">
                   <svg className="w-4 h-4 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Real-time AI responses
+                  {t.chat.realTimeAiResponses}
                 </li>
                 <li className="flex items-center">
                   <svg className="w-4 h-4 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Session transcript saved
+                  {t.chat.sessionTranscriptSaved}
                 </li>
                 <li className="flex items-center">
                   <svg className="w-4 h-4 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Emotion analysis included
+                  {t.chat.emotionAnalysisIncluded}
                 </li>
               </ul>
             </div>
@@ -70,7 +72,7 @@ const Chat = () => {
               className="w-full"
               onClick={() => setSelectedSession('text')}
             >
-              Start Text Session
+              {t.chat.startTextSession}
             </Button>
           </div>
 
@@ -82,32 +84,32 @@ const Chat = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-textPrimary text-center mb-2">Sound Session</h2>
+              <h2 className="text-2xl font-bold text-textPrimary text-center mb-2">{t.chat.soundSession}</h2>
               <p className="text-textSecondary text-center">
-                Have a natural conversation with your AI therapist using voice. Perfect for when you prefer speaking.
+                {t.chat.soundSessionDesc}
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-2">
-              <p className="text-sm font-semibold text-textPrimary">Features:</p>
+              <p className="text-sm font-semibold text-textPrimary">{t.chat.features}:</p>
               <ul className="text-sm text-textSecondary space-y-1">
                 <li className="flex items-center">
                   <svg className="w-4 h-4 text-secondary mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Voice-to-text conversion
+                  {t.chat.voiceToTextConversion}
                 </li>
                 <li className="flex items-center">
                   <svg className="w-4 h-4 text-secondary mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Natural conversation flow
+                  {t.chat.naturalConversationFlow}
                 </li>
                 <li className="flex items-center">
                   <svg className="w-4 h-4 text-secondary mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  AI voice responses
+                  {t.chat.aiVoiceResponses}
                 </li>
               </ul>
             </div>
@@ -118,16 +120,16 @@ const Chat = () => {
               className="w-full"
               onClick={() => setSelectedSession('sound')}
             >
-              Start Sound Session
+              {t.chat.startSoundSession}
             </Button>
           </div>
         </div>
 
         {/* Info Box */}
         <div className="max-w-3xl mx-auto mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-semibold text-blue-900 mb-2">💡 Tip</h3>
+          <h3 className="font-semibold text-blue-900 mb-2">💡 {t.chat.tip}</h3>
           <p className="text-blue-800 text-sm">
-            Choose the session type that feels most comfortable for you. You can switch between text and voice during your sessions, and all conversations are private and encrypted.
+            {t.chat.tipText}
           </p>
         </div>
       </div>
@@ -146,7 +148,8 @@ const TextSession = ({ onBack }) => {
     sendMessage,
     reconnect 
   } = useAiChat();
-  
+  const { t } = useLanguage();
+  const messagesEndRef = useRef(null);
   const [inputValue, setInputValue] = useState('');
 
   const handleSendMessage = () => {
@@ -158,39 +161,51 @@ const TextSession = ({ onBack }) => {
     }
   };
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isAiTyping]);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-textPrimary">Text Session</h1>
-            <div className="flex items-center gap-2">
-              {connectionStatus === 'connected' && (
-                <span className="flex items-center text-sm text-green-600">
-                  <span className="w-2 h-2 bg-green-600 rounded-full mr-1 animate-pulse"></span>
-                  Connected
-                </span>
-              )}
-              {connectionStatus === 'connecting' && (
-                <span className="flex items-center text-sm text-yellow-600">
-                  <span className="w-2 h-2 bg-yellow-600 rounded-full mr-1 animate-pulse"></span>
-                  Connecting...
-                </span>
-              )}
-              {connectionStatus === 'disconnected' && (
-                <button
-                  onClick={reconnect}
-                  className="flex items-center text-sm text-red-600 hover:text-red-700"
-                >
-                  <span className="w-2 h-2 bg-red-600 rounded-full mr-1"></span>
-                  Disconnected - Click to reconnect
-                </button>
-              )}
+            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-textPrimary">{t.chat.textSession}</h1>
+              <div className="flex items-center gap-2 mt-1">
+                {connectionStatus === 'connected' && (
+                  <span className="flex items-center text-xs text-green-600">
+                    <span className="w-2 h-2 bg-green-600 rounded-full ml-1 animate-pulse"></span>
+                    {t.chat.connected}
+                  </span>
+                )}
+                {connectionStatus === 'connecting' && (
+                  <span className="flex items-center text-xs text-yellow-600">
+                    <span className="w-2 h-2 bg-yellow-600 rounded-full ml-1 animate-pulse"></span>
+                    {t.chat.connecting}
+                  </span>
+                )}
+                {connectionStatus === 'disconnected' && (
+                  <button
+                    onClick={reconnect}
+                    className="flex items-center text-xs text-red-600 hover:text-red-700 transition-colors"
+                  >
+                    <span className="w-2 h-2 bg-red-600 rounded-full ml-1"></span>
+                    {t.chat.disconnected} - {t.chat.clickToReconnect}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           <button
             onClick={onBack}
-            className="text-textSecondary hover:text-textPrimary transition-colors"
+            className="text-textSecondary hover:text-textPrimary transition-colors p-2 hover:bg-gray-100 rounded-lg"
+            aria-label="Back"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -199,81 +214,115 @@ const TextSession = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
+      <div className="flex-1 container mx-auto px-4 py-8 max-w-3xl flex flex-col">
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-800">⚠️ {error}</p>
+          <div className="mb-4 bg-red-50 border-l-4 border-red-400 rounded-lg p-4">
+            <p className="text-sm text-red-800 flex items-center gap-2" dir="rtl">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </p>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md h-96 overflow-y-auto p-6 space-y-4 mb-6">
-          {messages.length === 0 && (
-            <div className="flex justify-start">
-              <div className="max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-lg bg-gray-100 text-textPrimary rounded-bl-none">
-                <p className="text-sm">Hello! I'm your AI therapist. Welcome to NeuralHealer. How are you feeling today?</p>
-              </div>
-            </div>
-          )}
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-lg ${
-                  message.type === 'user'
-                    ? 'bg-primary text-white rounded-br-none'
-                    : message.type === 'error'
-                    ? 'bg-red-100 text-red-800 rounded-bl-none'
-                    : 'bg-gray-100 text-textPrimary rounded-bl-none'
-                }`}
-              >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                {message.sources && message.sources.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-gray-300">
-                    <p className="text-xs font-semibold mb-1">Sources:</p>
-                    <ul className="text-xs space-y-0.5">
-                      {message.sources.map((source, idx) => (
-                        <li key={idx} className="truncate">📄 {source}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-white/70' : 'text-textSecondary'}`}>
-                  {message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                </p>
-              </div>
-            </div>
-          ))}
-          {isAiTyping && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 text-textPrimary px-4 py-2 rounded-lg rounded-bl-none">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+        <div className="bg-white rounded-lg shadow-md flex-1 overflow-hidden flex flex-col mb-6 border border-gray-200">
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-textPrimary flex items-center gap-2">
+              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              {t.chat.textSession}
+            </h3>
+          </div>
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white">
+            {messages.length === 0 && (
+              <div className="flex justify-start animate-fade-in">
+                <div className="max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg bg-gray-100 text-textPrimary rounded-bl-none">
+                  <p className="text-sm leading-relaxed" dir="rtl">{t.chat.welcomeMessage}</p>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
+              >
+                <div
+                  className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg ${
+                    message.type === 'user'
+                      ? 'bg-primary text-white rounded-br-none'
+                      : message.type === 'error'
+                      ? 'bg-red-100 text-red-800 rounded-bl-none'
+                      : 'bg-gray-100 text-textPrimary rounded-bl-none'
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed" dir="rtl">{message.content}</p>
+                  {message.sources && message.sources.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-300/50">
+                      <p className="text-xs font-semibold mb-2" dir="rtl">المصادر:</p>
+                      <ul className="text-xs space-y-1" dir="rtl">
+                        {message.sources.map((source, idx) => (
+                          <li key={idx} className="truncate flex items-center gap-1">
+                            <span>📄</span>
+                            <span>{source}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <p className={`text-xs mt-2 ${message.type === 'user' ? 'text-white/70' : 'text-textSecondary'}`}>
+                    {message.timestamp ? new Date(message.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : ''}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {isAiTyping && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 text-textPrimary px-4 py-3 rounded-lg rounded-bl-none">
+                  <div className="flex gap-2">
+                    <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4">
+        <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
           <div className="flex gap-2">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Type your message here..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder={t.chat.typeYourMessage}
+              dir="rtl"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
             />
             <button
               onClick={handleSendMessage}
               disabled={!isConnected || isAiTyping}
-              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2"
             >
-              {isAiTyping ? 'AI is typing...' : 'Send'}
+              {isAiTyping ? (
+                <>
+                  <span>{t.chat.aiIsTyping}</span>
+                  <div className="flex gap-1">
+                    <div className="w-1 h-1 bg-white rounded-full animate-bounce"></div>
+                    <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span>{t.chat.send}</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -284,13 +333,15 @@ const TextSession = ({ onBack }) => {
 
 // Sound Session Component
 const SoundSession = ({ onBack }) => {
+  const { t } = useLanguage();
+  const messagesEndRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [sessionMessages, setSessionMessages] = useState([
     {
       id: 1,
       type: 'bot',
-      content: "Hello! I'm your AI therapist. Welcome to NeuralHealer. How are you feeling today?",
+      content: t.chat.welcomeMessage,
       timestamp: new Date(),
     },
   ]);
@@ -299,7 +350,7 @@ const SoundSession = ({ onBack }) => {
     setIsRecording(true);
     // Simulate recording
     setTimeout(() => {
-      setTranscript("I've been feeling a bit overwhelmed with work lately.");
+      setTranscript("أشعر ببعض الضغط في العمل مؤخراً.");
       setIsRecording(false);
     }, 2000);
   };
@@ -322,18 +373,22 @@ const SoundSession = ({ onBack }) => {
       const botMessage = {
         id: sessionMessages.length + 2,
         type: 'bot',
-        content: "Work stress can be really challenging. Tell me more about what's making you feel overwhelmed.",
+        content: "ضغط العمل يمكن أن يكون صعباً حقاً. أخبرني المزيد عن ما يجعلك تشعر بالإرهاق.",
         timestamp: new Date(),
       };
       setSessionMessages((prev) => [...prev, botMessage]);
     }, 1000);
   };
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [sessionMessages]);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-textPrimary">Sound Session</h1>
+          <h1 className="text-2xl font-bold text-textPrimary">{t.chat.soundSession}</h1>
           <button
             onClick={onBack}
             className="text-textSecondary hover:text-textPrimary transition-colors"
@@ -360,7 +415,7 @@ const SoundSession = ({ onBack }) => {
                     : 'bg-gray-100 text-textPrimary rounded-bl-none'
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
+                <p className="text-sm" dir="rtl">{message.content}</p>
               </div>
             </div>
           ))}
@@ -378,14 +433,14 @@ const SoundSession = ({ onBack }) => {
               </svg>
             </div>
             <p className={`text-sm font-medium ${isRecording ? 'text-red-600' : 'text-textSecondary'}`}>
-              {isRecording ? 'Recording...' : transcript ? 'Ready to send' : 'Click below to speak'}
+              {isRecording ? t.chat.recording : transcript ? t.chat.readyToSend : t.chat.clickToSpeak}
             </p>
           </div>
 
           {transcript && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <p className="text-sm text-blue-900 font-medium mb-2">Your message:</p>
-              <p className="text-sm text-blue-800">{transcript}</p>
+              <p className="text-sm text-blue-900 font-medium mb-2">{t.chat.yourMessage}:</p>
+              <p className="text-sm text-blue-800" dir="rtl">{transcript}</p>
             </div>
           )}
 
@@ -395,14 +450,14 @@ const SoundSession = ({ onBack }) => {
               disabled={isRecording}
               className="flex-1 bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary/90 transition-colors disabled:opacity-50 font-medium"
             >
-              {isRecording ? 'Recording...' : 'Start Recording'}
+              {isRecording ? t.chat.recording : t.chat.startRecording}
             </button>
             {transcript && (
               <button
                 onClick={handleSubmitTranscript}
                 className="flex-1 bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
               >
-                Send
+                {t.chat.send}
               </button>
             )}
           </div>
@@ -410,7 +465,7 @@ const SoundSession = ({ onBack }) => {
 
         <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
           <p className="text-xs text-amber-800">
-            <strong>Note:</strong> Voice recognition will be fully integrated with the Web Speech API in the production version.
+            <strong>{t.chat.note}:</strong> {t.chat.voiceRecognitionNote}
           </p>
         </div>
       </div>

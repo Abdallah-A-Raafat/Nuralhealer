@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const Doctors = () => {
+  const { t } = useLanguage();
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
@@ -104,22 +106,22 @@ const Doctors = () => {
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="max-w-3xl mx-auto text-center mb-12">
-          <h1 className="text-4xl font-bold text-textPrimary mb-4">Our Doctors</h1>
+          <h1 className="text-4xl font-bold text-textPrimary mb-4">{t.patient.doctors.title}</h1>
           <p className="text-lg text-textSecondary">
-            Connect with our experienced and certified mental health professionals
+            {t.patient.doctors.description}
           </p>
         </div>
 
         {/* Filters (Optional) */}
         <div className="max-w-6xl mx-auto mb-8 flex flex-wrap gap-3 justify-center">
           <button className="px-4 py-2 rounded-full bg-white text-textPrimary border border-primary hover:bg-primary/10 transition-colors text-sm font-medium">
-            All Specializations
+            {t.patient.doctors.allSpecializations}
           </button>
           <button className="px-4 py-2 rounded-full bg-white text-textSecondary border border-gray-300 hover:border-primary transition-colors text-sm font-medium">
-            Highest Rated
+            {t.patient.doctors.highestRated}
           </button>
           <button className="px-4 py-2 rounded-full bg-white text-textSecondary border border-gray-300 hover:border-primary transition-colors text-sm font-medium">
-            Available Today
+            {t.patient.doctors.availableToday}
           </button>
         </div>
 
@@ -151,12 +153,12 @@ const Doctors = () => {
                     ))}
                   </div>
                   <span className="text-sm font-medium text-textPrimary">{doctor.rating}</span>
-                  <span className="text-xs text-textSecondary">({doctor.reviews} reviews)</span>
+                  <span className="text-xs text-textSecondary">({doctor.reviews} {t.patient.doctors.reviews})</span>
                 </div>
 
                 {/* Experience */}
                 <div className="text-sm">
-                  <p className="text-textSecondary">Experience</p>
+                  <p className="text-textSecondary">{t.patient.doctors.experience}</p>
                   <p className="font-medium text-textPrimary">{doctor.experience}</p>
                 </div>
 
@@ -165,7 +167,7 @@ const Doctors = () => {
 
                 {/* Availability */}
                 <div className="bg-blue-50 rounded-lg p-3">
-                  <p className="text-xs text-blue-900 font-medium">Available</p>
+                  <p className="text-xs text-blue-900 font-medium">{t.patient.doctors.available}</p>
                   <p className="text-xs text-blue-800">{doctor.availability}</p>
                 </div>
 
@@ -177,7 +179,7 @@ const Doctors = () => {
                     size="small"
                     onClick={() => handleBookSession(doctor)}
                   >
-                    Book Session
+                    {t.patient.doctors.bookSession}
                   </Button>
                 </div>
               </div>
@@ -189,7 +191,7 @@ const Doctors = () => {
         <Modal
           isOpen={isBookingModalOpen}
           onClose={() => setIsBookingModalOpen(false)}
-          title={selectedDoctor ? `Book Session with ${selectedDoctor.name}` : 'Book Session'}
+          title={selectedDoctor ? `${t.patient.doctors.bookSessionWith} ${selectedDoctor.name}` : t.patient.doctors.bookSession}
           size="medium"
         >
           {selectedDoctor && (
@@ -201,7 +203,7 @@ const Doctors = () => {
                   <div className="flex-1">
                     <h3 className="font-bold text-textPrimary">{selectedDoctor.name}</h3>
                     <p className="text-sm text-textSecondary">{selectedDoctor.specialization}</p>
-                    <p className="text-sm text-textSecondary mt-1">Qualification: {selectedDoctor.qualification}</p>
+                    <p className="text-sm text-textSecondary mt-1" dir="rtl">المؤهل: {selectedDoctor.qualification}</p>
                   </div>
                 </div>
               </div>
@@ -210,7 +212,7 @@ const Doctors = () => {
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-textPrimary mb-1">
-                    Select Date
+                    {t.patient.doctors.selectDate}
                   </label>
                   <input
                     type="date"
@@ -220,10 +222,10 @@ const Doctors = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-textPrimary mb-1">
-                    Select Time
+                    {t.patient.doctors.selectTime}
                   </label>
                   <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    <option>-- Select Time --</option>
+                    <option>-- {t.patient.doctors.selectTime} --</option>
                     <option>09:00 AM</option>
                     <option>10:00 AM</option>
                     <option>11:00 AM</option>
@@ -235,20 +237,21 @@ const Doctors = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-textPrimary mb-1">
-                    Session Type
+                    {t.patient.doctors.sessionType}
                   </label>
                   <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    <option>Online (Video Call)</option>
-                    <option>In-Person</option>
+                    <option>{t.patient.doctors.online}</option>
+                    <option>{t.patient.doctors.inPerson}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-textPrimary mb-1">
-                    Notes (Optional)
+                    {t.patient.doctors.notesOptional}
                   </label>
                   <textarea
-                    placeholder="Any specific concerns you'd like to discuss..."
+                    placeholder={t.patient.doctors.notesPlaceholder}
+                    dir="rtl"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                     rows="3"
                   ></textarea>
@@ -258,7 +261,7 @@ const Doctors = () => {
               {/* Price Summary */}
               <div className="bg-accent/10 border border-accent rounded-lg p-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-textPrimary font-medium">Total Cost:</span>
+                  <span className="text-textPrimary font-medium">{t.patient.doctors.totalCost}:</span>
                   <span className="text-lg font-bold text-primary">{selectedDoctor.price}</span>
                 </div>
               </div>
@@ -269,19 +272,19 @@ const Doctors = () => {
                   variant="primary"
                   className="flex-1"
                 >
-                  Confirm Booking
+                  {t.patient.doctors.confirmBooking}
                 </Button>
                 <Button
                   variant="outline"
                   className="flex-1"
                   onClick={() => setIsBookingModalOpen(false)}
                 >
-                  Cancel
+                  {t.common.cancel}
                 </Button>
               </div>
 
               <p className="text-xs text-textSecondary text-center">
-                You will receive a confirmation email with meeting details
+                {t.patient.doctors.confirmationNote}
               </p>
             </div>
           )}

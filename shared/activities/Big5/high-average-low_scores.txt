@@ -1,0 +1,35 @@
+this is the exact exported words from 
+http://individual.utoronto.ca/salanth/results.htm#:~:text=Your%20score%20on%20Extraversion%20is,demonstrate%20positive%20feelings%20toward%20others.
+
+{
+  "Extraversion": {
+    "High": "Extraverts enjoy being with people, are full of energy, and often experience positive emotions. They tend to be enthusiastic, action-oriented, individuals who are likely to say \"Yes!\" or \"Let's go!\" to opportunities for excitement. In groups they like to talk, assert themselves, and draw attention to themselves.",
+    "Average": "Your score on Extraversion is average, indicating you are neither a subdued loner nor a jovial chatterbox. You enjoy time with others but also time alone.",
+    "Low": "Introverts lack the exuberance, energy, and activity levels of extraverts. They tend to be quiet, low-key, deliberate, and disengaged from the social world. Their lack of social involvement should not be interpreted as shyness or depression; the introvert simply needs less stimulation than an extravert and prefers to be alone. The independence and reserve of the introvert is sometimes mistaken as unfriendliness or arrogance. In reality, an introvert who scores high on the agreeableness dimension will not seek others out but will be quite pleasant when approached."
+  },
+  "Agreeableness": {
+    "High": "Agreeableness reflects individual differences in concern with cooperation and social harmony. Agreeable individuals value getting along with others. They are therefore considerate, friendly, generous, helpful, and willing to compromise their interests with others'. Agreeable people also have an optimistic view of human nature. They believe people are basically honest, decent, and trustworthy.",
+    "Average": "Not provided in text.",
+    "Low": "Your score on Agreeableness is low, indicating less concern with others' needs Than with your own. People see you as tough, critical, and uncompromising. |/| Disagreeable individuals place self-interest above getting along with others. They are generally unconcerned with others' well-being, and therefore are unlikely to extend themselves for other people. Sometimes their skepticism about others' motives causes them to be suspicious, unfriendly, and uncooperative."
+  },
+  "Conscientiousness": {
+    "High": "The benefits of high conscientiousness are obvious. Conscientious individuals avoid trouble and achieve high levels of success through purposeful planning and persistence. They are also positively regarded by others as intelligent and reliable.",
+    "Average": "Your score on Conscientiousness is average. This means you are reasonably reliable, organized, and self-controlled.",
+    "Low": "Unconscientious people may be criticized for their unreliability, lack of ambition, and failure to stay within the lines, but they will experience many short-lived pleasures and they will never be called stuffy."
+  },
+  "Neuroticism": {
+    "High": "Those who score high on Neuroticism may experience primarily one specific negative feeling such as anxiety, anger, or depression, but are likely to experience several of these emotions. People high in neuroticism are emotionally reactive. They respond emotionally to events that would not affect most people, and their reactions tend to be more intense than normal. They are more likely to interpret ordinary situations as threatening, and minor frustrations as hopelessly difficult. Their negative emotional reactions tend to persist for unusually long periods of time, which means they are often in a bad mood.",
+    "Average": "Not provided in text.",
+    "Low": "Your score on Neuroticism is low, indicating that you are exceptionally calm, composed and unflappable. You do not react with intense emotions, even to situations that most people would describe as stressful. |/| At the other end of the scale, individuals who score low in neuroticism are less easily upset and are less emotionally reactive. They tend to be calm, emotionally stable, and free from persistent negative feelings."
+  },
+  "Openness to Experience": {
+    "High": "Your score on Openness to Experience is high, indicating you enjoy novelty, variety, and change. You are curious, imaginative, and creative. |/| Openness to Experience describes a dimension of cognitive style that distinguishes imaginative, creative people from down-to-earth, conventional people. Open people are intellectually curious, appreciative of art, and sensitive to beauty. They tend to be, compared to closed people, more aware of their feelings. They tend to think and act in individualistic and nonconforming ways.",
+    "Average": "Not provided in text.",
+    "Low": "People with low scores on openness to experience tend to have narrow, common interests. They prefer the plain, straightforward, and obvious over the complex, ambiguous, and subtle. They may regard the arts and sciences with suspicion, regarding these emotions as abstruse or of no practical use. Closed people prefer familiarity over novelty; they are conservative and resistant to change."
+  },
+  "Depression_Facet": {
+    "High": "Your level of depression is high. |/| This scale measures the tendency to feel sad, dejected, and discouraged. High scorers lack energy and have difficult initiating activities.",
+    "Average": "Not provided in text.",
+    "Low": "Low scorers tend to be free from these depressive feelings."
+  }
+}

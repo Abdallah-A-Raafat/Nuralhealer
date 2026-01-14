@@ -1,0 +1,141 @@
+{
+  "Extraversion_Facets": {
+    "Friendliness": {
+      "High": "You genuinely like other people and openly demonstrate positive feelings toward others. You make friends quickly and it is easy for you to form close, intimate relationships.",
+      "Low": "You are not necessarily cold and hostile, but you do not reach out to others and are perceived as distant and reserved."
+    },
+    "Gregariousness": {
+      "High": "You find the company of others pleasantly stimulating and rewarding. You enjoy the excitement of crowds.",
+      "Low": "You tend to feel overwhelmed by, and therefore actively avoid, large crowds. Your need for privacy and time to yourself is great."
+    },
+    "Assertiveness": {
+      "High": "You like to speak out, take charge, and direct the activities of others. You tend to be a leader in groups.",
+      "Low": "You tend not to talk much and let others control the activities of groups."
+    },
+    "Activity_Level": {
+      "High": "You lead a fast-paced, busy life. You move about quickly, energetically, and vigorously, and you are involved in many activities.",
+      "Low": "You follow a slower and more leisurely, relaxed pace."
+    },
+    "Excitement-Seeking": {
+      "High": "You are easily bored without high levels of stimulation. You love bright lights and hustle and bustle. You are likely to take risks and seek thrills.",
+      "Low": "You are overwhelmed by noise and commotion and are adverse to thrill-seeking."
+    },
+    "Cheerfulness": {
+      "High": "You typically experience a range of positive feelings, including happiness, enthusiasm, optimism, and joy.",
+      "Low": "You are not as prone to such energetic, high spirits."
+    }
+  },
+  "Agreeableness_Facets": {
+    "Trust": {
+      "High": "You assume that most people are fair, honest, and have good intentions.",
+      "Average": "Your level of trust is average.",
+      "Low": "You see others as selfish, devious, and potentially dangerous."
+    },
+    "Morality": {
+      "High": "You see no need for pretense or manipulation when dealing with others and are therefore candid, frank, and sincere.",
+      "Low": "You believe that a certain amount of deception in social relationships is necessary. You are more guarded and less willing to openly reveal the whole truth."
+    },
+    "Altruism": {
+      "High": "You find helping other people genuinely rewarding. You find that doing things for others is a form of self-fulfillment rather than self-sacrifice.",
+      "Low": "You do not particularly like helping those in need. Requests for help feel like an imposition rather than an opportunity for self-fulfillment."
+    },
+    "Cooperation": {
+      "High": "You dislike confrontations. You are perfectly willing to compromise or to deny your own needs in order to get along with others.",
+      "Low": "You are more likely to intimidate others to get your way."
+    },
+    "Modesty": {
+      "High": "You do not like to claim that you are better than other people.",
+      "Low": "You are willing to describe yourself as superior and may be seen as disagreeably arrogant by other people."
+    },
+    "Sympathy": {
+      "High": "You are tenderhearted and compassionate. You feel the pain of others vicariously and are easily moved to pity.",
+      "Low": "You are not affected strongly by human suffering. You pride yourself on making objective judgments based on reason and are more concerned with truth than mercy."
+    }
+  },
+  "Conscientiousness_Facets": {
+    "Self-Efficacy": {
+      "High": "You believe you have the intelligence (common sense), drive, and self-control necessary for achieving success.",
+      "Average": "Your level of self-efficacy is average.",
+      "Low": "You do not feel effective, and may have a sense that you are not in control of your life."
+    },
+    "Orderliness": {
+      "High": "You are well-organized. You like to live according to routines and schedules. You keep lists and make plans.",
+      "Average": "Your level of orderliness is average.",
+      "Low": "You tend to be disorganized and scattered."
+    },
+    "Dutifulness": {
+      "High": "You have a strong sense of moral obligation.",
+      "Low": "You find contracts, rules, and regulations overly confining. You are likely to be seen as unreliable or even irresponsible."
+    },
+    "Achievement-Striving": {
+      "High": "You strive hard to achieve excellence. Your drive to be recognized as successful keeps you on track toward your lofty goals.",
+      "Low": "You are content to get by with a minimal amount of work, and might be seen by others as lazy."
+    },
+    "Self-Discipline": {
+      "High": "You possess the ability to persist at difficult or unpleasant tasks until they are completed and stay on track despite distractions.",
+      "Low": "You procrastinate and show poor follow-through, often failing to complete tasks—even tasks you want very much to complete."
+    },
+    "Cautiousness": {
+      "High": "You take your time when making decisions and think through possibilities before acting.",
+      "Low": "You often say or do the first thing that comes to mind without deliberating alternatives and probable consequences."
+    }
+  },
+  "Neuroticism_Facets": {
+    "Anxiety": {
+      "High": "You often feel like something dangerous is about to happen. You feel tense, jittery, and nervous.",
+      "Average": "Your level of anxiety is average.",
+      "Low": "You are generally calm and fearless."
+    },
+    "Anger": {
+      "High": "You feel enraged when things do not go your way. You are sensitive about being treated fairly and feel resentful and bitter when you feel cheated.",
+      "Low": "You do not get angry often or easily."
+    },
+    "Depression": {
+      "High": "You have a tendency to feel sad, dejected, and discouraged. You lack energy and have difficulty initiating activities.",
+      "Low": "You tend to be free from these depressive feelings."
+    },
+    "Self-Consciousness": {
+      "High": "You are sensitive about what others think of you. Concern about rejection causes you to feel shy, uncomfortable, and easily embarrassed.",
+      "Average": "Your level of self-consciousness is average.",
+      "Low": "You do not suffer from the impression that everyone is watching and judging you; you do not feel nervous in social situations."
+    },
+    "Immoderation": {
+      "High": "You feel strong cravings and urges that you have difficulty resisting. You are oriented toward short-term pleasures rather than long-term consequences.",
+      "Low": "You do not experience strong, irresistible cravings and do not find yourself tempted to overindulge."
+    },
+    "Vulnerability": {
+      "High": "You experience panic, confusion, and helplessness when under pressure or stress.",
+      "Average": "Your level of vulnerability is average.",
+      "Low": "You feel more poised, confident, and clear-thinking when stressed."
+    }
+  },
+  "Openness_Facets": {
+    "Imagination": {
+      "High": "You use fantasy as a way of creating a richer, more interesting world. The real world is often too plain and ordinary.",
+      "Average": "Your level of imagination is average.",
+      "Low": "You are more oriented to facts than fantasy."
+    },
+    "Artistic_Interests": {
+      "High": "You love beauty, both in art and in nature. You become easily involved and absorbed in artistic and natural events.",
+      "Low": "You lack aesthetic sensitivity and interest in the arts."
+    },
+    "Emotionality": {
+      "High": "You have good access to and awareness of your own feelings.",
+      "Low": "You are less aware of your feelings and tend not to express your emotions openly."
+    },
+    "Adventurousness": {
+      "High": "You are eager to try new activities, travel to foreign lands, and experience different things. You find familiarity and routine boring.",
+      "Average": "Your level of adventurousness is average.",
+      "Low": "You tend to feel uncomfortable with change and prefer familiar routines."
+    },
+    "Intellect": {
+      "High": "You love to play with ideas. You are open-minded to new and unusual ideas and like to debate intellectual issues.",
+      "Low": "You prefer dealing with either people or things rather than ideas. You regard intellectual exercises as a waste of time."
+    },
+    "Liberalism": {
+      "High": "You have a readiness to challenge authority, convention, and traditional values.",
+      "Average": "Your level of liberalism is average.",
+      "Low": "You prefer the security and stability brought by conformity to tradition."
+    }
+  }
+}

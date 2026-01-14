@@ -1,0 +1,16 @@
+meta {
+  name: get-messages
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/api/engagements/f4c10460-37d5-446f-877d-3991d9eca595/messages
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

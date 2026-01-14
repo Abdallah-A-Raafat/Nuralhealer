@@ -1,0 +1,23 @@
+meta {
+  name: cancel request
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/engagements/32f02eed-e466-429b-a117-27d7bc7b64e1/end-request
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "reason": "testing"
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

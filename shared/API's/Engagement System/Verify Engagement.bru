@@ -1,0 +1,22 @@
+meta {
+  name: Verify Engagement
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/api/engagements/verify-start
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "token": "D19F6DE3"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

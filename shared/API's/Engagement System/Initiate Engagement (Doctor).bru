@@ -1,0 +1,27 @@
+meta {
+  name: Initiate Engagement (Doctor)
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/engagements/initiate
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkb2N0b3JAdGVzdC5jb20iLCJpYXQiOjE3NjczMzE1MDIsImV4cCI6MTc2NzQxNzkwMn0.EVZCSJuRZbMQlZxS7GfqXF6wrROEgBGYXknxd3xF7g4
+}
+
+body:json {
+  {
+    "patientId": "413b6f83-cde9-418f-9863-2cbf75cf7b72",
+    "accessRuleName": "FULL_ACCESS"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

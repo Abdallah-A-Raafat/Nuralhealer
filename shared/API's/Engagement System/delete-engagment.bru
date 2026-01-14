@@ -1,0 +1,16 @@
+meta {
+  name: delete-engagment
+  type: http
+  seq: 5
+}
+
+delete {
+  url: http://localhost:8080/api/engagements/32f02eed-e466-429b-a117-27d7bc7b64e1
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

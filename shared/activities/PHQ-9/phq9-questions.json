@@ -1,0 +1,22 @@
+{
+  "test_name": "PHQ-9",
+  "instruction_en": "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+  "instruction_ar": "خلال الأسبوعين الماضيين، ما مدى تكرار شعورك بالانزعاج بسبب المشكلات التالية؟",
+  "scale": [
+    {"value": 0, "text_en": "Not at all", "text_ar": "على الإطلاق"},
+    {"value": 1, "text_en": "Several days", "text_ar": "لعدة أيام"},
+    {"value": 2, "text_en": "More than half the days", "text_ar": "أكثر من نصف الأيام"},
+    {"value": 3, "text_en": "Nearly every day", "text_ar": "تقريباً كل يوم"}
+  ],
+  "items": [
+    {"id": 1, "text_en": "Little interest or pleasure in doing things.", "text_ar": "قليل من الاهتمام أو الاستمتاع بعمل الأشياء."},
+    {"id": 2, "text_en": "Feeling down, depressed, or hopeless.", "text_ar": "الشعور بضيق أو اكتئاب أو يأس."},
+    {"id": 3, "text_en": "Trouble falling or staying asleep, or sleeping too much.", "text_ar": "صعوبة في النوم أو في البقاء نائماً، أو النوم أكثر من اللازم."},
+    {"id": 4, "text_en": "Feeling tired or having little energy.", "text_ar": "الشعور بالتعب أو الإرهاق أو نقص الطاقة."},
+    {"id": 5, "text_en": "Poor appetite or overeating.", "text_ar": "ضعف الشهية أو الإفراط في الأكل."},
+    {"id": 6, "text_en": "Feeling bad about yourself — or that you are a failure or have let yourself or your family down.", "text_ar": "الشعور بالضيق تجاه نفسك - أو أنك فاشل أو أنك خذلت نفسك أو عائلتك."},
+    {"id": 7, "text_en": "Trouble concentrating on things, such as reading the newspaper or watching television.", "text_ar": "صعوبة التركيز على أمور معينة، مثل قراءة الصحف أو مشاهدة التلفزيون."},
+    {"id": 8, "text_en": "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual.", "text_ar": "التحرك أو التحدث ببطء شديد لدرجة ملاحظة الآخرين لذلك؟ أو العكس - التململ أو عدم الاستقرار والتحرك أكثر من المعتاد."},
+    {"id": 9, "text_en": "Thoughts that you would be better off dead or of hurting yourself in some way.", "text_ar": "أفكار بأنك ستكون أفضل حالاً لو كنت ميتاً، أو برغبة في إيذاء نفسك بطريقة ما."}
+  ]
+}

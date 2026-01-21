@@ -108,13 +108,13 @@ ENTJ — The Commander
 Which Myers-Briggs personality types are most compatible?
 Some experts have tried to identify compatible personality types based on the Myers-Briggs test. However, no exhaustive research has been conducted to validate the scales or establish a degree of compatibility. This is one of the reasons why the MBTI is typically seen as a way to entertain yourself rather than get accurate answers about your personality type.
 
-Research has found that many personality types are more satisfied when they’re paired with similar partners.
+
 
 In particular, these pairings had romantic satisfaction rates over 70%:
 
 SJ: sensing and judging
 NF: intuiting and feeling
-Research has also found that compatibility increases when two partners are both feelers, even if they're different in other aspects. This may be because feelers tend to spend a lot of energy on their relationships and often value open communication.
+
 
 Specifically, based on research, these categories would be the most compatible:
 

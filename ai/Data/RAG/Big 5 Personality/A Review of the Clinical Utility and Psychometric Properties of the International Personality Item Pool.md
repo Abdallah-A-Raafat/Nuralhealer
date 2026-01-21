@@ -1,10 +1,5 @@
 ---
-title: A Review of the Clinical Utility and Psychometric Properties of the International
-Personality Item Pool – Neuroticism,
-Extraversion, Openness – 120 item version
-(IPIP-NEO-120): Gender-Specific Norms,
-Percentile Rankings, and Qualitative Descriptors
-
+title: A Review of the Clinical Utility and Psychometric Properties of the International Personality Item Pool – Neuroticism, Extraversion, Openness – 120 item versio (IPIP-NEO-120): Gender-Specific Norms, Percentile Rankings, and Qualitative Descriptors
 source: novopsych
 category: Big 5 Personality
 language: English

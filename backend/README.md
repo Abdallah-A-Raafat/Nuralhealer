@@ -1,6 +1,6 @@
 # 🏥 NeuralHealer Backend - Complete System Documentation
 
-**Version:** 0.1.0  
+**Version:** 0.6.0  
 **Status:** Phase 3 Complete (Engagement System ✅) | Phase 4 Pending (AI Chat)  
 **Last Updated:** January 2026
 

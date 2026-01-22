@@ -61,8 +61,7 @@ public class EngagementMessageService {
                                 recipient.getId(),
                                 NotificationType.NEW_MESSAGE,
                                 "New Message",
-                                sender.getFirstName() + " sent you a message",
-                                engagement.getId());
+                                sender.getFirstName() + " sent you a message");
 
                 return mapToResponse(message);
         }
@@ -80,6 +79,20 @@ public class EngagementMessageService {
                 return messageRepository.findByEngagementIdOrderBySentAtAsc(engagementId).stream()
                                 .map(this::mapToResponse)
                                 .collect(Collectors.toList());
+        }
+
+        @Transactional
+        public void sendSystemMessage(Engagement engagement, String content) {
+                EngagementMessage message = EngagementMessage.builder()
+                                .engagement(engagement)
+                                .sender(null) // null sender indicates system message
+                                .recipient(null)
+                                .content(content)
+                                .isSystemMessage(true)
+                                .sentAt(LocalDateTime.now())
+                                .build();
+
+                messageRepository.save(message);
         }
 
         private MessageResponse mapToResponse(EngagementMessage msg) {

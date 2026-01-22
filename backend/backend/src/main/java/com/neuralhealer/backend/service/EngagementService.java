@@ -1,19 +1,9 @@
 package com.neuralhealer.backend.service;
 
-import com.neuralhealer.backend.exception.EngagementNotFoundException;
-import com.neuralhealer.backend.exception.InvalidVerificationException;
-import com.neuralhealer.backend.exception.ResourceNotFoundException;
-import com.neuralhealer.backend.exception.UnauthorizedException;
-import com.neuralhealer.backend.model.dto.EngagementResponse;
-import com.neuralhealer.backend.model.dto.StartEngagementRequest;
-import com.neuralhealer.backend.model.dto.StartEngagementResponse;
+import com.neuralhealer.backend.exception.*;
+import com.neuralhealer.backend.model.dto.*;
 import com.neuralhealer.backend.model.entity.*;
-import com.neuralhealer.backend.model.enums.EngagementStatus;
-import com.neuralhealer.backend.model.enums.UserRole;
-import com.neuralhealer.backend.model.enums.VerificationType;
-import com.neuralhealer.backend.model.enums.NotificationType;
-import com.neuralhealer.backend.model.dto.WebSocketMessage;
-import com.neuralhealer.backend.model.enums.WebSocketMessageType;
+import com.neuralhealer.backend.model.enums.*;
 import com.neuralhealer.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -21,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,6 +25,7 @@ public class EngagementService {
     private final EngagementVerificationTokenRepository tokenRepository;
     private final EngagementAccessRuleRepository accessRuleRepository;
     private final DoctorPatientRepository doctorPatientRepository;
+    private final EngagementEventRepository eventRepository;
     private final UserRepository userRepository;
     private final DoctorProfileRepository doctorProfileRepository;
     private final PatientProfileRepository patientProfileRepository;
@@ -40,6 +33,7 @@ public class EngagementService {
     private final VerificationService verificationService;
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationService notificationService;
+    private final EngagementMessageService messageService;
 
     @Transactional
     public StartEngagementResponse initiateEngagement(User doctor, StartEngagementRequest request) {
@@ -78,6 +72,27 @@ public class EngagementService {
 
         engagement = engagementRepository.save(engagement);
 
+        // Update Doctor-Patient relationship status if first time
+        DoctorPatient dp = doctorPatientRepository
+                .findByDoctorIdAndPatientId(doctorProfile.getId(), patientProfile.getId())
+                .orElseGet(() -> {
+                    DoctorPatient newDp = DoctorPatient.builder()
+                            .doctorId(doctorProfile.getId())
+                            .patientId(patientProfile.getId())
+                            .addedAt(LocalDateTime.now())
+                            .relationshipStatus("INITIAL_PENDING")
+                            .isActive(false)
+                            .build();
+                    return doctorPatientRepository.save(newDp);
+                });
+
+        dp.setCurrentEngagementId(engagement.getId());
+        doctorPatientRepository.save(dp);
+
+        // Record event
+        saveEvent(engagement.getId(), "INITIATED", doctor.getId(),
+                "{\"doctorName\":\"" + doctor.getLastName() + "\",\"patientName\":\"" + patient.getLastName() + "\"}");
+
         // Generate 2FA Token
         EngagementVerificationToken token = verificationService.generateStartToken(engagement);
 
@@ -102,11 +117,26 @@ public class EngagementService {
         engagement.activate();
         engagementRepository.save(engagement);
 
-        // Update Doctor-Patient Relationship: Handled by DB trigger
-        // 'update_relationship_status_on_engagement'
+        // Record event
+        saveEvent(engagement.getId(), "VERIFIED", user.getId(), "{\"role\":\"PATIENT\"}");
 
-        // Update Doctor-Patient Relationship: Handled by DB trigger
-        // 'update_relationship_status_on_engagement'
+        // Explicitly update relationship to ensure started_at immutability
+        DoctorPatient dp = doctorPatientRepository
+                .findByDoctorIdAndPatientId(engagement.getDoctor().getId(), engagement.getPatient().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Relationship not found"));
+
+        dp.setRelationshipStatus(engagement.getAccessRule().getRuleName());
+        dp.setCurrentEngagementId(engagement.getId());
+        dp.setIsActive(true);
+        if (dp.getRelationshipStartedAt() == null) {
+            dp.setRelationshipStartedAt(LocalDateTime.now());
+        }
+        dp.setRelationshipEndedAt(null);
+        doctorPatientRepository.save(dp);
+
+        // Record System Message
+        messageService.sendSystemMessage(engagement,
+                "✅ Engagement activated. Access level: " + engagement.getAccessRule().getRuleName());
 
         broadcastEngagementStatus(engagement.getId(), "active", "Engagement has been activated");
 
@@ -116,8 +146,7 @@ public class EngagementService {
                 NotificationType.ENGAGEMENT_STARTED,
                 "Engagement Activated",
                 "Patient " + engagement.getPatient().getUser().getFirstName()
-                        + " has verified and started the engagement.",
-                engagement.getId());
+                        + " has verified and started the engagement.");
 
         return mapToResponse(engagement);
     }
@@ -132,13 +161,19 @@ public class EngagementService {
 
         EngagementVerificationToken token = verificationService.generateEndToken(engagement);
 
-        return new StartEngagementResponse(
+        StartEngagementResponse response = new StartEngagementResponse(
                 engagement.getId(),
                 engagement.getStatus().name(),
                 new StartEngagementResponse.VerificationInfo(
                         token.getToken(),
                         token.getQrCodeData(),
                         token.getExpiresAt()));
+
+        // Record event
+        saveEvent(engagement.getId(), "END_REQUESTED", user.getId(),
+                "{\"reason\":\"" + (reason != null ? reason.replace("\"", "\\\"") : "") + "\"}");
+
+        return response;
     }
 
     @Transactional
@@ -153,13 +188,32 @@ public class EngagementService {
         engagement.end(user, "Verification completed via token");
         engagementRepository.save(engagement);
 
-        // Update relationship: Handled by DB trigger
-        // 'update_relationship_status_on_engagement'
+        // Record event
+        saveEvent(engagement.getId(), "ENDED", user.getId(), "{\"reason\":\"Verification completed\"}");
 
-        // Update relationship: Handled by DB trigger
-        // 'update_relationship_status_on_engagement'
+        // Update relationship
+        DoctorPatient dp = doctorPatientRepository
+                .findByDoctorIdAndPatientId(engagement.getDoctor().getId(), engagement.getPatient().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Relationship not found"));
+
+        // Retention logic: if NO_ACCESS or similar, set ended_at
+        RelationshipStatus finalStatus = RelationshipStatus.fromRuleName(engagement.getAccessRule().getRuleName());
+        if (finalStatus == RelationshipStatus.CURRENT_ENGAGEMENT_ACCESS ||
+                finalStatus == RelationshipStatus.LIMITED_ENGAGEMENT_ACCESS) {
+            dp.setRelationshipStatus("NO_ACCESS");
+            dp.setIsActive(false);
+            dp.setRelationshipEndedAt(LocalDateTime.now());
+        } else {
+            dp.setRelationshipStatus(finalStatus.getRuleName());
+            dp.setIsActive(finalStatus.impliesActive());
+        }
+        dp.setCurrentEngagementId(null);
+        doctorPatientRepository.save(dp);
 
         broadcastEngagementStatus(engagement.getId(), "ended", "Engagement has been ended");
+
+        // Record system message
+        messageService.sendSystemMessage(engagement, "Engagement has been ended by " + user.getFirstName());
 
         // Notify other party
         UUID otherPartyId = engagement.getDoctor().getUser().getId().equals(user.getId())
@@ -170,8 +224,7 @@ public class EngagementService {
                 otherPartyId,
                 NotificationType.ENGAGEMENT_ENDED,
                 "Engagement Ended",
-                "The engagement has been ended.",
-                engagement.getId());
+                "The engagement has been ended.");
 
         return mapToResponse(engagement);
     }
@@ -218,35 +271,233 @@ public class EngagementService {
                         patUser.getLastName(), patUser.getEmail()),
                 e.getAccessRule() != null ? e.getAccessRule().getRuleName() : null,
                 e.getStartAt(),
-                e.getEndAt());
+                e.getEndAt(),
+                e.getTerminationReason());
     }
 
     @Transactional
-    public void cancelEngagement(User user, UUID engagementId) {
+    public void hardDeleteEngagement(User user, UUID engagementId) {
         Engagement engagement = getEngagementIfAuthorized(engagementId, user);
 
-        if (engagement.getStatus() != EngagementStatus.pending) {
-            throw new IllegalStateException("Only pending engagements can be cancelled without verification");
+        // VALIDATION 1: Must be doctor OR patient in the engagement
+        boolean isDoctor = engagement.getDoctor().getUser().getId().equals(user.getId());
+        boolean isPatient = engagement.getPatient().getUser().getId().equals(user.getId());
+
+        if (!isDoctor && !isPatient) {
+            throw new ForbiddenException("Only participants can delete this engagement");
         }
 
-        if (!engagement.getDoctor().getUser().getId().equals(user.getId())) {
-            throw new SecurityException("Only the initiating doctor can cancel a pending engagement");
+        // Delete works on ANY status - complete removal from database
+
+        // Handle doctor_patients record
+        DoctorPatient relationship = doctorPatientRepository
+                .findByDoctorIdAndPatientId(engagement.getDoctor().getId(), engagement.getPatient().getId())
+                .orElse(null);
+
+        if (relationship != null) {
+            String relStatus = relationship.getRelationshipStatus();
+            if ("INITIAL_PENDING".equals(relStatus)) {
+                doctorPatientRepository.delete(relationship);
+            } else {
+                relationship.setCurrentEngagementId(null);
+                doctorPatientRepository.save(relationship);
+            }
         }
+
+        engagementRepository.delete(engagement);
+    }
+
+    @Transactional
+    public EngagementResponse cancelEngagement(User user, UUID engagementId, CancelEngagementRequest request) {
+        Engagement engagement = getEngagementIfAuthorized(engagementId, user);
+
+        // Allow both pending and active
+        if (engagement.getStatus() != EngagementStatus.pending && engagement.getStatus() != EngagementStatus.active) {
+            throw new ConflictException("Cannot cancel engagement in status: " + engagement.getStatus());
+        }
+
+        // ACTIVE needs reason
+        if (engagement.getStatus() == EngagementStatus.active &&
+                (request.reason() == null || request.reason().trim().isEmpty())) {
+            throw new IllegalArgumentException("Reason is required for cancelling active engagements");
+        }
+
+        // Detect caller
+        boolean isDoctor = engagement.getDoctor().getUser().getId().equals(user.getId());
+        boolean isPatient = engagement.getPatient().getUser().getId().equals(user.getId());
+
+        if (!isDoctor && !isPatient) {
+            throw new ForbiddenException("Not authorized to cancel this engagement");
+        }
+
+        // VALIDATION: Patient MUST provide newAccessRule if engagement is active
+        if (engagement.getStatus() == EngagementStatus.active && isPatient) {
+            if (request.newAccessRule() == null || request.newAccessRule().trim().isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Patients must provide a newAccessRule when cancelling an active engagement");
+            }
+        }
+
+        // VALIDATION: Doctor CANNOT provide newAccessRule (access is always revoked)
+        if (isDoctor && request.newAccessRule() != null && !request.newAccessRule().trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Doctors cannot specify a record access rule; access is always revoked upon doctor cancellation");
+        }
+
+        CancellationRole cancelledBy = isDoctor ? CancellationRole.DOCTOR : CancellationRole.PATIENT;
 
         engagement.setStatus(EngagementStatus.cancelled);
         engagement.setEndedBy(user);
-        engagement.setTerminationReason("Cancelled by doctor before start");
+        engagement.setEndAt(LocalDateTime.now());
+        engagement.setTerminationReason(request.reason());
         engagementRepository.save(engagement);
 
-        broadcastEngagementStatus(engagement.getId(), "cancelled", "Engagement has been cancelled");
+        // Store event in engagement_events table
+        EngagementEvent event = EngagementEvent.builder()
+                .engagementId(engagementId)
+                .eventType("CANCELLED")
+                .triggeredBy(user.getId())
+                .payload("{\"reason\":\"" + (request.reason() != null ? request.reason().replace("\"", "\\\"") : "")
+                        + "\",\"cancelledBy\":\"" + cancelledBy.name() + "\"}")
+                .build();
+        eventRepository.save(event);
 
-        // Notify Patient
+        // Update Relationship
+        DoctorPatient relationship = doctorPatientRepository
+                .findByDoctorIdAndPatientId(engagement.getDoctor().getId(), engagement.getPatient().getId())
+                .orElse(null);
+
+        if (relationship != null) {
+            String newStatus = determineRelationshipStatusAfterCancellation(engagement, relationship, cancelledBy,
+                    request.newAccessRule());
+            RelationshipStatus relEnum = RelationshipStatus.fromRuleName(newStatus);
+
+            relationship.setRelationshipStatus(newStatus);
+            relationship.setIsActive(relEnum.impliesActive());
+            relationship.setCurrentEngagementId(null);
+            if (!relEnum.impliesActive()) {
+                relationship.setRelationshipEndedAt(LocalDateTime.now());
+            }
+            doctorPatientRepository.save(relationship);
+        }
+
+        broadcastEngagementStatus(engagement.getId(), "cancelled",
+                "Engagement has been cancelled by " + cancelledBy.name());
+
+        // Notify BOTH parties
+        String cancellerName = isDoctor
+                ? "Dr. " + engagement.getDoctor().getUser().getLastName()
+                : "Patient " + engagement.getPatient().getUser().getFirstName();
+
+        // Notify doctor
+        notificationService.notifyUser(
+                engagement.getDoctor().getUser().getId(),
+                NotificationType.ENGAGEMENT_CANCELLED,
+                "Engagement Cancelled",
+                cancellerName + " has cancelled the engagement.");
+
+        // Notify patient
         notificationService.notifyUser(
                 engagement.getPatient().getUser().getId(),
                 NotificationType.ENGAGEMENT_CANCELLED,
                 "Engagement Cancelled",
-                "Dr. " + engagement.getDoctor().getUser().getLastName() + " has cancelled the pending engagement.",
-                engagement.getId());
+                cancellerName + " has cancelled the engagement.");
+
+        // Record system message
+        String actorLabel = isDoctor ? "Dr. " + engagement.getDoctor().getUser().getLastName()
+                : "Patient " + engagement.getPatient().getUser().getFirstName();
+        String systemMessageContent = "🚫 " + actorLabel + " cancelled the "
+                + (engagement.getStatus() == EngagementStatus.active ? "active" : "pending") + " engagement.";
+        if (request.reason() != null && !request.reason().trim().isEmpty()) {
+            systemMessageContent += "\nReason: " + request.reason();
+        }
+        if (engagement.getStatus() == EngagementStatus.active) {
+            systemMessageContent += "\nDoctor access set to: " + (isDoctor ? "NO_ACCESS" : request.newAccessRule());
+        }
+        messageService.sendSystemMessage(engagement, systemMessageContent);
+
+        return mapToResponse(engagement);
+    }
+
+    private String determineRelationshipStatusAfterCancellation(Engagement e, DoctorPatient rp, CancellationRole role,
+            String chosenRule) {
+        // Pending cancellation
+        if (e.getStatus() == EngagementStatus.pending) {
+            if ("INITIAL_PENDING".equals(rp.getRelationshipStatus())) {
+                return "INITIAL_CANCELLED_PENDING";
+            }
+            return rp.getRelationshipStatus();
+        }
+
+        // Active cancellation by DOCTOR = always NO_ACCESS
+        if (role == CancellationRole.DOCTOR) {
+            return "NO_ACCESS";
+        }
+
+        // Active cancellation by PATIENT = use their choice, otherwise NO_ACCESS
+        if (role == CancellationRole.PATIENT && chosenRule != null && !chosenRule.trim().isEmpty()) {
+            return chosenRule;
+        }
+        return "NO_ACCESS";
+    }
+
+    @Transactional
+    public TokenResponse refreshToken(User user, UUID engagementId) {
+        Engagement engagement = getEngagementIfAuthorized(engagementId, user);
+
+        if (!engagement.getDoctor().getUser().getId().equals(user.getId())) {
+            throw new ForbiddenException("Only the creator doctor can refresh tokens");
+        }
+
+        if (engagement.getStatus() != EngagementStatus.pending) {
+            throw new ConflictException("Can only refresh tokens for PENDING engagements");
+        }
+
+        Optional<EngagementVerificationToken> existingToken = tokenRepository
+                .findByEngagementIdAndVerificationType(engagementId, VerificationType.start)
+                .stream()
+                .filter(t -> t.getStatus() == TokenStatus.pending)
+                .max(Comparator.comparing(EngagementVerificationToken::getCreatedAt));
+
+        if (existingToken.isPresent() && existingToken.get().getExpiresAt().isAfter(LocalDateTime.now())) {
+            return mapTokenToResponse(existingToken.get(), false);
+        }
+
+        existingToken.ifPresent(t -> {
+            t.setStatus(TokenStatus.expired);
+            tokenRepository.save(t);
+        });
+
+        EngagementVerificationToken newToken = verificationService.generateStartToken(engagement);
+        return mapTokenToResponse(newToken, true);
+    }
+
+    @Transactional(readOnly = true)
+    public TokenResponse getCurrentToken(User user, UUID engagementId) {
+        Engagement engagement = getEngagementIfAuthorized(engagementId, user);
+
+        if (!engagement.getDoctor().getUser().getId().equals(user.getId())) {
+            throw new ForbiddenException("Only the doctor can retrieve engagement tokens");
+        }
+
+        EngagementVerificationToken token = tokenRepository
+                .findByEngagementIdAndVerificationType(engagementId, VerificationType.start)
+                .stream()
+                .filter(t -> t.getStatus() == TokenStatus.pending)
+                .filter(t -> t.getExpiresAt().isAfter(LocalDateTime.now()))
+                .max(Comparator.comparing(EngagementVerificationToken::getCreatedAt))
+                .orElseThrow(() -> new ResourceNotFoundException("No valid token found. Please refresh token."));
+
+        return mapTokenToResponse(token, false);
+    }
+
+    private TokenResponse mapTokenToResponse(EngagementVerificationToken token, boolean isNew) {
+        return new TokenResponse(
+                token.getEngagement().getId(),
+                token.getToken(),
+                token.getExpiresAt(),
+                token.getQrCodeData(),
+                isNew);
     }
 
     // Helper for message service to validate access
@@ -255,6 +506,16 @@ public class EngagementService {
                 .map(e -> e.getDoctor().getUser().getId().equals(user.getId())
                         || e.getPatient().getUser().getId().equals(user.getId()))
                 .orElse(false);
+    }
+
+    private void saveEvent(UUID engagementId, String type, UUID userId, String payload) {
+        EngagementEvent event = EngagementEvent.builder()
+                .engagementId(engagementId)
+                .eventType(type)
+                .triggeredBy(userId)
+                .payload(payload)
+                .build();
+        eventRepository.save(event);
     }
 
     private void broadcastEngagementStatus(UUID engagementId, String status, String message) {

@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/common/Button';
 import userService from '../../services/userService';
+import engagementService from '../../services/engagementService';
 import { useLanguage } from '../../hooks/useLanguage';
+import { Clock, CheckCircle, XCircle, Shield } from 'lucide-react';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -18,6 +20,11 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [pastSessions, setPastSessions] = useState([]);
+  
+  // Engagement states
+  const [engagements, setEngagements] = useState([]);
+  const [verificationToken, setVerificationToken] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   // Fetch user profile data and statistics
   useEffect(() => {
@@ -37,6 +44,11 @@ const Profile = () => {
         const sessions = await userService.getSessionHistory();
         setPastSessions(sessions);
         
+        // Fetch engagements if on engagements tab
+        if (activeTab === 'engagements') {
+          await fetchEngagements();
+        }
+        
       } catch (error) {
         console.error('Failed to load profile data:', error);
       } finally {
@@ -45,7 +57,36 @@ const Profile = () => {
     };
 
     fetchProfileData();
-  }, []);
+  }, [activeTab]);
+
+  const fetchEngagements = async () => {
+    try {
+      const data = await engagementService.getMyEngagements();
+      setEngagements(data || []);
+    } catch (error) {
+      console.error('Failed to load engagements:', error);
+    }
+  };
+
+  const handleVerifyEngagement = async (engagementId) => {
+    if (!verificationToken.trim()) {
+      alert(t.engagement?.enterToken || 'Please enter verification token');
+      return;
+    }
+
+    try {
+      setVerifying(true);
+      await engagementService.verifyEngagement(verificationToken);
+      alert(t.engagement?.verificationSuccess || 'Engagement verified successfully!');
+      setVerificationToken('');
+      await fetchEngagements();
+    } catch (error) {
+      console.error('Verification failed:', error);
+      alert(error.response?.data?.message || t.engagement?.verificationFailed || 'Verification failed');
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   // Format date from ISO string to readable format
   const formatDate = (dateString) => {
@@ -117,6 +158,16 @@ const Profile = () => {
               }`}
             >
               {t.patient.profile.pastSessions}
+            </button>
+            <button
+              onClick={() => setActiveTab('engagements')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                activeTab === 'engagements'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-textSecondary hover:text-textPrimary'
+              }`}
+            >
+              {t.engagement?.myEngagements || 'My Engagements'}
             </button>
             <button
               onClick={() => setActiveTab('settings')}
@@ -335,6 +386,169 @@ const Profile = () => {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Engagements Tab */}
+        {activeTab === 'engagements' && (
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Pending Engagements */}
+            {engagementService.getPendingEngagements(engagements).length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <h2 className="text-2xl font-bold text-textPrimary mb-6 flex items-center gap-2">
+                  <Clock className="w-6 h-6 text-yellow-600" />
+                  {t.engagement?.pendingRequests || 'Pending Verification'}
+                </h2>
+                
+                <div className="space-y-4">
+                  {engagementService.getPendingEngagements(engagements).map(engagement => (
+                    <div key={engagement.id} className="border border-yellow-200 bg-yellow-50 rounded-lg p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-bold text-textPrimary text-lg">
+                            Dr. {engagement.doctor.firstName} {engagement.doctor.lastName}
+                          </h3>
+                          <p className="text-sm text-textSecondary">{engagement.doctor.email}</p>
+                          <p className="text-xs text-textSecondary mt-1">
+                            {t.engagement?.requestedOn || 'Requested on:'} {new Date(engagement.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <Clock className="w-3 h-3" />
+                          {t.engagement?.pending || 'Pending'}
+                        </span>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-4 mb-4">
+                        <label className="block text-sm font-medium text-textPrimary mb-2">
+                          {t.engagement?.enterVerificationCode || 'Enter 6-digit code from your doctor:'}
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={verificationToken}
+                            onChange={(e) => setVerificationToken(e.target.value.toUpperCase())}
+                            placeholder="NH-XXXXXX"
+                            maxLength={9}
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono text-lg"
+                          />
+                          <Button
+                            variant="primary"
+                            onClick={() => handleVerifyEngagement(engagement.id)}
+                            disabled={verifying || !verificationToken.trim()}
+                          >
+                            {verifying ? t.common?.loading : t.engagement?.verify || 'Verify'}
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-2 text-xs text-blue-700 bg-blue-50 p-3 rounded">
+                        <Shield className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <p>{t.engagement?.verificationHelp || 'Ask your doctor to provide the 6-digit verification code. This ensures secure connection between you and your healthcare provider.'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Active Engagements */}
+            {engagementService.getActiveEngagements(engagements).length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <h2 className="text-2xl font-bold text-textPrimary mb-6 flex items-center gap-2">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                  {t.engagement?.activeEngagements || 'Active Healthcare Providers'}
+                </h2>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  {engagementService.getActiveEngagements(engagements).map(engagement => (
+                    <div key={engagement.id} className="border border-green-200 bg-green-50 rounded-lg p-6">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="font-bold text-textPrimary">
+                            Dr. {engagement.doctor.firstName} {engagement.doctor.lastName}
+                          </h3>
+                          <p className="text-xs text-textSecondary">{engagement.doctor.email}</p>
+                        </div>
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <CheckCircle className="w-3 h-3" />
+                          {t.engagement?.active || 'Active'}
+                        </span>
+                      </div>
+                      
+                      <div className="text-sm text-textSecondary mb-3">
+                        <p>{t.engagement?.accessLevel || 'Access'}: {engagement.accessRule}</p>
+                        <p>{t.engagement?.since || 'Since'}: {new Date(engagement.startAt).toLocaleDateString()}</p>
+                      </div>
+                      
+                      <div className="pt-3 border-t border-green-200">
+                        <p className="text-xs text-green-700">
+                          ✓ {t.engagement?.canAccessRecords || 'Can access your medical records and chat history'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Ended/Cancelled Engagements */}
+            {engagementService.getEndedEngagements(engagements).length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <h2 className="text-2xl font-bold text-textPrimary mb-6 flex items-center gap-2">
+                  <XCircle className="w-6 h-6 text-gray-600" />
+                  {t.engagement?.pastEngagements || 'Past Engagements'}
+                </h2>
+                
+                <div className="space-y-3">
+                  {engagementService.getEndedEngagements(engagements).map(engagement => (
+                    <div key={engagement.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-semibold text-textPrimary">
+                            Dr. {engagement.doctor.firstName} {engagement.doctor.lastName}
+                          </h4>
+                          <p className="text-xs text-textSecondary">
+                            {new Date(engagement.startAt).toLocaleDateString()} - {engagement.endAt ? new Date(engagement.endAt).toLocaleDateString() : 'N/A'}
+                          </p>
+                        </div>
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
+                          engagement.status === 'cancelled' 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          <XCircle className="w-3 h-3" />
+                          {engagement.status === 'cancelled' ? (t.engagement?.cancelled || 'Cancelled') : (t.engagement?.ended || 'Ended')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {engagements.length === 0 && !isLoading && (
+              <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                <Shield className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold text-textPrimary mb-2">
+                  {t.engagement?.noEngagements || 'No Healthcare Provider Connections'}
+                </h3>
+                <p className="text-textSecondary mb-6">
+                  {t.engagement?.noEngagementsPatient || 'When a doctor sends you an engagement request, it will appear here for verification.'}
+                </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left text-sm text-blue-800">
+                  <p className="font-semibold mb-2">{t.engagement?.howItWorks || 'How it works:'}</p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    <li>{t.engagement?.step1 || 'Your doctor searches for you by email'}</li>
+                    <li>{t.engagement?.step2 || 'Doctor sends you an engagement request'}</li>
+                    <li>{t.engagement?.step3 || 'Doctor provides you with a 6-digit code'}</li>
+                    <li>{t.engagement?.step4 || 'You enter the code here to verify'}</li>
+                    <li>{t.engagement?.step5 || 'Connection established securely!'}</li>
+                  </ol>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

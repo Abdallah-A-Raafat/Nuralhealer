@@ -1,216 +1,400 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import { useState, useEffect } from 'react';
 import Button from '../../components/common/Button';
-import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
 import { useLanguage } from '../../hooks/useLanguage';
-
-const patientSchema = yup.object({
-  firstName: yup
-    .string()
-    .required('First name is required')
-    .min(2, 'First name must be at least 2 characters'),
-  lastName: yup
-    .string()
-    .required('Last name is required')
-    .min(2, 'Last name must be at least 2 characters'),
-  email: yup
-    .string()
-    .email('Please enter a valid email')
-    .required('Email is required'),
-  phone: yup
-    .string()
-    .required('Phone number is required')
-    .matches(/^[0-9+-]+$/, 'Please enter a valid phone number'),
-  dateOfBirth: yup
-    .string()
-    .required('Date of birth is required'),
-  medicalCondition: yup
-    .string()
-    .optional(),
-});
+import { userService } from '../../services/userService';
+import engagementService from '../../services/engagementService';
+import { Clock, CheckCircle, XCircle, Copy, RefreshCw, Search, Users } from 'lucide-react';
 
 const DoctorPatients = () => {
   const { t } = useLanguage();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [patients, setPatients] = useState([]);
+  
+  // Search states
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
+  const [searchError, setSearchError] = useState('');
+  const [searching, setSearching] = useState(false);
+  
+  // Token display states
+  const [showTokenModal, setShowTokenModal] = useState(false);
+  const [currentToken, setCurrentToken] = useState(null);
+  const [tokenExpiry, setTokenExpiry] = useState(null);
+  
+  // Engagements list
+  const [engagements, setEngagements] = useState([]);
+  const [loadingEngagements, setLoadingEngagements] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(patientSchema),
-  });
+  useEffect(() => {
+    fetchEngagements();
+  }, []);
 
-  const handleAddPatient = (data) => {
-    const newPatient = {
-      id: patients.length + 1,
-      name: `${data.firstName} ${data.lastName}`,
-      email: data.email,
-      phone: data.phone,
-      dateOfBirth: data.dateOfBirth,
-      condition: data.medicalCondition || t.doctor.patients.notSpecified,
-      lastVisit: new Date().toISOString().split('T')[0],
-      status: 'active',
+  const fetchEngagements = async () => {
+    try {
+      setLoadingEngagements(true);
+      const data = await engagementService.getMyEngagements();
+      setEngagements(data || []);
+    } catch (error) {
+      console.error('Failed to load engagements:', error);
+    } finally {
+      setLoadingEngagements(false);
+    }
+  };
+
+  const handleSearchPatient = async (e) => {
+    e.preventDefault();
+    if (!searchEmail.trim()) return;
+
+    try {
+      setSearching(true);
+      setSearchResult(null);
+      setSearchError('');
+      
+      const response = await userService.searchUserByEmail(searchEmail);
+      
+      if (response.data && response.data.role === 'PATIENT') {
+        setSearchResult(response.data);
+      } else {
+        setSearchError(t.engagement?.userNotPatient || 'User is not a patient');
+      }
+    } catch (error) {
+      console.error('Search failed:', error);
+      setSearchError(error.response?.data?.message || t.engagement?.patientNotFound || 'Patient not found');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleSendEngagementRequest = async () => {
+    if (!searchResult) return;
+
+    try {
+      const response = await engagementService.initiateEngagement(
+        searchResult.id,
+        'FULL_ACCESS'
+      );
+      
+      // Show token modal
+      setCurrentToken(response.verificationInfo.token);
+      setTokenExpiry(response.verificationInfo.expiresAt);
+      setShowTokenModal(true);
+      
+      // Close search modal and refresh engagements
+      setIsSearchModalOpen(false);
+      setSearchEmail('');
+      setSearchResult(null);
+      fetchEngagements();
+    } catch (error) {
+      console.error('Failed to send engagement request:', error);
+      setSearchError(error.response?.data?.message || t.engagement?.requestError || 'Failed to send request');
+    }
+  };
+
+  const handleCopyToken = () => {
+    if (currentToken) {
+      navigator.clipboard.writeText(currentToken);
+      alert(t.engagement?.tokenCopied || 'Token copied to clipboard');
+    }
+  };
+
+  const handleRefreshToken = async (engagementId) => {
+    try {
+      const response = await engagementService.refreshToken(engagementId);
+      setCurrentToken(response.token);
+      setTokenExpiry(response.expiresAt);
+      alert(t.engagement?.tokenRefreshed || 'Token refreshed successfully');
+      fetchEngagements();
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+      alert(error.response?.data?.message || 'Failed to refresh token');
+    }
+  };
+
+  const handleDeleteEngagement = async (engagementId) => {
+    const confirmed = window.confirm(t.engagement?.confirmDelete || 'Delete this engagement request?');
+    if (confirmed) {
+      try {
+        await engagementService.deleteEngagement(engagementId);
+        alert(t.engagement?.deleteSuccess || 'Engagement deleted');
+        fetchEngagements();
+      } catch (error) {
+        console.error('Failed to delete engagement:', error);
+        alert(error.response?.data?.message || 'Failed to delete engagement');
+      }
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      pending: {
+        label: t.engagement?.pending || 'Pending',
+        color: 'bg-yellow-100 text-yellow-800',
+        icon: Clock,
+      },
+      active: {
+        label: t.engagement?.active || 'Active',
+        color: 'bg-green-100 text-green-800',
+        icon: CheckCircle,
+      },
+      ended: {
+        label: t.engagement?.ended || 'Ended',
+        color: 'bg-gray-100 text-gray-800',
+        icon: XCircle,
+      },
+      cancelled: {
+        label: t.engagement?.cancelled || 'Cancelled',
+        color: 'bg-red-100 text-red-800',
+        icon: XCircle,
+      },
     };
-    setPatients([...patients, newPatient]);
-    reset();
-    setIsAddModalOpen(false);
+    
+    const config = statusConfig[status] || statusConfig.pending;
+    const Icon = config.icon;
+    
+    return (
+      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${config.color}`}>
+        <Icon className="w-3 h-3" />
+        {config.label}
+      </span>
+    );
   };
 
-  const handleViewProfile = (patient) => {
-    // This will be implemented later with a patient detail page
-    console.log('View profile:', patient);
-  };
+  const pendingEngagements = engagements.filter(e => e.status === 'pending');
+  const activeEngagements = engagements.filter(e => e.status === 'active');
+  const otherEngagements = engagements.filter(e => e.status !== 'pending' && e.status !== 'active');
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        {/* Header with Add Patient Button */}
+        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-textPrimary mb-2">{t.doctor.patients.title}</h1>
-            <p className="text-textSecondary">{t.doctor.patients.description}</p>
+            <h1 className="text-4xl font-bold text-textPrimary mb-2">
+              {t.doctor?.patients?.title || 'My Patients'}
+            </h1>
+            <p className="text-textSecondary">
+              {t.doctor?.patients?.description || 'Manage patient engagements'}
+            </p>
           </div>
           <Button
             variant="primary"
             size="large"
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => setIsSearchModalOpen(true)}
             className="flex items-center gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            {t.doctor.patients.addPatient}
+            <Search className="w-5 h-5" />
+            {t.engagement?.addPatient || 'Add Patient'}
           </Button>
         </div>
 
-        {/* Patients Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {patients.map((patient) => (
-            <div key={patient.id} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-bold text-textPrimary">{patient.name}</h3>
-                  <p className="text-sm text-textSecondary">{patient.condition}</p>
+        {/* Pending Engagements */}
+        {pendingEngagements.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-textPrimary mb-4">
+              {t.engagement?.pendingRequests || 'Pending Requests'}
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {pendingEngagements.map(engagement => (
+                <div key={engagement.id} className="bg-white rounded-lg shadow p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="font-bold text-textPrimary">
+                        {engagement.patient.firstName} {engagement.patient.lastName}
+                      </h3>
+                      <p className="text-sm text-textSecondary">{engagement.patient.email}</p>
+                    </div>
+                    {getStatusBadge(engagement.status)}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      size="small"
+                      className="w-full"
+                      onClick={() => {
+                        engagementService.getCurrentToken(engagement.id)
+                          .then(response => {
+                            setCurrentToken(response.token);
+                            setTokenExpiry(response.expiresAt);
+                            setShowTokenModal(true);
+                          })
+                          .catch(() => handleRefreshToken(engagement.id));
+                      }}
+                    >
+                      {t.engagement?.viewToken || 'View Token'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="small"
+                      className="w-full text-red-600 border-red-300 hover:bg-red-50"
+                      onClick={() => handleDeleteEngagement(engagement.id)}
+                    >
+                      {t.engagement?.deleteRequest || 'Delete Request'}
+                    </Button>
+                  </div>
                 </div>
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {t.doctor.patients.active}
-                </span>
-              </div>
-
-              <div className="space-y-2 mb-4 text-sm">
-                <div className="flex items-center text-textSecondary">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  {patient.email}
-                </div>
-                <div className="flex items-center text-textSecondary">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 00.948-.684l1.498-4.493a1 1 0 011.502-.684l1.498 4.493a1 1 0 00.948.684H19a2 2 0 012 2v1a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" />
-                  </svg>
-                  {patient.phone}
-                </div>
-                <div className="flex items-center text-textSecondary">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  {t.doctor.patients.lastVisit}: {patient.lastVisit}
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleViewProfile(patient)}
-                className="w-full py-2 px-4 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium text-sm"
-              >
-                {t.doctor.patients.viewProfile}
-              </button>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
 
-        {/* Add Patient Modal */}
+        {/* Active Engagements */}
+        {activeEngagements.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-textPrimary mb-4">
+              {t.engagement?.activeEngagements || 'Active Engagements'}
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeEngagements.map(engagement => (
+                <div key={engagement.id} className="bg-white rounded-lg shadow p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="font-bold text-textPrimary">
+                        {engagement.patient.firstName} {engagement.patient.lastName}
+                      </h3>
+                      <p className="text-sm text-textSecondary">{engagement.patient.email}</p>
+                    </div>
+                    {getStatusBadge(engagement.status)}
+                  </div>
+                  
+                  <div className="text-sm text-textSecondary mb-4">
+                    <p>Access: {engagement.accessRule}</p>
+                    <p>Started: {new Date(engagement.startAt).toLocaleDateString()}</p>
+                  </div>
+                  
+                  <Button
+                    variant="primary"
+                    size="small"
+                    className="w-full"
+                    onClick={() => console.log('View patient profile')}
+                  >
+                    {t.engagement?.viewProfile || 'View Profile'}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {engagements.length === 0 && !loadingEngagements && (
+          <div className="text-center py-16">
+            <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-xl font-semibold text-textPrimary mb-2">
+              {t.engagement?.noEngagements || 'No patient engagements yet'}
+            </h3>
+            <p className="text-textSecondary mb-6">
+              {t.engagement?.noEngagementsDesc || 'Click "Add Patient" to start connecting with patients'}
+            </p>
+            <Button
+              variant="primary"
+              onClick={() => setIsSearchModalOpen(true)}
+            >
+              {t.engagement?.addPatient || 'Add Patient'}
+            </Button>
+          </div>
+        )}
+
+        {/* Search Patient Modal */}
         <Modal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          title={t.doctor.patients.addNewPatient}
+          isOpen={isSearchModalOpen}
+          onClose={() => {
+            setIsSearchModalOpen(false);
+            setSearchEmail('');
+            setSearchResult(null);
+            setSearchError('');
+          }}
+          title={t.engagement?.searchPatient || 'Search Patient'}
           size="medium"
         >
-          <form className="space-y-4" onSubmit={handleSubmit(handleAddPatient)}>
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label={t.common.firstName}
-                placeholder={t.common.firstName}
-                error={errors.firstName?.message}
-                {...register('firstName')}
-              />
-              <Input
-                label={t.common.lastName}
-                placeholder={t.common.lastName}
-                error={errors.lastName?.message}
-                {...register('lastName')}
-              />
+          <form onSubmit={handleSearchPatient} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-textPrimary mb-2">
+                {t.engagement?.patientEmail || 'Patient Email'}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={searchEmail}
+                  onChange={(e) => setSearchEmail(e.target.value)}
+                  placeholder={t.engagement?.searchPlaceholder || 'Enter patient email'}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={searching}
+                >
+                  {searching ? t.common?.loading : t.engagement?.search || 'Search'}
+                </Button>
+              </div>
             </div>
 
-            <Input
-              label={t.common.email}
-              type="email"
-              placeholder={t.common.email}
-              error={errors.email?.message}
-              {...register('email')}
-            />
+            {searchError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">{searchError}</p>
+              </div>
+            )}
 
-            <Input
-              label={t.doctor.patients.phoneNumber}
-              placeholder="+1-555-0000"
-              error={errors.phone?.message}
-              {...register('phone')}
-            />
+            {searchResult && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="font-semibold text-textPrimary mb-2">
+                  {t.engagement?.patientFound || 'Patient Found'}
+                </h4>
+                <p className="text-sm mb-1">
+                  <strong>Name:</strong> {searchResult.firstName} {searchResult.lastName}
+                </p>
+                <p className="text-sm mb-4">
+                  <strong>Email:</strong> {searchResult.email}
+                </p>
+                <Button
+                  variant="primary"
+                  className="w-full"
+                  onClick={handleSendEngagementRequest}
+                >
+                  {t.engagement?.sendRequest || 'Send Engagement Request'}
+                </Button>
+              </div>
+            )}
+          </form>
+        </Modal>
 
-            <Input
-              label={t.doctor.patients.dateOfBirth}
-              type="date"
-              error={errors.dateOfBirth?.message}
-              {...register('dateOfBirth')}
-            />
-
-            <Input
-              label={t.doctor.patients.medicalCondition}
-              placeholder={t.doctor.patients.medicalConditionPlaceholder}
-              error={errors.medicalCondition?.message}
-              {...register('medicalCondition')}
-            />
-
-            {/* 2FA Notice */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs text-blue-800" dir="rtl">
-                <strong>{t.chat.note}:</strong> {t.doctor.patients.twoFactorNote}
+        {/* Token Display Modal */}
+        <Modal
+          isOpen={showTokenModal}
+          onClose={() => setShowTokenModal(false)}
+          title={t.engagement?.verificationCode || 'Verification Code'}
+          size="small"
+        >
+          <div className="text-center space-y-4">
+            <p className="text-textSecondary">
+              {t.engagement?.shareCodeMessage || 'Share this code with the patient'}
+            </p>
+            
+            <div className="bg-gray-100 rounded-lg p-6">
+              <div className="text-5xl font-bold tracking-widest text-primary mb-2">
+                {currentToken}
+              </div>
+              <button
+                onClick={handleCopyToken}
+                className="flex items-center justify-center gap-2 mx-auto mt-4 text-sm text-primary hover:text-primary-dark"
+              >
+                <Copy className="w-4 h-4" />
+                {t.engagement?.copyCode || 'Copy Code'}
+              </button>
+            </div>
+            
+            <p className="text-sm text-textSecondary">
+              {t.engagement?.expiresIn || 'Expires:'} {tokenExpiry ? new Date(tokenExpiry).toLocaleString() : '-'}
+            </p>
+            
+            <div className="pt-4 border-t">
+              <p className="text-xs text-textSecondary mb-2">
+                {t.engagement?.tokenExpiredHelp || 'Token expired? Click refresh to generate a new one.'}
               </p>
             </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="submit"
-                variant="primary"
-                className="flex-1"
-              >
-                {t.doctor.patients.addPatient}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                {t.common.cancel}
-              </Button>
-            </div>
-          </form>
+          </div>
         </Modal>
       </div>
     </div>

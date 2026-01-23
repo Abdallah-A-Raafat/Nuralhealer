@@ -21,6 +21,21 @@ export const userService = {
   },
 
   /**
+   * Search for a user by email (Doctor only)
+   * @param {string} email - Email address to search for
+   * @returns {Promise} User data if found
+   */
+  searchUserByEmail: async (email) => {
+    try {
+      const response = await apiClient.get(`/users/by-email?email=${encodeURIComponent(email)}`);
+      return response.data; // Returns { data: {...}, message: "..." }
+    } catch (error) {
+      console.error('❌ [USER] Failed to search user:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Get user statistics (sessions, appointments, etc.)
    * This will be implemented when backend provides the endpoint
    * For now, returns placeholder data

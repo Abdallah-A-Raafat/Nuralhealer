@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/common/Button';
+import Modal from '../../components/common/Modal';
 import userService from '../../services/userService';
 import engagementService from '../../services/engagementService';
 import { useLanguage } from '../../hooks/useLanguage';
+import { showToast } from '../../utils/toast';
 import { Clock, CheckCircle, XCircle, Shield } from 'lucide-react';
 
 const Profile = () => {
@@ -25,6 +27,10 @@ const Profile = () => {
   const [engagements, setEngagements] = useState([]);
   const [verificationToken, setVerificationToken] = useState('');
   const [verifying, setVerifying] = useState(false);
+  
+  // Confirmation modal
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+  const [engagementToReject, setEngagementToReject] = useState(null);
 
   // Fetch user profile data and statistics
   useEffect(() => {
@@ -70,21 +76,42 @@ const Profile = () => {
 
   const handleVerifyEngagement = async (engagementId) => {
     if (!verificationToken.trim()) {
-      alert(t.engagement?.enterToken || 'Please enter verification token');
+      showToast.warning(t.engagement?.enterToken || 'Please enter verification token');
       return;
     }
 
     try {
       setVerifying(true);
       await engagementService.verifyEngagement(verificationToken);
-      alert(t.engagement?.verificationSuccess || 'Engagement verified successfully!');
+      showToast.success(t.engagement?.verificationSuccess || 'Engagement verified successfully!');
       setVerificationToken('');
       await fetchEngagements();
     } catch (error) {
       console.error('Verification failed:', error);
-      alert(error.response?.data?.message || t.engagement?.verificationFailed || 'Verification failed');
+      showToast.error(error.response?.data?.message || t.engagement?.verificationFailed || 'Verification failed');
     } finally {
       setVerifying(false);
+    }
+  };
+
+  const handleRejectEngagement = async (engagementId) => {
+    setEngagementToReject(engagementId);
+    setShowRejectConfirm(true);
+  };
+
+  const confirmReject = async () => {
+    if (!engagementToReject) return;
+    
+    try {
+      await engagementService.rejectEngagement(engagementToReject, 'Rejected by patient');
+      showToast.success(t.engagement?.rejectSuccess || 'Engagement rejected');
+      await fetchEngagements();
+    } catch (error) {
+      console.error('Failed to reject engagement:', error);
+      showToast.error(error.response?.data?.message || 'Failed to reject engagement');
+    } finally {
+      setShowRejectConfirm(false);
+      setEngagementToReject(null);
     }
   };
 
@@ -442,6 +469,14 @@ const Profile = () => {
                         </div>
                       </div>
                       
+                      <Button
+                        variant="outline"
+                        className="w-full mb-4 text-red-600 border-red-300 hover:bg-red-50"
+                        onClick={() => handleRejectEngagement(engagement.id)}
+                      >
+                        {t.engagement?.rejectRequest || 'Reject Request'}
+                      </Button>
+                      
                       <div className="flex items-start gap-2 text-xs text-blue-700 bg-blue-50 p-3 rounded">
                         <Shield className="w-4 h-4 mt-0.5 flex-shrink-0" />
                         <p>{t.engagement?.verificationHelp || 'Ask your doctor to provide the 6-digit verification code. This ensures secure connection between you and your healthcare provider.'}</p>
@@ -636,6 +671,42 @@ const Profile = () => {
           </div>
         )}
       </div>
+      
+      {/* Reject Engagement Confirmation Modal */}
+      <Modal
+        isOpen={showRejectConfirm}
+        onClose={() => {
+          setShowRejectConfirm(false);
+          setEngagementToReject(null);
+        }}
+        title={t.engagement?.confirmReject || 'Confirm Rejection'}
+        size="small"
+      >
+        <div className="space-y-4">
+          <p className="text-textSecondary">
+            {t.engagement?.confirmRejectMessage || 'Are you sure you want to reject this engagement request from your doctor?'}
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setShowRejectConfirm(false);
+                setEngagementToReject(null);
+              }}
+            >
+              {t.common?.cancel || 'Cancel'}
+            </Button>
+            <Button
+              variant="primary"
+              className="flex-1 bg-red-600 hover:bg-red-700"
+              onClick={confirmReject}
+            >
+              {t.engagement?.rejectRequest || 'Reject'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

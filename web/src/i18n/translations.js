@@ -321,6 +321,11 @@ export const en = {
     step3: 'Doctor provides you with a 6-digit code',
     step4: 'You enter the code here to verify',
     step5: 'Connection established securely!',
+    rejectRequest: 'Reject Request',
+    confirmReject: 'Reject this engagement request?',
+    rejectSuccess: 'Engagement rejected',
+    confirmDeleteMessage: 'Are you sure you want to delete this engagement request? This action cannot be undone.',
+    confirmRejectMessage: 'Are you sure you want to reject this engagement request from your doctor?',
   },
 };
 
@@ -647,5 +652,10 @@ export const ar = {
     step3: 'يزودك الطبيب برمز مكون من 6 أرقام',
     step4: 'تدخل الرمز هنا للتحقق',
     step5: 'تم إنشاء الاتصال بشكل آمن!',
+    rejectRequest: 'رفض الطلب',
+    confirmReject: 'رفض طلب الارتباط هذا؟',
+    rejectSuccess: 'تم رفض الارتباط',
+    confirmDeleteMessage: 'هل أنت متأكد من حذف طلب الارتباط هذا؟ لا يمكن التراجع عن هذا الإجراء.',
+    confirmRejectMessage: 'هل أنت متأكد من رفض طلب الارتباط هذا من طبيبك؟',
   },
 };

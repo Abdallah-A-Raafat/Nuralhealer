@@ -4,6 +4,7 @@ import Modal from '../../components/common/Modal';
 import { useLanguage } from '../../hooks/useLanguage';
 import { userService } from '../../services/userService';
 import engagementService from '../../services/engagementService';
+import { showToast } from '../../utils/toast';
 import { Clock, CheckCircle, XCircle, Copy, RefreshCw, Search, Users } from 'lucide-react';
 
 const DoctorPatients = () => {
@@ -24,6 +25,10 @@ const DoctorPatients = () => {
   // Engagements list
   const [engagements, setEngagements] = useState([]);
   const [loadingEngagements, setLoadingEngagements] = useState(false);
+  
+  // Confirmation modal
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [engagementToDelete, setEngagementToDelete] = useState(null);
 
   useEffect(() => {
     fetchEngagements();
@@ -74,9 +79,11 @@ const DoctorPatients = () => {
         'FULL_ACCESS'
       );
       
+      console.log('Engagement response:', response);
+      
       // Show token modal
-      setCurrentToken(response.verificationInfo.token);
-      setTokenExpiry(response.verificationInfo.expiresAt);
+      setCurrentToken(response.verification.token);
+      setTokenExpiry(response.verification.expiresAt);
       setShowTokenModal(true);
       
       // Close search modal and refresh engagements
@@ -93,7 +100,7 @@ const DoctorPatients = () => {
   const handleCopyToken = () => {
     if (currentToken) {
       navigator.clipboard.writeText(currentToken);
-      alert(t.engagement?.tokenCopied || 'Token copied to clipboard');
+      showToast.success(t.engagement?.tokenCopied || 'Token copied to clipboard');
     }
   };
 
@@ -102,25 +109,32 @@ const DoctorPatients = () => {
       const response = await engagementService.refreshToken(engagementId);
       setCurrentToken(response.token);
       setTokenExpiry(response.expiresAt);
-      alert(t.engagement?.tokenRefreshed || 'Token refreshed successfully');
+      showToast.success(t.engagement?.tokenRefreshed || 'Token refreshed successfully');
       fetchEngagements();
     } catch (error) {
       console.error('Failed to refresh token:', error);
-      alert(error.response?.data?.message || 'Failed to refresh token');
+      showToast.error(error.response?.data?.message || 'Failed to refresh token');
     }
   };
 
   const handleDeleteEngagement = async (engagementId) => {
-    const confirmed = window.confirm(t.engagement?.confirmDelete || 'Delete this engagement request?');
-    if (confirmed) {
-      try {
-        await engagementService.deleteEngagement(engagementId);
-        alert(t.engagement?.deleteSuccess || 'Engagement deleted');
-        fetchEngagements();
-      } catch (error) {
-        console.error('Failed to delete engagement:', error);
-        alert(error.response?.data?.message || 'Failed to delete engagement');
-      }
+    setEngagementToDelete(engagementId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!engagementToDelete) return;
+    
+    try {
+      await engagementService.deleteEngagement(engagementToDelete);
+      showToast.success(t.engagement?.deleteSuccess || 'Engagement deleted');
+      fetchEngagements();
+    } catch (error) {
+      console.error('Failed to delete engagement:', error);
+      showToast.error(error.response?.data?.message || 'Failed to delete engagement');
+    } finally {
+      setShowDeleteConfirm(false);
+      setEngagementToDelete(null);
     }
   };
 
@@ -393,6 +407,42 @@ const DoctorPatients = () => {
               <p className="text-xs text-textSecondary mb-2">
                 {t.engagement?.tokenExpiredHelp || 'Token expired? Click refresh to generate a new one.'}
               </p>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={showDeleteConfirm}
+          onClose={() => {
+            setShowDeleteConfirm(false);
+            setEngagementToDelete(null);
+          }}
+          title={t.engagement?.confirmDelete || 'Confirm Delete'}
+          size="small"
+        >
+          <div className="space-y-4">
+            <p className="text-textSecondary">
+              {t.engagement?.confirmDeleteMessage || 'Are you sure you want to delete this engagement request? This action cannot be undone.'}
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setEngagementToDelete(null);
+                }}
+              >
+                {t.common?.cancel || 'Cancel'}
+              </Button>
+              <Button
+                variant="primary"
+                className="flex-1 bg-red-600 hover:bg-red-700"
+                onClick={confirmDelete}
+              >
+                {t.engagement?.deleteRequest || 'Delete'}
+              </Button>
             </div>
           </div>
         </Modal>

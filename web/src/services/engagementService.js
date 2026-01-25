@@ -44,6 +44,12 @@ const engagementService = {
     return response.data;
   },
 
+  // Reject engagement (patient cancels pending request)
+  rejectEngagement: async (engagementId, reason = 'Rejected by patient') => {
+    const response = await apiClient.post(`/engagements/${engagementId}/cancel`, { reason });
+    return response.data;
+  },
+
   // Refresh token (doctor only)
   refreshToken: async (engagementId) => {
     const response = await apiClient.post(`/engagements/${engagementId}/refresh-token`);

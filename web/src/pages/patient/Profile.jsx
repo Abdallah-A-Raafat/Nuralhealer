@@ -276,17 +276,17 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dark:bg-gray-900">
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="max-w-4xl mx-auto mb-8">
-          <h1 className="text-4xl font-bold text-textPrimary mb-2">{t.patient.profile.title}</h1>
-          <p className="text-textSecondary">{t.patient.profile.description}</p>
+          <h1 className="text-4xl font-bold text-textPrimary dark:text-white mb-2">{t.patient.profile.title}</h1>
+          <p className="text-textSecondary dark:text-gray-400">{t.patient.profile.description}</p>
         </div>
 
         {/* Tabs */}
         <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex space-x-2 border-b border-gray-200">
+          <div className="flex space-x-2 border-b border-gray-200 dark:border-gray-700">`
             <button
               onClick={() => setActiveTab('overview')}
               className={`px-4 py-2 font-medium transition-colors ${

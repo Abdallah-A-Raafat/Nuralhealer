@@ -87,7 +87,7 @@ export const authService = {
     try {
       await apiClient.post('/auth/logout');
       console.log('✅ [AUTH] Logout successful');
-    } catch (error) {
+    } catch {
       // Even if logout fails, we clear local state
       console.warn('⚠️ [AUTH] Logout request failed, but clearing local state');
     }

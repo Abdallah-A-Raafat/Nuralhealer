@@ -3,24 +3,20 @@ import { createContext, useContext, useEffect, useState } from 'react';
 const DarkModeContext = createContext();
 
 export const DarkModeProvider = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  // Initialize dark mode from localStorage or system preference
-  useEffect(() => {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Initialize from localStorage
     const savedMode = localStorage.getItem('neuralhealer-darkmode');
-    
     if (savedMode !== null) {
-      // Use saved preference
-      const isDark = savedMode === 'true';
-      setIsDarkMode(isDark);
-      applyDarkMode(isDark);
-    } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDarkMode(prefersDark);
-      applyDarkMode(prefersDark);
+      return savedMode === 'true';
     }
-  }, []);
+    // Default to system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  // Apply dark mode on mount and when it changes
+  useEffect(() => {
+    applyDarkMode(isDarkMode);
+  }, [isDarkMode]);
 
   const toggleDarkMode = () => {
     setIsDarkMode(prev => {
@@ -40,6 +36,8 @@ export const DarkModeProvider = ({ children }) => {
       root.classList.remove('dark');
       document.body.classList.remove('dark');
     }
+    // Force a re-render by updating a data attribute
+    root.setAttribute('data-theme', isDark ? 'dark' : 'light');
   };
 
   return (

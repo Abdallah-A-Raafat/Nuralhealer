@@ -5,6 +5,10 @@ import Modal from '../../components/common/Modal';
 import userService from '../../services/userService';
 import engagementService from '../../services/engagementService';
 import { useLanguage } from '../../hooks/useLanguage';
+import QuizCard from '../../components/common/QuizCard';
+import QuizTaking from '../../components/common/QuizTaking';
+import QuizResults from '../../components/common/QuizResults';
+import quizService from '../../services/quizService';
 import { showToast } from '../../utils/toast';
 import { Clock, CheckCircle, XCircle, Shield } from 'lucide-react';
 
@@ -31,6 +35,12 @@ const Profile = () => {
   // Confirmation modal
   const [showRejectConfirm, setShowRejectConfirm] = useState(false);
   const [engagementToReject, setEngagementToReject] = useState(null);
+
+  // Quiz states
+  const [activeQuiz, setActiveQuiz] = useState(null);
+  const [quizView, setQuizView] = useState('list'); // 'list', 'taking', 'results'
+  const [quizResults, setQuizResults] = useState({});
+  const [completedQuizzes, setCompletedQuizzes] = useState({});
 
   // Fetch user profile data and statistics
   useEffect(() => {
@@ -115,6 +125,61 @@ const Profile = () => {
     }
   };
 
+  // Quiz handlers
+  const handleStartQuiz = async (quizType) => {
+    try {
+      const service = quizService[quizType];
+      await service.start();
+      
+      setActiveQuiz(quizType);
+      setQuizView('taking');
+      showToast.success(`Starting ${quizService.getQuizName(quizType)}...`);
+    } catch (error) {
+      console.error('Error starting quiz:', error);
+      showToast.error('Failed to start assessment. Please try again.');
+    }
+  };
+
+  const handleQuizComplete = (results) => {
+    setQuizResults(prev => ({
+      ...prev,
+      [activeQuiz]: results
+    }));
+    setCompletedQuizzes(prev => ({
+      ...prev,
+      [activeQuiz]: true
+    }));
+    setQuizView('results');
+    showToast.success('Assessment completed successfully!');
+  };
+
+  const handleViewResults = (quizType) => {
+    setActiveQuiz(quizType);
+    setQuizView('results');
+  };
+
+  const handleBackToQuizList = () => {
+    setActiveQuiz(null);
+    setQuizView('list');
+  };
+
+  const handleRetakeQuiz = async () => {
+    if (!activeQuiz) return;
+    
+    try {
+      const service = quizService[activeQuiz];
+      if (service.reset) {
+        await service.reset();
+      }
+      await service.start();
+      setQuizView('taking');
+      showToast.success('Retaking assessment...');
+    } catch (error) {
+      console.error('Error retaking quiz:', error);
+      showToast.error('Failed to retake assessment. Please try again.');
+    }
+  };
+
   // Format date from ISO string to readable format
   const formatDate = (dateString) => {
     if (!dateString) return t.patient.profile.notAvailable;
@@ -195,6 +260,16 @@ const Profile = () => {
               }`}
             >
               {t.engagement?.myEngagements || 'My Engagements'}
+            </button>
+            <button
+              onClick={() => setActiveTab('assessments')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                activeTab === 'assessments'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-textSecondary hover:text-textPrimary'
+              }`}
+            >
+              {t.patient.profile.assessments || 'Assessments'}
             </button>
             <button
               onClick={() => setActiveTab('settings')}
@@ -583,6 +658,102 @@ const Profile = () => {
                   </ol>
                 </div>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Assessments Tab */}
+        {activeTab === 'assessments' && (
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Quiz List View */}
+            {quizView === 'list' && (
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <h2 className="text-2xl font-bold text-textPrimary mb-2">
+                  {t.patient.profile.assessments || 'Psychological Assessments'}
+                </h2>
+                <p className="text-textSecondary mb-6">
+                  {t.patient.profile.assessmentsDesc || 'Complete these assessments to help understand your mental health and track your progress over time.'}
+                </p>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* PHQ-9 Depression Screening */}
+                  <QuizCard
+                    quiz={{
+                      type: 'phq9',
+                      name: 'PHQ-9 Depression Screening',
+                      description: 'A 9-question screening tool widely used to assess depression severity',
+                      duration: '5 minutes',
+                      totalQuestions: 9,
+                    }}
+                    onStart={handleStartQuiz}
+                    onViewResults={handleViewResults}
+                    hasResults={!!quizResults.phq9}
+                    isCompleted={completedQuizzes.phq9}
+                  />
+
+                  {/* IPIP-50 Personality */}
+                  <QuizCard
+                    quiz={{
+                      type: 'ipip50',
+                      name: 'IPIP-50 Personality Assessment',
+                      description: 'Discover your personality traits based on the Big Five model',
+                      duration: '10-15 minutes',
+                      totalQuestions: 50,
+                    }}
+                    onStart={handleStartQuiz}
+                    onViewResults={handleViewResults}
+                    hasResults={!!quizResults.ipip50}
+                    isCompleted={completedQuizzes.ipip50}
+                  />
+
+                  {/* IPIP-120 Comprehensive */}
+                  <QuizCard
+                    quiz={{
+                      type: 'ipip120',
+                      name: 'IPIP-120 Comprehensive Assessment',
+                      description: 'In-depth personality analysis with 120 questions for detailed insights',
+                      duration: '20-30 minutes',
+                      totalQuestions: 120,
+                    }}
+                    onStart={handleStartQuiz}
+                    onViewResults={handleViewResults}
+                    hasResults={!!quizResults.ipip120}
+                    isCompleted={completedQuizzes.ipip120}
+                  />
+                </div>
+
+                {/* Info Box */}
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 mb-2">
+                    {t.patient.profile.assessmentInfo || 'Why Take Assessments?'}
+                  </h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>✓ {t.patient.profile.assessmentBenefit1 || 'Better understand your mental health status'}</li>
+                    <li>✓ {t.patient.profile.assessmentBenefit2 || 'Track your progress over time'}</li>
+                    <li>✓ {t.patient.profile.assessmentBenefit3 || 'Help your doctor provide better care'}</li>
+                    <li>✓ {t.patient.profile.assessmentBenefit4 || 'All results are confidential and secure'}</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Quiz Taking View */}
+            {quizView === 'taking' && activeQuiz && (
+              <QuizTaking
+                quizType={activeQuiz}
+                onComplete={handleQuizComplete}
+                onCancel={handleBackToQuizList}
+              />
+            )}
+
+            {/* Quiz Results View */}
+            {quizView === 'results' && activeQuiz && quizResults[activeQuiz] && (
+              <QuizResults
+                quizType={activeQuiz}
+                results={quizResults[activeQuiz]}
+                onClose={handleBackToQuizList}
+                onRetake={handleRetakeQuiz}
+              />
             )}
           </div>
         )}

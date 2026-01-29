@@ -36,20 +36,30 @@ const Login = () => {
   });
 
   const onSubmit = async (data) => {
+    console.log('🔐 [Login] Starting login with:', data.email);
     setIsLoading(true);
     setApiError('');
 
-    const result = await loginUser(data);
-
-    if (result.success) {
-      // Redirect based on user role from backend
-      const userRole = result.data.role; // 'DOCTOR' or 'PATIENT'
-      const defaultPath = userRole === 'DOCTOR' ? '/doctor-dashboard' : '/doctors';
-      const from = location.state?.from?.pathname || defaultPath;
+    try {
+      const result = await loginUser(data);
       
-      navigate(from, { replace: true });
-    } else {
-      setApiError(result.error);
+      console.log('📊 [Login] Login result:', result);
+
+      if (result.success) {
+        console.log('✅ [Login] Login successful, navigating...');
+        // Redirect based on user role from backend
+        const userRole = result.data.role; // 'DOCTOR' or 'PATIENT'
+        const defaultPath = userRole === 'DOCTOR' ? '/doctor-dashboard' : '/doctors';
+        const from = location.state?.from?.pathname || defaultPath;
+        
+        navigate(from, { replace: true });
+      } else {
+        console.error('❌ [Login] Login failed:', result.error);
+        setApiError(result.error);
+      }
+    } catch (error) {
+      console.error('💥 [Login] Unexpected error:', error);
+      setApiError(error.message || 'An unexpected error occurred');
     }
 
     setIsLoading(false);

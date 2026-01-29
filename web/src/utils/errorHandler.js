@@ -6,19 +6,22 @@ export const handleApiError = (error) => {
     // Server responded with error status
     const { status, data } = error.response;
     
+    // Always prioritize backend error message if available
+    const backendMessage = data?.message || data?.error;
+    
     switch (status) {
       case 400:
-        return data.message || 'Invalid request';
+        return backendMessage || 'Invalid request';
       case 401:
-        return 'Please log in to continue';
+        return backendMessage || 'Invalid email or password';
       case 403:
-        return 'You do not have permission to perform this action';
+        return backendMessage || 'You do not have permission to perform this action';
       case 404:
-        return 'The requested resource was not found';
+        return backendMessage || 'The requested resource was not found';
       case 500:
-        return 'Server error. Please try again later';
+        return backendMessage || 'Server error. Please try again later';
       default:
-        return data.message || 'An unexpected error occurred';
+        return backendMessage || 'An unexpected error occurred';
     }
   } else if (error.request) {
     // Network error

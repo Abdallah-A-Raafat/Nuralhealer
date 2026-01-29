@@ -17,11 +17,24 @@ export const useAuthStore = create(
        * Login user - Store user data (token handled by cookies)
        * @param {Object} userData - User data from backend { userId, email, firstName, lastName, role }
        */
-      login: (userData) => set({ 
-        user: userData, 
-        isLoggedIn: true,
-        role: userData.role // Backend returns 'DOCTOR' or 'PATIENT'
-      }),
+      login: (userData) => {
+        console.log('🔑 [authStore] Logging in user:', userData);
+        
+        if (!userData) {
+          console.error('❌ [authStore] Cannot login: userData is null/undefined');
+          return;
+        }
+        
+        const role = userData.role || userData.accountType?.toUpperCase() || 'PATIENT';
+        
+        set({ 
+          user: userData, 
+          isLoggedIn: true,
+          role: role // Backend returns 'DOCTOR' or 'PATIENT'
+        });
+        
+        console.log('✅ [authStore] User logged in with role:', role);
+      },
       
       /**
        * Logout user - Clear all auth state

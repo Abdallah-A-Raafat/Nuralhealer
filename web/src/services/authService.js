@@ -15,13 +15,29 @@ export const authService = {
   login: async (credentials) => {
     console.log('🔐 [AUTH] Logging in user:', credentials.email);
     
-    const response = await apiClient.post('/auth/login', credentials);
-    
-    // Backend returns: { data: {...}, message: "Login successful" }
-    // JWT is automatically stored in HTTP-only cookie
-    console.log('✅ [AUTH] Login successful');
-    
-    return response.data.data; // Return the user data
+    try {
+      const response = await apiClient.post('/auth/login', credentials);
+      
+      console.log('📦 [AUTH] Full response:', response.data);
+      
+      // Backend returns: { data: { userId, email, firstName, lastName, role }, message: "Login successful" }
+      // JWT is automatically stored in HTTP-only cookie
+      
+      // Handle different response formats
+      const userData = response.data.data || response.data;
+      
+      console.log('✅ [AUTH] Login successful, user data:', userData);
+      
+      return userData; // Return the user data
+    } catch (error) {
+      console.error('❌ [AUTH] Login failed:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      throw error;
+    }
   },
 
   /**

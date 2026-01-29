@@ -19,11 +19,24 @@ export const useAuth = () => {
     try {
       const userData = await authService.login(credentials);
       
+      console.log('👤 [useAuth] Received user data:', userData);
+      
+      // Validate userData has required fields
+      if (!userData) {
+        throw new Error('No user data received from server');
+      }
+      
+      if (!userData.role) {
+        console.warn('⚠️ [useAuth] Missing role, setting default to PATIENT');
+        userData.role = 'PATIENT';
+      }
+      
       // Backend returns: { userId, email, firstName, lastName, role }
       login(userData);
       
       return { success: true, data: userData };
     } catch (error) {
+      console.error('❌ [useAuth] Login error:', error);
       const message = handleApiError(error);
       return { success: false, error: message };
     }

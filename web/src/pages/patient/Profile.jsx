@@ -141,14 +141,70 @@ const Profile = () => {
   };
 
   const handleQuizComplete = (results) => {
-    setQuizResults(prev => ({
-      ...prev,
-      [activeQuiz]: results
-    }));
+    console.log('📊 [QUIZ] Quiz completed:', { activeQuiz, results });
+    
+    if (!activeQuiz) {
+      console.error('❌ [QUIZ] No active quiz set!');
+      showToast.error('Error: No active quiz');
+      return;
+    }
+    
+    // Transform backend data format to match QuizResults component expectations
+    let transformedResults = results;
+    
+    // For personality tests (IPIP-50, IPIP-120)
+    if ((activeQuiz === 'ipip50' || activeQuiz === 'ipip120') && results.result?.scores) {
+      const traits = {};
+      results.result.scores.forEach(item => {
+        const traitName = item.trait.toLowerCase().replace(/\s+/g, '');
+        traits[traitName] = {
+          score: item.score,
+          interpretation: item.description,
+          level: item.level
+        };
+      });
+      
+      transformedResults = {
+        traits: traits,
+        summary: results.result.summary || results.result.arabicSummary,
+        completionDate: results.completionDate,
+        totalScore: results.totalScore
+      };
+      
+      console.log('📊 [QUIZ] Transformed personality results:', transformedResults);
+    }
+    // For PHQ-9
+    else if (activeQuiz === 'phq9' && results.result?.scores) {
+      const depressionScore = results.result.scores[0]; // PHQ-9 has single score item
+      
+      transformedResults = {
+        score: depressionScore.score,
+        severity: depressionScore.level,
+        interpretation: depressionScore.description,
+        completionDate: results.completionDate,
+        hasCriticalAlert: depressionScore.hasCriticalAlert,
+        alertMessage: depressionScore.alertMessageEn,
+        alertMessageAr: depressionScore.alertMessageAr
+      };
+      
+      console.log('📊 [QUIZ] Transformed PHQ-9 results:', transformedResults);
+    }
+    
+    setQuizResults(prev => {
+      const updated = {
+        ...prev,
+        [activeQuiz]: transformedResults
+      };
+      console.log('📊 [QUIZ] Updated quiz results:', updated);
+      return updated;
+    });
+    
     setCompletedQuizzes(prev => ({
       ...prev,
       [activeQuiz]: true
     }));
+    
+    console.log('📊 [QUIZ] Setting view to results');
     setQuizView('results');
     showToast.success('Assessment completed successfully!');
   };
@@ -364,25 +420,30 @@ const Profile = () => {
                   <p className="text-sm text-textSecondary">{t.patient.profile.startFirstSession}</p>
                 </div>
               ) : (
-                <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="text-center p-4 bg-primary/5 rounded-lg">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                  <div className="text-center p-4 bg-primary/5 dark:bg-primary/10 rounded-lg">
                     <div className="text-3xl font-bold text-primary mb-2">{stats.totalSessions}</div>
-                    <p className="text-sm text-textSecondary">{t.patient.profile.totalSessions}</p>
+                    <p className="text-sm text-textSecondary dark:text-gray-400">{t.patient.profile.totalSessions}</p>
                   </div>
 
-                  <div className="text-center p-4 bg-secondary/5 rounded-lg">
+                  <div className="text-center p-4 bg-secondary/5 dark:bg-secondary/10 rounded-lg">
                     <div className="text-3xl font-bold text-secondary mb-2">{stats.totalMinutes}</div>
-                    <p className="text-sm text-textSecondary">{t.patient.profile.totalMinutes}</p>
+                    <p className="text-sm text-textSecondary dark:text-gray-400">{t.patient.profile.totalMinutes}</p>
                   </div>
 
-                  <div className="text-center p-4 bg-accent/20 rounded-lg">
+                  <div className="text-center p-4 bg-accent/20 dark:bg-accent/30 rounded-lg">
                     <div className="text-3xl font-bold text-accent mb-2">{stats.voiceSessions}</div>
-                    <p className="text-sm text-textSecondary">{t.patient.profile.voiceSessions}</p>
+                    <p className="text-sm text-textSecondary dark:text-gray-400">{t.patient.profile.voiceSessions}</p>
                   </div>
 
-                  <div className="text-center p-4 bg-green-100 rounded-lg">
-                    <div className="text-3xl font-bold text-green-600 mb-2">{stats.textSessions}</div>
-                    <p className="text-sm text-textSecondary">{t.patient.profile.textSessions}</p>
+                  <div className="text-center p-4 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">{stats.textSessions}</div>
+                    <p className="text-sm text-textSecondary dark:text-gray-400">{t.patient.profile.textSessions}</p>
+                  </div>
+
+                  <div className="text-center p-4 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">{Object.keys(quizResults).length}</div>
+                    <p className="text-sm text-textSecondary dark:text-gray-400">{t.patient.quizzes.completedAssessments}</p>
                   </div>
                 </div>
               )}
@@ -747,14 +808,36 @@ const Profile = () => {
             )}
 
             {/* Quiz Results View */}
-            {quizView === 'results' && activeQuiz && quizResults[activeQuiz] && (
-              <QuizResults
-                quizType={activeQuiz}
-                results={quizResults[activeQuiz]}
-                onClose={handleBackToQuizList}
-                onRetake={handleRetakeQuiz}
-              />
-            )}
+            {(() => {
+              console.log('🔍 [QUIZ] Results view check:', { 
+                quizView, 
+                activeQuiz, 
+                hasResults: !!quizResults[activeQuiz],
+                results: quizResults[activeQuiz]
+              });
+              
+              if (quizView === 'results' && activeQuiz && quizResults[activeQuiz]) {
+                return (
+                  <QuizResults
+                    quizType={activeQuiz}
+                    results={quizResults[activeQuiz]}
+                    onClose={handleBackToQuizList}
+                    onRetake={handleRetakeQuiz}
+                  />
+                );
+              }
+              
+              if (quizView === 'results' && activeQuiz && !quizResults[activeQuiz]) {
+                return (
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
+                    <p className="text-yellow-800 dark:text-yellow-300">No results available for this quiz yet.</p>
+                    <Button onClick={handleBackToQuizList} className="mt-4">Back to Assessments</Button>
+                  </div>
+                );
+              }
+              
+              return null;
+            })()}
           </div>
         )}
 

@@ -234,6 +234,111 @@ export const en = {
       viewResults: 'View Results',
       assessmentCompleted: 'Completed',
     },
+    quizzes: {
+      // Common
+      question: 'Question',
+      of: 'of',
+      answered: 'answered',
+      complete: 'complete',
+      previous: 'Previous',
+      next: 'Next',
+      submit: 'Submit Assessment',
+      submitting: 'Submitting...',
+      saveAndExit: 'Save & Exit',
+      backToAssessments: 'Back to Assessments',
+      retakeAssessment: 'Retake Assessment',
+      
+      // Likert Scale
+      stronglyDisagree: 'Strongly Disagree',
+      disagree: 'Disagree',
+      neutral: 'Neutral',
+      agree: 'Agree',
+      stronglyAgree: 'Strongly Agree',
+      
+      // PHQ-9 Scale
+      notAtAll: 'Not at all',
+      severalDays: 'Several days',
+      moreThanHalf: 'More than half the days',
+      nearlyEveryDay: 'Nearly every day',
+      
+      // Quiz Names
+      ipip120Name: 'IPIP-120 Comprehensive Assessment',
+      ipip50Name: 'IPIP-50 Personality Test',
+      phq9Name: 'PHQ-9 Depression Screening',
+      
+      // Descriptions
+      ipip120Desc: 'In-depth personality analysis with 120 questions for detailed insights',
+      ipip50Desc: 'Quick personality assessment based on the Big Five traits',
+      phq9Desc: 'Standardized assessment to screen for depression symptoms',
+      
+      // Duration
+      duration: 'Duration',
+      minutes: 'minutes',
+      questions: 'questions',
+      
+      // Results
+      yourPersonalityProfile: 'Your Personality Profile',
+      basedOnBigFive: 'Based on the Big Five personality traits model',
+      overallSummary: 'Overall Summary',
+      scoreInterpretation: 'Score Interpretation',
+      recommendation: 'Recommendation',
+      nextSteps: 'Next Steps',
+      assessmentCompleted: 'Assessment Completed!',
+      responsesRecorded: 'Your responses have been recorded successfully.',
+      
+      // PHQ-9 Results
+      depressionScreeningResults: 'PHQ-9 Depression Screening Results',
+      depressionSeverityScore: 'Your depression severity score',
+      minimalDepression: 'Minimal depression',
+      mildDepression: 'Mild depression',
+      moderateDepression: 'Moderate depression',
+      moderatelySevereDepression: 'Moderately severe depression',
+      severeDepression: 'Severe depression',
+      
+      // Critical Alert
+      criticalSafetyAlert: 'Critical Safety Alert',
+      
+      // Recommendations Text
+      phq9Recommendation: 'Your score indicates you may be experiencing significant symptoms of depression. We recommend discussing these results with a mental health professional who can provide proper assessment and treatment options.',
+      
+      // Next Steps
+      nextStep1: 'Share these results with your healthcare provider',
+      nextStep2: 'Consider scheduling a therapy session',
+      nextStep3: 'Retake this assessment periodically to track changes',
+      nextStep4: 'Explore our mental health resources and support groups',
+      
+      // Emergency Resources
+      emergencyResources: 'Emergency Resources:',
+      hotline988: 'National Suicide Prevention Lifeline: 988',
+      crisisText: 'Crisis Text Line: Text "HELLO" to 741741',
+      emergency911: 'Emergency Services: 911',
+      
+      // Disclaimer
+      disclaimerTitle: 'Disclaimer:',
+      disclaimerText: 'This assessment is a screening tool and does not constitute a clinical diagnosis. For professional evaluation and treatment, please consult with a qualified mental health professional.',
+      
+      // Personality Traits
+      extraversion: 'Extraversion',
+      agreeableness: 'Agreeableness',
+      conscientiousness: 'Conscientiousness',
+      neuroticism: 'Neuroticism',
+      opennessToExperience: 'Openness to Experience',
+      
+      // Loading/Error
+      loadingQuestions: 'Loading questions...',
+      noQuestionsAvailable: 'No questions available.',
+      goBack: 'Go Back',
+      error: 'Error',
+      tryAgain: 'Try Again',
+      cancel: 'Cancel',
+      failedToLoad: 'Failed to load questions. Please try again.',
+      failedToSubmit: 'Failed to submit quiz. Please try again.',
+      unansweredQuestions: 'You have {count} unanswered questions. Submit anyway?',
+      
+      // Completion Stats
+      completedAssessments: 'Completed Assessments',
+      noResultsYet: 'No results available for this quiz yet.',
+    },
   },
   doctor: {
     dashboard: {
@@ -575,8 +680,111 @@ export const ar = {
       retakeAssessment: 'إعادة التقييم',
       viewResults: 'عرض النتائج',
       assessmentCompleted: 'مكتمل',
-    },
-  },
+    },    quizzes: {
+      // Common
+      question: 'سؤال',
+      of: 'من',
+      answered: 'تمت الإجابة',
+      complete: 'مكتملة',
+      previous: 'السابق',
+      next: 'التالي',
+      submit: 'إرسال التقييم',
+      submitting: 'جاري الإرسال...',
+      saveAndExit: 'حفظ والخروج',
+      backToAssessments: 'العودة إلى التقييمات',
+      retakeAssessment: 'إعادة التقييم',
+      
+      // Likert Scale
+      stronglyDisagree: 'أرفض بشدة',
+      disagree: 'أرفض',
+      neutral: 'محايد',
+      agree: 'أوافق',
+      stronglyAgree: 'أوافق بشدة',
+      
+      // PHQ-9 Scale
+      notAtAll: 'إطلاقاً',
+      severalDays: 'عدة أيام',
+      moreThanHalf: 'أكثر من نصف الأيام',
+      nearlyEveryDay: 'كل يوم تقريباً',
+      
+      // Quiz Names
+      ipip120Name: 'تقييم IPIP-120 الشامل',
+      ipip50Name: 'اختبار الشخصية IPIP-50',
+      phq9Name: 'فحص الاكتئاب PHQ-9',
+      
+      // Descriptions
+      ipip120Desc: 'تحليل شامل للشخصية مع 120 سؤال للحصول على رؤى تفصيلية',
+      ipip50Desc: 'تقييم سريع للشخصية بناءً على السمات الخمس الكبرى',
+      phq9Desc: 'تقييم معياري لفحص أعراض الاكتئاب',
+      
+      // Duration
+      duration: 'المدة',
+      minutes: 'دقيقة',
+      questions: 'أسئلة',
+      
+      // Results
+      yourPersonalityProfile: 'ملف شخصيتك',
+      basedOnBigFive: 'بناءً على نموذج السمات الخمس الكبرى للشخصية',
+      overallSummary: 'الملخص العام',
+      scoreInterpretation: 'تفسير النتيجة',
+      recommendation: 'التوصية',
+      nextSteps: 'الخطوات التالية',
+      assessmentCompleted: 'تم إكمال التقييم!',
+      responsesRecorded: 'تم تسجيل إجاباتك بنجاح.',
+      
+      // PHQ-9 Results
+      depressionScreeningResults: 'نتائج فحص الاكتئاب PHQ-9',
+      depressionSeverityScore: 'درجة شدة الاكتئاب لديك',
+      minimalDepression: 'اكتئاب بسيط',
+      mildDepression: 'اكتئاب خفيف',
+      moderateDepression: 'اكتئاب معتدل',
+      moderatelySevereDepression: 'اكتئاب متوسط الشدة',
+      severeDepression: 'اكتئاب شديد',
+      
+      // Critical Alert
+      criticalSafetyAlert: 'تنبيه أمني خطير',
+      
+      // Recommendations Text
+      phq9Recommendation: 'تشير درجتك إلى أنك قد تعاني من أعراض اكتئاب كبيرة. نوصي بمناقشة هذه النتائج مع أخصائي الصحة النفسية الذي يمكنه تقديم التقييم المناسب وخيارات العلاج.',
+      
+      // Next Steps
+      nextStep1: 'شارك هذه النتائج مع مقدم الرعاية الصحية الخاص بك',
+      nextStep2: 'فكر في تحديد موعد جلسة علاج',
+      nextStep3: 'أعد هذا التقييم بشكل دوري لتتبع التغييرات',
+      nextStep4: 'استكشف موارد الصحة النفسية ومجموعات الدعم لدينا',
+      
+      // Emergency Resources
+      emergencyResources: 'موارد الطوارئ:',
+      hotline988: 'الخط الساخن للوقاية من الانتحار: 988',
+      crisisText: 'خط نصي للأزمات: أرسل "HELLO" إلى 741741',
+      emergency911: 'خدمات الطوارئ: 911',
+      
+      // Disclaimer
+      disclaimerTitle: 'إخلاء المسؤولية:',
+      disclaimerText: 'هذا التقييم أداة فحص ولا يشكل تشخيصًا سريريًا. للحصول على تقييم مهني وعلاج، يرجى استشارة أخصائي صحة نفسية مؤهل.',
+      
+      // Personality Traits
+      extraversion: 'الانبساطية',
+      agreeableness: 'الطيبة',
+      conscientiousness: 'الضمير الحي',
+      neuroticism: 'العصابية',
+      opennessToExperience: 'الانفتاح على التجربة',
+      
+      // Loading/Error
+      loadingQuestions: 'جاري تحميل الأسئلة...',
+      noQuestionsAvailable: 'لا توجد أسئلة متاحة.',
+      goBack: 'العودة',
+      error: 'خطأ',
+      tryAgain: 'حاول مرة أخرى',
+      cancel: 'إلغاء',
+      failedToLoad: 'فشل تحميل الأسئلة. يرجى المحاولة مرة أخرى.',
+      failedToSubmit: 'فشل إرسال الاختبار. يرجى المحاولة مرة أخرى.',
+      unansweredQuestions: 'لديك {count} أسئلة لم يتم الإجابة عليها. هل تريد الإرسال على أي حال؟',
+      
+      // Completion Stats
+      completedAssessments: 'التقييمات المكتملة',
+      noResultsYet: 'لا توجد نتائج متاحة لهذا الاختبار بعد.',
+    },  },
   doctor: {
     dashboard: {
       welcomeBack: 'مرحباً بعودتك، دكتور',

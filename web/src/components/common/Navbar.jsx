@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Button from './Button';
 import LanguageToggle from './LanguageToggle';
 import DarkModeToggle from './DarkModeToggle';
+import NotificationBell from './NotificationBell';
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../hooks/useLanguage.jsx';
 import { useDarkMode } from '../../hooks/useDarkMode';
@@ -85,6 +86,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-3">
             <DarkModeToggle />
             <LanguageToggle />
+            {isLoggedIn && <NotificationBell />}
             {isLoggedIn ? (
               <div className="flex items-center space-x-4">
                 <div className={`flex flex-col items-end px-3 py-2 rounded-lg bg-gradient-to-r ${

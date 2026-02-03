@@ -443,6 +443,21 @@ export const en = {
     confirmDeleteMessage: 'Are you sure you want to delete this engagement request? This action cannot be undone.',
     confirmRejectMessage: 'Are you sure you want to reject this engagement request from your doctor?',
   },
+  notifications: {
+    title: 'Notifications',
+    markAllRead: 'Mark all read',
+    noNotifications: 'No notifications yet',
+    viewAll: 'View all notifications',
+    new: 'New',
+    earlier: 'Earlier',
+    // Notification types
+    messageReceived: 'New Message',
+    engagementStarted: 'Engagement Started',
+    engagementCancelled: 'Engagement Cancelled',
+    securityAlert: 'Security Alert',
+    aiResponseReady: 'AI Response Ready',
+    userWelcome: 'Welcome!',
+  },
 };
 
 // Arabic translations
@@ -887,5 +902,20 @@ export const ar = {
     rejectSuccess: 'تم رفض الارتباط',
     confirmDeleteMessage: 'هل أنت متأكد من حذف طلب الارتباط هذا؟ لا يمكن التراجع عن هذا الإجراء.',
     confirmRejectMessage: 'هل أنت متأكد من رفض طلب الارتباط هذا من طبيبك؟',
+  },
+  notifications: {
+    title: 'الإشعارات',
+    markAllRead: 'تحديد الكل كمقروء',
+    noNotifications: 'لا توجد إشعارات بعد',
+    viewAll: 'عرض جميع الإشعارات',
+    new: 'جديد',
+    earlier: 'سابقاً',
+    // Notification types
+    messageReceived: 'رسالة جديدة',
+    engagementStarted: 'بدء الارتباط',
+    engagementCancelled: 'إلغاء الارتباط',
+    securityAlert: 'تنبيه أمني',
+    aiResponseReady: 'الرد الذكي جاهز',
+    userWelcome: 'مرحباً!',
   },
 };

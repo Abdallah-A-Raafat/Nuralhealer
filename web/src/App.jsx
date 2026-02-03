@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { LanguageProvider } from './hooks/useLanguage.jsx';
 import { DarkModeProvider } from './hooks/useDarkMode.jsx';
 import Navbar from './components/common/Navbar';
+import NotificationToast from './components/common/NotificationToast';
 import Home from './pages/Home';
 import About from './pages/About';
 import Contact from './pages/Contact';
@@ -46,6 +47,7 @@ function App() {
               },
             }}
           />
+          <NotificationToast />
           <div className="min-h-screen bg-background dark:bg-[#1A1625] transition-colors duration-300">
             <Navbar />
             <Routes>

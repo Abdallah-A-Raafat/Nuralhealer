@@ -32,9 +32,12 @@ const Profile = () => {
   const [verificationToken, setVerificationToken] = useState('');
   const [verifying, setVerifying] = useState(false);
   
-  // Confirmation modal
+  // Confirmation modals
   const [showRejectConfirm, setShowRejectConfirm] = useState(false);
   const [engagementToReject, setEngagementToReject] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [engagementToCancel, setEngagementToCancel] = useState(null);
+  const [selectedCancelAccessLevel, setSelectedCancelAccessLevel] = useState('LIMITED_ACCESS');
 
   // Quiz states
   const [activeQuiz, setActiveQuiz] = useState(null);
@@ -122,6 +125,30 @@ const Profile = () => {
     } finally {
       setShowRejectConfirm(false);
       setEngagementToReject(null);
+    }
+  };
+
+  const handleCancelEngagement = (engagement) => {
+    setEngagementToCancel(engagement);
+    setShowCancelModal(true);
+  };
+
+  const confirmCancelEngagement = async () => {
+    try {
+      await engagementService.cancelEngagement(
+        engagementToCancel.id,
+        'Cancelled by patient',
+        selectedCancelAccessLevel
+      );
+      showToast.success(t.engagement?.cancelSuccess || 'Engagement cancelled successfully');
+      await fetchEngagements();
+    } catch (error) {
+      console.error('Failed to cancel engagement:', error);
+      showToast.error(error.response?.data?.message || 'Failed to cancel engagement');
+    } finally {
+      setShowCancelModal(false);
+      setEngagementToCancel(null);
+      setSelectedCancelAccessLevel('LIMITED_ACCESS');
     }
   };
 
@@ -652,10 +679,18 @@ const Profile = () => {
                         <p>{t.engagement?.since || 'Since'}: {new Date(engagement.startAt).toLocaleDateString()}</p>
                       </div>
                       
-                      <div className="pt-3 border-t border-green-200">
+                      <div className="pt-3 border-t border-green-200 space-y-2">
                         <p className="text-xs text-green-700">
                           ✓ {t.engagement?.canAccessRecords || 'Can access your medical records and chat history'}
                         </p>
+                        <Button
+                          variant="outline"
+                          size="small"
+                          className="w-full text-red-600 border-red-300 hover:bg-red-50"
+                          onClick={() => handleCancelEngagement(engagement)}
+                        >
+                          {t.engagement?.cancelEngagement || 'Cancel Engagement'}
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -957,6 +992,97 @@ const Profile = () => {
               onClick={confirmReject}
             >
               {t.engagement?.rejectRequest || 'Reject'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+      
+      {/* Cancel Engagement Modal */}
+      <Modal
+        isOpen={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false);
+          setEngagementToCancel(null);
+          setSelectedCancelAccessLevel('LIMITED_ACCESS');
+        }}
+        title={t.engagement?.cancelEngagement || 'Cancel Engagement'}
+        size="medium"
+      >
+        <div className="space-y-4">
+          <p className="text-textSecondary">
+            {t.engagement?.cancelMessage || 'You can cancel this engagement and choose what access level the doctor will have afterward.'}
+          </p>
+          
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-textPrimary">
+              {t.engagement?.chooseAccessLevel || 'Choose Access Level After Cancellation'}
+            </label>
+            
+            <div className="space-y-2">
+              <label className="flex items-start p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                style={{ borderColor: selectedCancelAccessLevel === 'LIMITED_ACCESS' ? '#3b82f6' : '#d1d5db' }}
+              >
+                <input
+                  type="radio"
+                  name="cancelAccessLevel"
+                  value="LIMITED_ACCESS"
+                  checked={selectedCancelAccessLevel === 'LIMITED_ACCESS'}
+                  onChange={(e) => setSelectedCancelAccessLevel(e.target.value)}
+                  className="mt-1 mr-3"
+                />
+                <div>
+                  <p className="font-medium text-textPrimary">{t.engagement?.limitedAccess || 'Limited Access'}</p>
+                  <p className="text-sm text-textSecondary">
+                    {t.engagement?.limitedAccessDesc || 'Doctor can view basic information but cannot access full records'}
+                  </p>
+                </div>
+              </label>
+              
+              <label className="flex items-start p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                style={{ borderColor: selectedCancelAccessLevel === 'NO_ACCESS' ? '#3b82f6' : '#d1d5db' }}
+              >
+                <input
+                  type="radio"
+                  name="cancelAccessLevel"
+                  value="NO_ACCESS"
+                  checked={selectedCancelAccessLevel === 'NO_ACCESS'}
+                  onChange={(e) => setSelectedCancelAccessLevel(e.target.value)}
+                  className="mt-1 mr-3"
+                />
+                <div>
+                  <p className="font-medium text-textPrimary">{t.engagement?.noAccess || 'No Access'}</p>
+                  <p className="text-sm text-textSecondary">
+                    {t.engagement?.noAccessDesc || 'Doctor will have no access to any of your information'}
+                  </p>
+                </div>
+              </label>
+            </div>
+          </div>
+          
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              {t.engagement?.cancelWarning || 'This action cannot be undone. You will need to create a new engagement to restore access.'}
+            </p>
+          </div>
+          
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setShowCancelModal(false);
+                setEngagementToCancel(null);
+                setSelectedCancelAccessLevel('LIMITED_ACCESS');
+              }}
+            >
+              {t.common?.cancel || 'Cancel'}
+            </Button>
+            <Button
+              variant="primary"
+              className="flex-1 bg-red-600 hover:bg-red-700"
+              onClick={confirmCancelEngagement}
+            >
+              {t.engagement?.confirmCancel || 'Yes, Cancel Engagement'}
             </Button>
           </div>
         </div>

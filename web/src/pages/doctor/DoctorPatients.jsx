@@ -16,6 +16,7 @@ const DoctorPatients = () => {
   const [searchResult, setSearchResult] = useState(null);
   const [searchError, setSearchError] = useState('');
   const [searching, setSearching] = useState(false);
+  const [selectedAccessLevel, setSelectedAccessLevel] = useState('FULL_ACCESS');
   
   // Token display states
   const [showTokenModal, setShowTokenModal] = useState(false);
@@ -29,6 +30,10 @@ const DoctorPatients = () => {
   // Confirmation modal
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [engagementToDelete, setEngagementToDelete] = useState(null);
+  
+  // Cancel engagement modal
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [engagementToCancel, setEngagementToCancel] = useState(null);
 
   useEffect(() => {
     fetchEngagements();
@@ -38,9 +43,12 @@ const DoctorPatients = () => {
     try {
       setLoadingEngagements(true);
       const data = await engagementService.getMyEngagements();
+      console.log('Engagements loaded:', data);
       setEngagements(data || []);
     } catch (error) {
       console.error('Failed to load engagements:', error);
+      showToast.error(error.response?.data?.message || 'Failed to load engagements');
+      setEngagements([]);
     } finally {
       setLoadingEngagements(false);
     }
@@ -76,7 +84,7 @@ const DoctorPatients = () => {
     try {
       const response = await engagementService.initiateEngagement(
         searchResult.id,
-        'FULL_ACCESS'
+        selectedAccessLevel
       );
       
       console.log('Engagement response:', response);
@@ -90,6 +98,7 @@ const DoctorPatients = () => {
       setIsSearchModalOpen(false);
       setSearchEmail('');
       setSearchResult(null);
+      setSelectedAccessLevel('FULL_ACCESS');
       fetchEngagements();
     } catch (error) {
       console.error('Failed to send engagement request:', error);
@@ -138,6 +147,32 @@ const DoctorPatients = () => {
     }
   };
 
+  const handleCancelEngagement = (engagement) => {
+    setEngagementToCancel(engagement);
+    setShowCancelConfirm(true);
+  };
+
+  const confirmCancel = async () => {
+    if (!engagementToCancel) return;
+    
+    try {
+      // Doctor cancellation - no access rule needed (backend automatically revokes access)
+      await engagementService.cancelEngagement(
+        engagementToCancel.id,
+        'Cancelled by doctor',
+        null // Don't pass access rule for doctor
+      );
+      showToast.success(t.engagement?.cancelSuccess || 'Engagement cancelled');
+      fetchEngagements();
+    } catch (error) {
+      console.error('Failed to cancel engagement:', error);
+      showToast.error(error.response?.data?.message || 'Failed to cancel engagement');
+    } finally {
+      setShowCancelConfirm(false);
+      setEngagementToCancel(null);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: {
@@ -173,9 +208,23 @@ const DoctorPatients = () => {
     );
   };
 
-  const pendingEngagements = engagements.filter(e => e.status === 'pending');
-  const activeEngagements = engagements.filter(e => e.status === 'active');
-  const otherEngagements = engagements.filter(e => e.status !== 'pending' && e.status !== 'active');
+  const pendingEngagements = engagements.filter(e => e?.status === 'pending');
+  const activeEngagements = engagements.filter(e => e?.status === 'active');
+  const otherEngagements = engagements.filter(e => e?.status !== 'pending' && e?.status !== 'active');
+
+  // Add error check
+  if (!Array.isArray(engagements)) {
+    console.error('Engagements is not an array:', engagements);
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-red-600 mb-2">Error loading engagements</h2>
+          <p className="text-textSecondary mb-4">Invalid data format</p>
+          <Button onClick={fetchEngagements}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -213,9 +262,9 @@ const DoctorPatients = () => {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="font-bold text-textPrimary">
-                        {engagement.patient.firstName} {engagement.patient.lastName}
+                        {engagement.patient?.firstName || 'Unknown'} {engagement.patient?.lastName || 'Patient'}
                       </h3>
-                      <p className="text-sm text-textSecondary">{engagement.patient.email}</p>
+                      <p className="text-sm text-textSecondary">{engagement.patient?.email || 'N/A'}</p>
                     </div>
                     {getStatusBadge(engagement.status)}
                   </div>
@@ -264,26 +313,36 @@ const DoctorPatients = () => {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="font-bold text-textPrimary">
-                        {engagement.patient.firstName} {engagement.patient.lastName}
+                        {engagement.patient?.firstName || 'Unknown'} {engagement.patient?.lastName || 'Patient'}
                       </h3>
-                      <p className="text-sm text-textSecondary">{engagement.patient.email}</p>
+                      <p className="text-sm text-textSecondary">{engagement.patient?.email || 'N/A'}</p>
                     </div>
                     {getStatusBadge(engagement.status)}
                   </div>
                   
                   <div className="text-sm text-textSecondary mb-4">
-                    <p>Access: {engagement.accessRule}</p>
-                    <p>Started: {new Date(engagement.startAt).toLocaleDateString()}</p>
+                    <p>Access: {engagement.accessRule || 'N/A'}</p>
+                    <p>Started: {engagement.startAt ? new Date(engagement.startAt).toLocaleDateString() : 'N/A'}</p>
                   </div>
                   
-                  <Button
-                    variant="primary"
-                    size="small"
-                    className="w-full"
-                    onClick={() => console.log('View patient profile')}
-                  >
-                    {t.engagement?.viewProfile || 'View Profile'}
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      variant="primary"
+                      size="small"
+                      className="w-full"
+                      onClick={() => console.log('View patient profile')}
+                    >
+                      {t.engagement?.viewProfile || 'View Profile'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="small"
+                      className="w-full text-red-600 border-red-300 hover:bg-red-50"
+                      onClick={() => handleCancelEngagement(engagement)}
+                    >
+                      {t.engagement?.cancelEngagement || 'Cancel Engagement'}
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -362,6 +421,27 @@ const DoctorPatients = () => {
                 <p className="text-sm mb-4">
                   <strong>Email:</strong> {searchResult.email}
                 </p>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-textPrimary mb-2">
+                    {t.engagement?.accessLevel || 'Access Level'}
+                  </label>
+                  <select
+                    value={selectedAccessLevel}
+                    onChange={(e) => setSelectedAccessLevel(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="FULL_ACCESS">{t.engagement?.fullAccess || 'Full Access'}</option>
+                    <option value="LIMITED_ACCESS">{t.engagement?.limitedAccess || 'Limited Access'}</option>
+                    <option value="NO_ACCESS">{t.engagement?.noAccess || 'No Access'}</option>
+                  </select>
+                  <p className="text-xs text-textSecondary mt-1">
+                    {selectedAccessLevel === 'FULL_ACCESS' && (t.engagement?.fullAccessDesc || 'Access to all medical records and chat history')}
+                    {selectedAccessLevel === 'LIMITED_ACCESS' && (t.engagement?.limitedAccessDesc || 'Access to basic information only')}
+                    {selectedAccessLevel === 'NO_ACCESS' && (t.engagement?.noAccessDesc || 'No access to medical records')}
+                  </p>
+                </div>
+                
                 <Button
                   variant="primary"
                   className="w-full"
@@ -442,6 +522,47 @@ const DoctorPatients = () => {
                 onClick={confirmDelete}
               >
                 {t.engagement?.deleteRequest || 'Delete'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+        
+        {/* Cancel Engagement Confirmation Modal */}
+        <Modal
+          isOpen={showCancelConfirm}
+          onClose={() => {
+            setShowCancelConfirm(false);
+            setEngagementToCancel(null);
+          }}
+          title={t.engagement?.cancelEngagement || 'Cancel Engagement'}
+          size="small"
+        >
+          <div className="space-y-4">
+            <p className="text-textSecondary">
+              {t.engagement?.confirmCancelMessage || 'Are you sure you want to cancel this engagement? The patient will lose access to their records.'}
+            </p>
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                {t.engagement?.cancelInfo || 'Patient access will be set to: No Access'}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowCancelConfirm(false);
+                  setEngagementToCancel(null);
+                }}
+              >
+                {t.common?.cancel || 'Cancel'}
+              </Button>
+              <Button
+                variant="primary"
+                className="flex-1 bg-red-600 hover:bg-red-700"
+                onClick={confirmCancel}
+              >
+                {t.engagement?.confirmCancel || 'Yes, Cancel'}
               </Button>
             </div>
           </div>

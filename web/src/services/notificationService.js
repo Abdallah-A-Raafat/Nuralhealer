@@ -21,18 +21,19 @@ class NotificationService {
     }
 
     const lastId = localStorage.getItem(STORAGE_KEY);
-    const url = new URL('/api/notifications/stream', window.location.origin);
+    // Use relative URL to use Vite's proxy (same-origin cookies will work)
+    let url = '/api/notifications/stream';
     
     // Add lastEventId as query param if available
     if (lastId) {
-      url.searchParams.append('lastEventId', lastId);
+      url += `?lastEventId=${encodeURIComponent(lastId)}`;
     }
 
-    console.log('🔔 Connecting to notification stream...');
+    console.log('🔔 Connecting to notification stream:', url);
     
-    this.eventSource = new EventSource(url.toString(), {
-      withCredentials: true
-    });
+    // EventSource will use the current origin (proxied to backend)
+    // Cookies will be sent automatically for same-origin requests
+    this.eventSource = new EventSource(url);
 
     // Handle connection established
     this.eventSource.addEventListener('connected', (event) => {
@@ -132,7 +133,7 @@ class NotificationService {
    */
   async getNotifications(page = 0, size = 20) {
     try {
-      const response = await apiClient.get('/api/notifications', {
+      const response = await apiClient.get('/notifications', {
         params: { page, size, sort: 'sentAt,desc' }
       });
       return response.data;
@@ -147,7 +148,7 @@ class NotificationService {
    */
   async getUnreadCount() {
     try {
-      const response = await apiClient.get('/api/notifications/unread-count');
+      const response = await apiClient.get('/notifications/unread-count');
       return response.data.count;
     } catch (error) {
       console.error('Error fetching unread count:', error);
@@ -160,7 +161,7 @@ class NotificationService {
    */
   async markAsRead(notificationId) {
     try {
-      await apiClient.put(`/api/notifications/${notificationId}/read`);
+      await apiClient.put(`/notifications/${notificationId}/read`);
       return true;
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -173,7 +174,7 @@ class NotificationService {
    */
   async markAllAsRead() {
     try {
-      await apiClient.put('/api/notifications/mark-all-read');
+      await apiClient.put('/notifications/mark-all-read');
       return true;
     } catch (error) {
       console.error('Error marking all as read:', error);

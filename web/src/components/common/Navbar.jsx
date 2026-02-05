@@ -26,9 +26,9 @@ const Navbar = () => {
   const patientNav = [
     { name: t.common.home, href: '/', current: location.pathname === '/' },
     { name: t.common.about, href: '/about', current: location.pathname === '/about' },
-    { name: t.common.contact, href: '/contact', current: location.pathname === '/contact' },
     ...(isLoggedIn && accountType === 'patient' ? [
       { name: t.navigation.chat, href: '/chat', current: location.pathname === '/chat' },
+      { name: t.navigation.assessments, href: '/assessments', current: location.pathname === '/assessments' },
       { name: t.navigation.doctors, href: '/booking', current: location.pathname === '/booking' },
       { name: t.navigation.profile, href: '/profile', current: location.pathname === '/profile' },
     ] : []),

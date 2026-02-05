@@ -1,20 +1,19 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import userService from '../../services/userService';
 import engagementService from '../../services/engagementService';
 import { useLanguage } from '../../hooks/useLanguage';
-import QuizCard from '../../components/common/QuizCard';
-import QuizTaking from '../../components/common/QuizTaking';
-import QuizResults from '../../components/common/QuizResults';
-import quizService from '../../services/quizService';
 import { showToast } from '../../utils/toast';
 import { Clock, CheckCircle, XCircle, Shield } from 'lucide-react';
+import TherapyProgress from '../../components/therapy/TherapyProgress';
 
 const Profile = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [profileData, setProfileData] = useState(null);
   const [stats, setStats] = useState({
@@ -38,12 +37,6 @@ const Profile = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [engagementToCancel, setEngagementToCancel] = useState(null);
   const [selectedCancelAccessLevel, setSelectedCancelAccessLevel] = useState('LIMITED_ACCESS');
-
-  // Quiz states
-  const [activeQuiz, setActiveQuiz] = useState(null);
-  const [quizView, setQuizView] = useState('list'); // 'list', 'taking', 'results'
-  const [quizResults, setQuizResults] = useState({});
-  const [completedQuizzes, setCompletedQuizzes] = useState({});
 
   // Fetch user profile data and statistics
   useEffect(() => {
@@ -152,117 +145,6 @@ const Profile = () => {
     }
   };
 
-  // Quiz handlers
-  const handleStartQuiz = async (quizType) => {
-    try {
-      const service = quizService[quizType];
-      await service.start();
-      
-      setActiveQuiz(quizType);
-      setQuizView('taking');
-      showToast.success(`Starting ${quizService.getQuizName(quizType)}...`);
-    } catch (error) {
-      console.error('Error starting quiz:', error);
-      showToast.error('Failed to start assessment. Please try again.');
-    }
-  };
-
-  const handleQuizComplete = (results) => {
-    console.log('📊 [QUIZ] Quiz completed:', { activeQuiz, results });
-    
-    if (!activeQuiz) {
-      console.error('❌ [QUIZ] No active quiz set!');
-      showToast.error('Error: No active quiz');
-      return;
-    }
-    
-    // Transform backend data format to match QuizResults component expectations
-    let transformedResults = results;
-    
-    // For personality tests (IPIP-50, IPIP-120)
-    if ((activeQuiz === 'ipip50' || activeQuiz === 'ipip120') && results.result?.scores) {
-      const traits = {};
-      results.result.scores.forEach(item => {
-        const traitName = item.trait.toLowerCase().replace(/\s+/g, '');
-        traits[traitName] = {
-          score: item.score,
-          interpretation: item.description,
-          level: item.level
-        };
-      });
-      
-      transformedResults = {
-        traits: traits,
-        summary: results.result.summary || results.result.arabicSummary,
-        completionDate: results.completionDate,
-        totalScore: results.totalScore
-      };
-      
-      console.log('📊 [QUIZ] Transformed personality results:', transformedResults);
-    }
-    // For PHQ-9
-    else if (activeQuiz === 'phq9' && results.result?.scores) {
-      const depressionScore = results.result.scores[0]; // PHQ-9 has single score item
-      
-      transformedResults = {
-        score: depressionScore.score,
-        severity: depressionScore.level,
-        interpretation: depressionScore.description,
-        completionDate: results.completionDate,
-        hasCriticalAlert: depressionScore.hasCriticalAlert,
-        alertMessage: depressionScore.alertMessageEn,
-        alertMessageAr: depressionScore.alertMessageAr
-      };
-      
-      console.log('📊 [QUIZ] Transformed PHQ-9 results:', transformedResults);
-    }
-    
-    setQuizResults(prev => {
-      const updated = {
-        ...prev,
-        [activeQuiz]: transformedResults
-      };
-      console.log('📊 [QUIZ] Updated quiz results:', updated);
-      return updated;
-    });
-    
-    setCompletedQuizzes(prev => ({
-      ...prev,
-      [activeQuiz]: true
-    }));
-    
-    console.log('📊 [QUIZ] Setting view to results');
-    setQuizView('results');
-    showToast.success('Assessment completed successfully!');
-  };
-
-  const handleViewResults = (quizType) => {
-    setActiveQuiz(quizType);
-    setQuizView('results');
-  };
-
-  const handleBackToQuizList = () => {
-    setActiveQuiz(null);
-    setQuizView('list');
-  };
-
-  const handleRetakeQuiz = async () => {
-    if (!activeQuiz) return;
-    
-    try {
-      const service = quizService[activeQuiz];
-      if (service.reset) {
-        await service.reset();
-      }
-      await service.start();
-      setQuizView('taking');
-      showToast.success('Retaking assessment...');
-    } catch (error) {
-      console.error('Error retaking quiz:', error);
-      showToast.error('Failed to retake assessment. Please try again.');
-    }
-  };
-
   // Format date from ISO string to readable format
   const formatDate = (dateString) => {
     if (!dateString) return t.patient.profile.notAvailable;
@@ -343,16 +225,6 @@ const Profile = () => {
               }`}
             >
               {t.engagement?.myEngagements || 'My Engagements'}
-            </button>
-            <button
-              onClick={() => setActiveTab('assessments')}
-              className={`px-4 py-2 font-medium transition-colors ${
-                activeTab === 'assessments'
-                  ? 'text-primary border-b-2 border-primary'
-                  : 'text-textSecondary hover:text-textPrimary'
-              }`}
-            >
-              {t.patient.profile.assessments || 'Assessments'}
             </button>
             <button
               onClick={() => setActiveTab('settings')}
@@ -469,11 +341,16 @@ const Profile = () => {
                   </div>
 
                   <div className="text-center p-4 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">{Object.keys(quizResults).length}</div>
+                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">{stats.completedAssessments || 0}</div>
                     <p className="text-sm text-textSecondary dark:text-gray-400">{t.patient.quizzes.completedAssessments}</p>
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Therapy Progress Timeline */}
+            <div className="bg-white dark:bg-[#241D30] rounded-lg shadow-md">
+              <TherapyProgress />
             </div>
 
             {/* Recommended Actions */}
@@ -683,14 +560,24 @@ const Profile = () => {
                         <p className="text-xs text-green-700">
                           ✓ {t.engagement?.canAccessRecords || 'Can access your medical records and chat history'}
                         </p>
-                        <Button
-                          variant="outline"
-                          size="small"
-                          className="w-full text-red-600 border-red-300 hover:bg-red-50"
-                          onClick={() => handleCancelEngagement(engagement)}
-                        >
-                          {t.engagement?.cancelEngagement || 'Cancel Engagement'}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="primary"
+                            size="small"
+                            className="flex-1"
+                            onClick={() => navigate(`/engagement-chat/${engagement.id}`)}
+                          >
+                            💬 {t.engagement?.chatWithDoctor || 'Chat with Doctor'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="small"
+                            className="flex-1 text-red-600 border-red-300 hover:bg-red-50"
+                            onClick={() => handleCancelEngagement(engagement)}
+                          >
+                            {t.engagement?.cancelEngagement || 'Cancel'}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -755,124 +642,6 @@ const Profile = () => {
                 </div>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Assessments Tab */}
-        {activeTab === 'assessments' && (
-          <div className="max-w-4xl mx-auto space-y-6">
-            {/* Quiz List View */}
-            {quizView === 'list' && (
-              <div className="bg-white rounded-lg shadow-md p-8">
-                <h2 className="text-2xl font-bold text-textPrimary mb-2">
-                  {t.patient.profile.assessments || 'Psychological Assessments'}
-                </h2>
-                <p className="text-textSecondary mb-6">
-                  {t.patient.profile.assessmentsDesc || 'Complete these assessments to help understand your mental health and track your progress over time.'}
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* PHQ-9 Depression Screening */}
-                  <QuizCard
-                    quiz={{
-                      type: 'phq9',
-                      name: 'PHQ-9 Depression Screening',
-                      description: 'A 9-question screening tool widely used to assess depression severity',
-                      duration: '5 minutes',
-                      totalQuestions: 9,
-                    }}
-                    onStart={handleStartQuiz}
-                    onViewResults={handleViewResults}
-                    hasResults={!!quizResults.phq9}
-                    isCompleted={completedQuizzes.phq9}
-                  />
-
-                  {/* IPIP-50 Personality */}
-                  <QuizCard
-                    quiz={{
-                      type: 'ipip50',
-                      name: 'IPIP-50 Personality Assessment',
-                      description: 'Discover your personality traits based on the Big Five model',
-                      duration: '10-15 minutes',
-                      totalQuestions: 50,
-                    }}
-                    onStart={handleStartQuiz}
-                    onViewResults={handleViewResults}
-                    hasResults={!!quizResults.ipip50}
-                    isCompleted={completedQuizzes.ipip50}
-                  />
-
-                  {/* IPIP-120 Comprehensive */}
-                  <QuizCard
-                    quiz={{
-                      type: 'ipip120',
-                      name: 'IPIP-120 Comprehensive Assessment',
-                      description: 'In-depth personality analysis with 120 questions for detailed insights',
-                      duration: '20-30 minutes',
-                      totalQuestions: 120,
-                    }}
-                    onStart={handleStartQuiz}
-                    onViewResults={handleViewResults}
-                    hasResults={!!quizResults.ipip120}
-                    isCompleted={completedQuizzes.ipip120}
-                  />
-                </div>
-
-                {/* Info Box */}
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-semibold text-blue-900 mb-2">
-                    {t.patient.profile.assessmentInfo || 'Why Take Assessments?'}
-                  </h4>
-                  <ul className="text-sm text-blue-800 space-y-1">
-                    <li>✓ {t.patient.profile.assessmentBenefit1 || 'Better understand your mental health status'}</li>
-                    <li>✓ {t.patient.profile.assessmentBenefit2 || 'Track your progress over time'}</li>
-                    <li>✓ {t.patient.profile.assessmentBenefit3 || 'Help your doctor provide better care'}</li>
-                    <li>✓ {t.patient.profile.assessmentBenefit4 || 'All results are confidential and secure'}</li>
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            {/* Quiz Taking View */}
-            {quizView === 'taking' && activeQuiz && (
-              <QuizTaking
-                quizType={activeQuiz}
-                onComplete={handleQuizComplete}
-                onCancel={handleBackToQuizList}
-              />
-            )}
-
-            {/* Quiz Results View */}
-            {(() => {
-              console.log('🔍 [QUIZ] Results view check:', { 
-                quizView, 
-                activeQuiz, 
-                hasResults: !!quizResults[activeQuiz],
-                results: quizResults[activeQuiz]
-              });
-              
-              if (quizView === 'results' && activeQuiz && quizResults[activeQuiz]) {
-                return (
-                  <QuizResults
-                    quizType={activeQuiz}
-                    results={quizResults[activeQuiz]}
-                    onClose={handleBackToQuizList}
-                    onRetake={handleRetakeQuiz}
-                  />
-                );
-              }
-              
-              if (quizView === 'results' && activeQuiz && !quizResults[activeQuiz]) {
-                return (
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
-                    <p className="text-yellow-800 dark:text-yellow-300">No results available for this quiz yet.</p>
-                    <Button onClick={handleBackToQuizList} className="mt-4">Back to Assessments</Button>
-                  </div>
-                );
-              }
-              
-              return null;
-            })()}
           </div>
         )}
 

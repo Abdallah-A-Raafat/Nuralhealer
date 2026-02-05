@@ -5,8 +5,7 @@ import { DarkModeProvider } from './hooks/useDarkMode.jsx';
 import Navbar from './components/common/Navbar';
 import NotificationToast from './components/common/NotificationToast';
 import Home from './pages/Home';
-import About from './pages/About';
-import Contact from './pages/Contact';
+import AboutContact from './pages/AboutContact';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -14,9 +13,12 @@ import DoctorProtectedRoute from './components/auth/DoctorProtectedRoute';
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
 import DoctorPatients from './pages/doctor/DoctorPatients';
+import PatientProfileView from './components/doctor/PatientProfileView';
 import Chat from './pages/patient/Chat';
 import Doctors from './pages/patient/Doctors';
 import Profile from './pages/patient/Profile';
+import Assessments from './pages/patient/Assessments';
+import EngagementChat from './components/engagement/EngagementChat';
 
 function App() {
   return (
@@ -52,8 +54,7 @@ function App() {
             <Navbar />
             <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<AboutContact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route 
@@ -80,6 +81,22 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route 
+            path="/assessments" 
+            element={
+              <ProtectedRoute>
+                <Assessments />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/engagement-chat/:engagementId" 
+            element={
+              <ProtectedRoute>
+                <EngagementChat />
+              </ProtectedRoute>
+            } 
+          />
           {/* Doctor Routes */}
           <Route 
             path="/doctor-dashboard" 
@@ -102,6 +119,14 @@ function App() {
             element={
               <DoctorProtectedRoute>
                 <DoctorPatients />
+              </DoctorProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/patient-profile/:engagementId" 
+            element={
+              <DoctorProtectedRoute>
+                <PatientProfileView />
               </DoctorProtectedRoute>
             } 
           />

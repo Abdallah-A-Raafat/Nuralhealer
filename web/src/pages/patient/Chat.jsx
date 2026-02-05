@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import Button from '../../components/common/Button';
+import Modal from '../../components/common/Modal';
 import { useAiChat } from '../../hooks/useAiChat';
 import { useLanguage } from '../../hooks/useLanguage';
+import { chatService } from '../../services/chatService';
+import { showToast } from '../../utils/toast';
 
 const Chat = () => {
   const [selectedSession, setSelectedSession] = useState(null);
@@ -146,11 +149,14 @@ const TextSession = ({ onBack }) => {
     connectionStatus,
     error,
     sendMessage,
-    reconnect 
+    reconnect,
+    sessionId 
   } = useAiChat();
   const { t } = useLanguage();
   const messagesEndRef = useRef(null);
   const [inputValue, setInputValue] = useState('');
+  const [showEndSessionModal, setShowEndSessionModal] = useState(false);
+  const [isEndingSession, setIsEndingSession] = useState(false);
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
@@ -158,6 +164,25 @@ const TextSession = ({ onBack }) => {
     const sent = sendMessage(inputValue);
     if (sent) {
       setInputValue('');
+    }
+  };
+
+  const handleEndSession = async () => {
+    try {
+      setIsEndingSession(true);
+      // TODO: When backend is ready, uncomment this:
+      // await chatService.endSession(sessionId);
+      showToast.success(t.chat?.sessionEnded || 'Session ended successfully');
+      setShowEndSessionModal(false);
+      // Give user time to see the message before navigating back
+      setTimeout(() => {
+        onBack();
+      }, 1000);
+    } catch (error) {
+      console.error('Error ending session:', error);
+      showToast.error(t.chat?.endSessionError || 'Failed to end session');
+    } finally {
+      setIsEndingSession(false);
     }
   };
 
@@ -202,15 +227,26 @@ const TextSession = ({ onBack }) => {
               </div>
             </div>
           </div>
-          <button
-            onClick={onBack}
-            className="text-textSecondary hover:text-textPrimary transition-colors p-2 hover:bg-gray-100 rounded-lg"
-            aria-label="Back"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowEndSessionModal(true)}
+              className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              {t.chat?.endSession || 'End Session'}
+            </button>
+            <button
+              onClick={onBack}
+              className="text-textSecondary hover:text-textPrimary transition-colors p-2 hover:bg-gray-100 rounded-lg"
+              aria-label="Back"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -327,6 +363,38 @@ const TextSession = ({ onBack }) => {
           </div>
         </div>
       </div>
+
+      {/* End Session Confirmation Modal */}
+      <Modal
+        isOpen={showEndSessionModal}
+        onClose={() => setShowEndSessionModal(false)}
+        title={t.chat?.endSession || 'End Session'}
+        size="small"
+      >
+        <div className="space-y-4">
+          <p className="text-textSecondary">
+            {t.chat?.endSessionConfirm || 'Are you sure you want to end this therapy session? Your conversation will be saved in your history.'}
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowEndSessionModal(false)}
+              disabled={isEndingSession}
+            >
+              {t.common?.cancel || 'Cancel'}
+            </Button>
+            <Button
+              variant="primary"
+              className="flex-1 bg-red-600 hover:bg-red-700"
+              onClick={handleEndSession}
+              loading={isEndingSession}
+            >
+              {t.chat?.endSession || 'End Session'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
@@ -337,6 +405,8 @@ const SoundSession = ({ onBack }) => {
   const messagesEndRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [showEndSessionModal, setShowEndSessionModal] = useState(false);
+  const [isEndingSession, setIsEndingSession] = useState(false);
   const [sessionMessages, setSessionMessages] = useState([
     {
       id: 1,
@@ -380,6 +450,24 @@ const SoundSession = ({ onBack }) => {
     }, 1000);
   };
 
+  const handleEndSession = async () => {
+    try {
+      setIsEndingSession(true);
+      // TODO: When backend is ready, uncomment this:
+      // await chatService.endSession(sessionId);
+      showToast.success(t.chat?.sessionEnded || 'Session ended successfully');
+      setShowEndSessionModal(false);
+      setTimeout(() => {
+        onBack();
+      }, 1000);
+    } catch (error) {
+      console.error('Error ending session:', error);
+      showToast.error(t.chat?.endSessionError || 'Failed to end session');
+    } finally {
+      setIsEndingSession(false);
+    }
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [sessionMessages]);
@@ -389,14 +477,25 @@ const SoundSession = ({ onBack }) => {
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-textPrimary">{t.chat.soundSession}</h1>
-          <button
-            onClick={onBack}
-            className="text-textSecondary hover:text-textPrimary transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowEndSessionModal(true)}
+              className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              {t.chat?.endSession || 'End Session'}
+            </button>
+            <button
+              onClick={onBack}
+              className="text-textSecondary hover:text-textPrimary transition-colors p-2 hover:bg-gray-100 rounded-lg"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -469,6 +568,38 @@ const SoundSession = ({ onBack }) => {
           </p>
         </div>
       </div>
+
+      {/* End Session Confirmation Modal */}
+      <Modal
+        isOpen={showEndSessionModal}
+        onClose={() => setShowEndSessionModal(false)}
+        title={t.chat?.endSession || 'End Session'}
+        size="small"
+      >
+        <div className="space-y-4">
+          <p className="text-textSecondary">
+            {t.chat?.endSessionConfirm || 'Are you sure you want to end this therapy session? Your conversation will be saved in your history.'}
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowEndSessionModal(false)}
+              disabled={isEndingSession}
+            >
+              {t.common?.cancel || 'Cancel'}
+            </Button>
+            <Button
+              variant="primary"
+              className="flex-1 bg-red-600 hover:bg-red-700"
+              onClick={handleEndSession}
+              loading={isEndingSession}
+            >
+              {t.chat?.endSession || 'End Session'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

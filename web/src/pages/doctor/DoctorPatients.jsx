@@ -330,9 +330,11 @@ const DoctorPatients = () => {
                       variant="primary"
                       size="small"
                       className="w-full"
-                      onClick={() => console.log('View patient profile')}
+                      onClick={() => window.location.href = `/patient-profile/${engagement.id}`}
+                      disabled={engagement.accessRule !== 'FULL_ACCESS'}
                     >
                       {t.engagement?.viewProfile || 'View Profile'}
+                      {engagement.accessRule !== 'FULL_ACCESS' && ' (Limited Access)'}
                     </Button>
                     <Button
                       variant="outline"

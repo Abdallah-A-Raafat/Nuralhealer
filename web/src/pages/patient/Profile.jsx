@@ -5,9 +5,10 @@ import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import userService from '../../services/userService';
 import engagementService from '../../services/engagementService';
+import aiChatService from '../../services/aiChatService';
 import { useLanguage } from '../../hooks/useLanguage';
 import { showToast } from '../../utils/toast';
-import { Clock, CheckCircle, XCircle, Shield } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Shield, MessageSquare, Calendar } from 'lucide-react';
 import TherapyProgress from '../../components/therapy/TherapyProgress';
 
 const Profile = () => {
@@ -25,6 +26,12 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [pastSessions, setPastSessions] = useState([]);
+  const [chatSessions, setChatSessions] = useState([]);
+  const [aiChatStats, setAiChatStats] = useState({
+    totalChats: 0,
+    totalMessages: 0,
+    activeChats: 0
+  });
   
   // Engagement states
   const [engagements, setEngagements] = useState([]);
@@ -56,6 +63,9 @@ const Profile = () => {
         const sessions = await userService.getSessionHistory();
         setPastSessions(sessions);
         
+        // Fetch AI chat sessions for stats and sessions tab
+        await fetchChatSessions();
+        
         // Fetch engagements if on engagements tab
         if (activeTab === 'engagements') {
           await fetchEngagements();
@@ -77,6 +87,30 @@ const Profile = () => {
       setEngagements(data || []);
     } catch (error) {
       console.error('Failed to load engagements:', error);
+    }
+  };
+
+  const fetchChatSessions = async () => {
+    try {
+      const sessions = await aiChatService.fetchChatHistory();
+      // Sort by most recent first
+      const sortedSessions = sessions.sort((a, b) => 
+        new Date(b.startedAt) - new Date(a.startedAt)
+      );
+      setChatSessions(sortedSessions);
+      
+      // Calculate stats
+      const totalMessages = sessions.reduce((sum, s) => sum + (s.messageCount || 0), 0);
+      const activeChats = sessions.filter(s => s.isActive).length;
+      
+      setAiChatStats({
+        totalChats: sessions.length,
+        totalMessages: totalMessages,
+        activeChats: activeChats
+      });
+    } catch (error) {
+      console.error('Failed to load chat sessions:', error);
+      // Don't show error toast as this is not critical
     }
   };
 
@@ -195,10 +229,10 @@ const Profile = () => {
 
         {/* Tabs */}
         <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex space-x-2 border-b border-gray-200 dark:border-gray-700">`
+          <div className="flex space-x-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2 font-medium transition-colors ${
+              className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'overview'
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-textSecondary hover:text-textPrimary'
@@ -208,7 +242,7 @@ const Profile = () => {
             </button>
             <button
               onClick={() => setActiveTab('sessions')}
-              className={`px-4 py-2 font-medium transition-colors ${
+              className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'sessions'
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-textSecondary hover:text-textPrimary'
@@ -218,7 +252,7 @@ const Profile = () => {
             </button>
             <button
               onClick={() => setActiveTab('engagements')}
-              className={`px-4 py-2 font-medium transition-colors ${
+              className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'engagements'
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-textSecondary hover:text-textPrimary'
@@ -228,7 +262,7 @@ const Profile = () => {
             </button>
             <button
               onClick={() => setActiveTab('settings')}
-              className={`px-4 py-2 font-medium transition-colors ${
+              className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'settings'
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-textSecondary hover:text-textPrimary'
@@ -313,13 +347,13 @@ const Profile = () => {
               
               {isLoading ? (
                 <div className="text-center py-8 text-textSecondary">{t.patient.profile.loadingStatistics}</div>
-              ) : stats.totalSessions === 0 ? (
+              ) : stats.totalSessions === 0 && aiChatStats.totalChats === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-textSecondary mb-4">{t.patient.profile.noSessionsYet}</p>
                   <p className="text-sm text-textSecondary">{t.patient.profile.startFirstSession}</p>
                 </div>
               ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                   <div className="text-center p-4 bg-primary/5 dark:bg-primary/10 rounded-lg">
                     <div className="text-3xl font-bold text-primary mb-2">{stats.totalSessions}</div>
                     <p className="text-sm text-textSecondary dark:text-gray-400">{t.patient.profile.totalSessions}</p>
@@ -343,6 +377,11 @@ const Profile = () => {
                   <div className="text-center p-4 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                     <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">{stats.completedAssessments || 0}</div>
                     <p className="text-sm text-textSecondary dark:text-gray-400">{t.patient.quizzes.completedAssessments}</p>
+                  </div>
+
+                  <div className="text-center p-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">{aiChatStats.totalChats}</div>
+                    <p className="text-sm text-textSecondary dark:text-gray-400">{t.chat?.aiChatSessions || 'AI Chats'}</p>
                   </div>
                 </div>
               )}
@@ -368,8 +407,75 @@ const Profile = () => {
 
         {/* Sessions Tab */}
         {activeTab === 'sessions' && (
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* AI Chat Sessions Section */}
+            {chatSessions.length > 0 && (
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-blue-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <MessageSquare className="w-5 h-5 text-blue-600" />
+                      <h3 className="text-lg font-bold text-blue-900">{t.chat?.aiChatSessions || 'AI Chat Sessions'}</h3>
+                    </div>
+                    <span className="text-sm text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
+                      {chatSessions.length} {chatSessions.length === 1 ? (t.chat?.session || 'session') : (t.chat?.sessions || 'sessions')}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                  {chatSessions.slice(0, 5).map((session) => {
+                    const sessionDate = new Date(session.startedAt);
+                    return (
+                      <div key={session.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate('/chat')}>
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="p-2 bg-blue-100 rounded-lg">
+                              <MessageSquare className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-textPrimary truncate">
+                                {session.sessionTitle || 'New AI Chat'}
+                              </h4>
+                              <p className="text-xs text-textSecondary">
+                                {sessionDate.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })} • {session.messageCount || 0} {t.chat?.messages || 'messages'}
+                              </p>
+                            </div>
+                          </div>
+                          {session.isActive && (
+                            <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                              <span className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span>
+                              {t.chat?.active || 'Active'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {chatSessions.length > 5 && (
+                  <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 text-center">
+                    <button 
+                      onClick={() => navigate('/chat')}
+                      className="text-sm text-primary hover:text-primary/80 font-medium"
+                    >
+                      {t.chat?.viewAllSessions || 'View All Sessions'} ({chatSessions.length})
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Therapy Voice/Text Sessions Section */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-purple-100">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">🎭</div>
+                  <h3 className="text-lg font-bold text-purple-900">{t.patient.profile.therapySessions || 'Therapy Sessions'}</h3>
+                </div>
+              </div>
+              
               {isLoading ? (
                 <div className="p-8 text-center text-textSecondary">{t.patient.profile.loadingSessionHistory}</div>
               ) : pastSessions.length === 0 ? (
@@ -379,8 +485,7 @@ const Profile = () => {
                 </div>
               ) : (
                 /* Sessions List */
-                <div className="divide-y divide-gray-200">
-                {pastSessions.map((session) => (
+                <div className="divide-y divide-gray-200">{pastSessions.map((session) => (
                   <div key={session.id} className="p-6 hover:bg-gray-50 transition-colors">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       {/* Left Side - Date and Type */}
@@ -453,8 +558,23 @@ const Profile = () => {
                 </div>
               )}
             </div>
+            
+            {/* Empty State for Both */}
+            {!isLoading && pastSessions.length === 0 && chatSessions.length === 0 && (
+              <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                <div className="text-6xl mb-4">💬</div>
+                <h3 className="text-xl font-bold text-textPrimary mb-2">{t.patient.profile.noSessionsYet}</h3>
+                <p className="text-textSecondary mb-6">{t.patient.profile.startFirstSession}</p>
+                <Button variant="primary" onClick={() => navigate('/chat')}>
+                  {t.chat?.startNewChat || 'Start Your First AI Chat'}
+                </Button>
+              </div>
+            )}
           </div>
         )}
+
+        {/* AI Chat Sessions Tab - REMOVED (integrated into Sessions tab) */}
+        {activeTab === 'chat-sessions' && null}
 
         {/* Engagements Tab */}
         {activeTab === 'engagements' && (

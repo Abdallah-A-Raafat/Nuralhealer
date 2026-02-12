@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import ChatSidebar from '../../components/chat/ChatSidebar';
 import { useAiChat } from '../../hooks/useAiChat';
 import { useLanguage } from '../../hooks/useLanguage';
 import { chatService } from '../../services/chatService';
@@ -148,9 +149,16 @@ const TextSession = ({ onBack }) => {
     isAiTyping, 
     connectionStatus,
     error,
+    sessions,
+    currentSession,
+    isLoadingHistory,
+    isLoadingMessages,
     sendMessage,
     reconnect,
-    sessionId 
+    loadSession,
+    createNewSession,
+    fetchSessions,
+    renameSession
   } = useAiChat();
   const { t } = useLanguage();
   const messagesEndRef = useRef(null);
@@ -158,12 +166,34 @@ const TextSession = ({ onBack }) => {
   const [showEndSessionModal, setShowEndSessionModal] = useState(false);
   const [isEndingSession, setIsEndingSession] = useState(false);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
     
-    const sent = sendMessage(inputValue);
+    const sent = await sendMessage(inputValue);
     if (sent) {
       setInputValue('');
+      // Refresh sessions after sending a message to update the history
+      setTimeout(() => fetchSessions(), 500);
+    }
+  };
+
+  const handleSelectSession = (sessionId) => {
+    loadSession(sessionId);
+  };
+
+  const handleNewChat = () => {
+    createNewSession();
+  };
+
+  const handleRenameSession = async (sessionId, newTitle) => {
+    try {
+      await renameSession(sessionId, newTitle);
+      showToast.success(t.chat?.sessionRenamed || 'Session renamed successfully');
+      // Refresh sessions to get updated data
+      await fetchSessions();
+    } catch (error) {
+      console.error('Failed to rename session:', error);
+      showToast.error(t.chat?.renameError || 'Failed to rename session');
     }
   };
 
@@ -250,8 +280,21 @@ const TextSession = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="flex-1 container mx-auto px-4 py-8 max-w-3xl flex flex-col">
-        {error && (
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar */}
+        <div className="w-80 hidden lg:block">
+          <ChatSidebar
+            sessions={sessions}
+            currentSession={currentSession}
+            isLoading={isLoadingHistory}
+            onSelectSession={handleSelectSession}
+            onNewChat={handleNewChat}
+            onRenameSession={handleRenameSession}
+          />
+        </div>
+
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col px-4 py-8 max-w-4xl mx-auto w-full">{error && (
           <div className="mb-4 bg-red-50 border-l-4 border-red-400 rounded-lg p-4">
             <p className="text-sm text-red-800 flex items-center gap-2" dir="rtl">
               <span>⚠️</span>
@@ -267,10 +310,15 @@ const TextSession = ({ onBack }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
               {t.chat.textSession}
+              {isLoadingMessages && (
+                <div className="ml-2 flex items-center gap-1 text-xs text-gray-500">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-600"></div>
+                  <span>Loading...</span>
+                </div>
+              )}
             </h3>
           </div>
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white">
-            {messages.length === 0 && (
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white">{messages.length === 0 && !isLoadingMessages && (
               <div className="flex justify-start animate-fade-in">
                 <div className="max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg bg-gray-100 text-textPrimary rounded-bl-none">
                   <p className="text-sm leading-relaxed" dir="rtl">{t.chat.welcomeMessage}</p>
@@ -361,6 +409,7 @@ const TextSession = ({ onBack }) => {
               )}
             </button>
           </div>
+        </div>
         </div>
       </div>
 

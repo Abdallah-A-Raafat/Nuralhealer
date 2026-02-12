@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenWrapper, Input, Button, Card } from '../../components/common';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { authService } from '../../services/authService';
-import Logo from '../../assets/logo.svg';
 import type { AuthStackScreenProps } from '../../navigation/types';
 
 type LoginScreenProps = AuthStackScreenProps<'Login'>;
@@ -72,7 +71,11 @@ const LoginScreen: React.FC = () => {
         >
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Logo width={100} height={100} />
+              <Image 
+                source={require('../../assets/logo.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
             <Text style={[styles.appName, { color: theme.colors.primary }]}>
               NeuralHealer
@@ -153,6 +156,10 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     marginBottom: 12,
+  },
+  logo: {
+    width: 100,
+    height: 100,
   },
   appName: {
     fontSize: 32,

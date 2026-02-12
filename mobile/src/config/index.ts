@@ -5,6 +5,7 @@
 // API Configuration
 export const API_CONFIG = {
   BASE_URL: __DEV__ ? 'http://10.0.2.2:8080/api' : 'https://api.neuralhealer.com/api',
+  WS_URL: __DEV__ ? 'ws://10.0.2.2:8080/api/ws' : 'wss://api.neuralhealer.com/api/ws',
   TIMEOUT: 30000,
 };
 

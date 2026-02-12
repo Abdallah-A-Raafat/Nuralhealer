@@ -1,19 +1,31 @@
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+const path = require('path');
 
 /**
  * Metro configuration
  * https://reactnative.dev/docs/metro
  *
- * @type {import('@react-native/metro-config').MetroConfig}
+ * @type {import('metro-config').MetroConfig}
  */
+const defaultConfig = getDefaultConfig(__dirname);
+
 const config = {
-  transformer: {
-    babelTransformerPath: require.resolve('react-native-svg-transformer'),
-  },
   resolver: {
-    assetExts: getDefaultConfig(__dirname).resolver.assetExts.filter(ext => ext !== 'svg'),
-    sourceExts: [...getDefaultConfig(__dirname).resolver.sourceExts, 'svg'],
+    sourceExts: ['jsx', 'js', 'ts', 'tsx', 'json', 'cjs'],
+    // Prioritize react-native field in package.json to use browser builds
+    resolverMainFields: ['react-native', 'browser', 'module', 'main'],
+    resolveRequest: (context, moduleName, platform) => {
+      // Force axios to use browser build for React Native
+      if (moduleName === 'axios') {
+        return {
+          filePath: path.resolve(__dirname, 'node_modules/axios/dist/browser/axios.cjs'),
+          type: 'sourceFile',
+        };
+      }
+      // Use default resolution
+      return context.resolveRequest(context, moduleName, platform);
+    },
   },
 };
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = mergeConfig(defaultConfig, config);

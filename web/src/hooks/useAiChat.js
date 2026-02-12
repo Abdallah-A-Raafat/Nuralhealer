@@ -3,7 +3,7 @@ import aiChatService from '../services/aiChatService';
 
 /**
  * React hook for AI Chat integration
- * Manages WebSocket connection, messages, and AI state
+ * Manages WebSocket connection, messages, AI state, and session history
  */
 export const useAiChat = () => {
   const [messages, setMessages] = useState([]);
@@ -11,6 +11,10 @@ export const useAiChat = () => {
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [error, setError] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [currentSession, setCurrentSession] = useState(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   /**
    * Add a message to the chat
@@ -69,9 +73,9 @@ export const useAiChat = () => {
 
   // Connect to WebSocket on mount
   useEffect(() => {
-    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/api/ai-ws';
+    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/api/ws';
     
-    console.log('🔌 Initializing AI Chat connection...');
+    console.log('🔌 Initializing AI Chat connection (STOMP)...');
     aiChatService.connect(wsUrl);
 
     // Subscribe to status changes
@@ -105,7 +109,7 @@ export const useAiChat = () => {
   /**
    * Send a question to AI
    */
-  const sendMessage = useCallback((text) => {
+  const sendMessage = useCallback(async (text) => {
     if (!text.trim()) {
       console.warn('⚠️ Cannot send empty message');
       return false;
@@ -124,8 +128,8 @@ export const useAiChat = () => {
       timestamp: new Date().toISOString()
     });
 
-    // Send to AI via WebSocket
-    const sent = aiChatService.sendQuestion(text);
+    // Send to AI via WebSocket (with REST fallback)
+    const sent = await aiChatService.sendQuestion(text);
     
     if (!sent) {
       setError('Failed to send message');
@@ -145,23 +149,149 @@ export const useAiChat = () => {
   }, []);
 
   /**
+   * Fetch all chat sessions
+   */
+  const fetchSessions = useCallback(async () => {
+    setIsLoadingHistory(true);
+    try {
+      const sessionData = await aiChatService.fetchChatHistory();
+      setSessions(sessionData);
+      return sessionData;
+    } catch (error) {
+      console.error('❌ Failed to fetch sessions:', error);
+      setError('Failed to load chat history');
+      return [];
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, []);
+
+  /**
+   * Load a specific session and its messages
+   */
+  const loadSession = useCallback(async (sessionId) => {
+    if (!sessionId) return;
+    
+    setIsLoadingMessages(true);
+    setError(null);
+    
+    try {
+      const sessionMessages = await aiChatService.loadSessionMessages(sessionId);
+      
+      // Transform backend format to frontend format
+      // Backend uses 'patient' but frontend uses 'user' for consistency
+      const transformedMessages = sessionMessages.map(msg => ({
+        id: msg.id,
+        type: msg.senderType.toLowerCase() === 'patient' ? 'user' : msg.senderType.toLowerCase(), // Map 'patient' to 'user', keep 'ai' as is
+        content: msg.content,
+        timestamp: msg.sentAt,
+        senderName: msg.senderType === 'ai' ? 'AI Assistant' : 'You'
+      }));
+      
+      setMessages(transformedMessages);
+      setCurrentSession(sessionId);
+      aiChatService.setSessionId(sessionId);
+      
+      console.log('✅ Loaded session:', sessionId, 'with', transformedMessages.length, 'messages');
+    } catch (error) {
+      console.error('❌ Failed to load session:', error);
+      setError('Failed to load session messages');
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  }, []);
+
+  /**
+   * Create a new chat session
+   */
+  const createNewSession = useCallback(() => {
+    setMessages([]);
+    setCurrentSession(null);
+    aiChatService.clearSession();
+    setError(null);
+    console.log('🆕 New session created');
+  }, []);
+
+  /**
+   * Search sessions by query
+   */
+  const searchSessions = useCallback(async (query) => {
+    if (!query || query.trim() === '') {
+      return sessions;
+    }
+    
+    const lowerQuery = query.toLowerCase();
+    return sessions.filter(session => 
+      session.sessionTitle?.toLowerCase().includes(lowerQuery) ||
+      session.sessionType?.toLowerCase().includes(lowerQuery)
+    );
+  }, [sessions]);
+
+  /**
+   * Rename a session
+   */
+  const renameSession = useCallback(async (sessionId, newTitle) => {
+    try {
+      await aiChatService.renameSession(sessionId, newTitle);
+      
+      // Update local sessions list
+      setSessions(prevSessions => 
+        prevSessions.map(session => 
+          session.id === sessionId 
+            ? { ...session, sessionTitle: newTitle }
+            : session
+        )
+      );
+      
+      console.log('✅ Session renamed locally');
+    } catch (error) {
+      console.error('❌ Failed to rename session:', error);
+      setError('Failed to rename session');
+      throw error;
+    }
+  }, []);
+
+  /**
    * Retry connection
    */
   const reconnect = useCallback(() => {
-    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/api/ai-ws';
+    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/api/ws';
     aiChatService.disconnect();
     setTimeout(() => aiChatService.connect(wsUrl), 1000);
   }, []);
 
+  // Fetch sessions when connected
+  useEffect(() => {
+    if (isConnected) {
+      fetchSessions();
+    }
+  }, [isConnected, fetchSessions]);
+
   return {
+    // Messages
     messages,
-    isConnected,
     isAiTyping,
+    
+    // Connection
+    isConnected,
     connectionStatus,
     error,
+    
+    // Session Management
+    sessions,
+    currentSession,
+    isLoadingHistory,
+    isLoadingMessages,
+    
+    // Actions
     sendMessage,
     clearMessages,
-    reconnect
+    reconnect,
+    fetchSessions,
+    loadSession,
+    createNewSession,
+    searchSessions,
+    renameSession
   };
 };
 

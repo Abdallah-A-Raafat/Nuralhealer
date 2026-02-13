@@ -43,22 +43,12 @@ const PatientProfileView = () => {
     try {
       setIsLoading(true);
       
-      // Fetch engagement details
-      const engagements = await engagementService.getMyEngagements();
-      const currentEngagement = engagements.find(e => e.id === parseInt(engagementId));
+      // Fetch engagement details directly to avoid id type mismatches
+      const currentEngagement = await engagementService.getEngagement(engagementId);
       
-      if (!currentEngagement) {
-        showToast.error('Engagement not found');
+      if (!currentEngagement || currentEngagement.status?.toLowerCase() !== 'active') {
+        showToast.error('Engagement not found or not active');
         navigate('/doctor-patients');
-        return;
-      }
-      
-      // Check if engagement is active and has FULL_ACCESS (case-insensitive)
-      if (currentEngagement.status?.toLowerCase() !== 'active' || currentEngagement.accessRule?.toUpperCase() !== 'FULL_ACCESS') {
-        showToast.error('You do not have full access to this patient\'s profile');
-        setHasAccess(false);
-        setEngagement(currentEngagement);
-        setIsLoading(false);
         return;
       }
       
@@ -69,7 +59,7 @@ const PatientProfileView = () => {
       const patientData = currentEngagement.patient;
       setPatient(patientData);
       
-      // Fetch therapy progress
+      // Fetch therapy progress (patient-scoped when backend is ready)
       const progress = await therapyProgressService.getProgressHistory();
       setProgressData(progress.content || []);
       
@@ -79,7 +69,9 @@ const PatientProfileView = () => {
       
     } catch (error) {
       console.error('Error loading patient data:', error);
-      showToast.error('Failed to load patient data');
+      const message = error.response?.data?.message || 'Failed to load patient data';
+      showToast.error(message);
+      navigate('/doctor-patients');
     } finally {
       setIsLoading(false);
     }

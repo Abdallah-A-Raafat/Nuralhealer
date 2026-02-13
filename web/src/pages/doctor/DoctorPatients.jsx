@@ -326,14 +326,24 @@ const DoctorPatients = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Button
-                      variant="primary"
-                      size="small"
-                      className="w-full"
-                      onClick={() => window.location.href = `/patient-profile/${engagement.id}`}
-                    >
-                      {t.engagement?.viewProfile || 'View Profile'}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="primary"
+                        size="small"
+                        className="flex-1"
+                        onClick={() => window.location.href = `/patient-profile/${engagement.id}`}
+                      >
+                        {t.engagement?.viewProfile || 'View Profile'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="small"
+                        className="flex-1"
+                        onClick={() => window.location.href = `/engagement-chat/${engagement.id}`}
+                      >
+                        {t.engagement?.chatWithPatient || 'Chat with Patient'}
+                      </Button>
+                    </div>
                     <Button
                       variant="outline"
                       size="small"

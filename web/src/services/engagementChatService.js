@@ -28,25 +28,10 @@ const engagementChatService = {
    * @returns {Promise} Sent message data
    */
   sendMessage: async (engagementId, message) => {
-    // TODO: Uncomment when backend is ready
-    // const response = await apiClient.post('/engagement-chat/send', {
-    //   engagementId,
-    //   message,
-    //   timestamp: new Date().toISOString()
-    // });
-    // return response.data;
-    
-    // Mock response
-    return {
-      id: Date.now(),
-      engagementId,
-      senderId: 1,
-      senderType: 'PATIENT',
-      senderName: 'Current User',
-      message,
-      isRead: false,
-      timestamp: new Date().toISOString()
-    };
+    const response = await apiClient.post(`/engagements/${engagementId}/messages`, {
+      content: message
+    });
+    return response.data;
   },
 
   /**
@@ -56,61 +41,9 @@ const engagementChatService = {
    * @param {number} size - Page size
    * @returns {Promise} Chat messages
    */
-  getChatMessages: async (engagementId, page = 0, size = 50) => {
-    // TODO: Uncomment when backend is ready
-    // const response = await apiClient.get(`/engagement-chat/${engagementId}/messages`, {
-    //   params: { page, size }
-    // });
-    // return response.data;
-    
-    // Mock data
-    return {
-      content: [
-        {
-          id: 1,
-          engagementId,
-          senderId: 2,
-          senderType: 'DOCTOR',
-          senderName: 'Dr. Smith',
-          message: 'Hello! How are you feeling today?',
-          isRead: true,
-          timestamp: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: 2,
-          engagementId,
-          senderId: 1,
-          senderType: 'PATIENT',
-          senderName: 'You',
-          message: 'Hi Doctor, I\'m doing better. Thanks for asking!',
-          isRead: true,
-          timestamp: new Date(Date.now() - 3000000).toISOString()
-        },
-        {
-          id: 3,
-          engagementId,
-          senderId: 2,
-          senderType: 'DOCTOR',
-          senderName: 'Dr. Smith',
-          message: 'That\'s great to hear! Have you been practicing the coping strategies we discussed?',
-          isRead: true,
-          timestamp: new Date(Date.now() - 2400000).toISOString()
-        },
-        {
-          id: 4,
-          engagementId,
-          senderId: 1,
-          senderType: 'PATIENT',
-          senderName: 'You',
-          message: 'Yes, the breathing exercises have been really helpful.',
-          isRead: false,
-          timestamp: new Date(Date.now() - 1800000).toISOString()
-        }
-      ],
-      totalElements: 4,
-      totalPages: 1,
-      currentPage: 0
-    };
+  getChatMessages: async (engagementId) => {
+    const response = await apiClient.get(`/engagements/${engagementId}/messages`);
+    return response.data;
   },
 
   /**
@@ -119,11 +52,7 @@ const engagementChatService = {
    * @returns {Promise} Updated message
    */
   markAsRead: async (messageId) => {
-    // TODO: Uncomment when backend is ready
-    // const response = await apiClient.put(`/engagement-chat/messages/${messageId}/read`);
-    // return response.data;
-    
-    // Mock response
+    // Backend does not yet expose a dedicated mark-as-read endpoint
     return { id: messageId, isRead: true };
   },
 
@@ -133,12 +62,8 @@ const engagementChatService = {
    * @returns {Promise} Unread count
    */
   getUnreadCount: async (engagementId) => {
-    // TODO: Uncomment when backend is ready
-    // const response = await apiClient.get(`/engagement-chat/${engagementId}/unread-count`);
-    // return response.data;
-    
-    // Mock response
-    return { unreadCount: 2 };
+    // Not implemented on backend; return zero to avoid UI regressions
+    return { unreadCount: 0 };
   },
 
   /**
@@ -147,12 +72,8 @@ const engagementChatService = {
    * @returns {Promise} Success response
    */
   deleteMessage: async (messageId) => {
-    // TODO: Uncomment when backend is ready
-    // const response = await apiClient.delete(`/engagement-chat/messages/${messageId}`);
-    // return response.data;
-    
-    // Mock response
-    return { success: true, message: 'Message deleted successfully' };
+    // Not yet supported on backend
+    return { success: false, message: 'Delete not supported' };
   }
 };
 

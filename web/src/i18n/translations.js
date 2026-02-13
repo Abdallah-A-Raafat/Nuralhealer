@@ -476,6 +476,7 @@ export const en = {
     // Cancellation
     cancelEngagement: 'Cancel Engagement',
     chatWithDoctor: 'Chat with Doctor',
+    chatWithPatient: 'Chat with Patient',
     cancelSuccess: 'Engagement cancelled successfully',
     cancelMessage: 'You can cancel this engagement and choose what access level the doctor will have afterward.',
     cancelWarning: 'This action cannot be undone. You will need to create a new engagement to restore access.',
@@ -1029,6 +1030,7 @@ export const ar = {
     // الإلغاء
     cancelEngagement: 'إلغاء الارتباط',
     chatWithDoctor: 'محادثة مع الطبيب',
+    chatWithPatient: 'محادثة مع المريض',
     cancelSuccess: 'تم إلغاء الارتباط بنجاح',
     cancelMessage: 'يمكنك إلغاء هذا الارتباط واختيار مستوى الصلاحية الذي سيحصل عليه الطبيب بعد ذلك.',
     cancelWarning: 'لا يمكن التراجع عن هذا الإجراء. ستحتاج إلى إنشاء ارتباط جديد لاستعادة الصلاحية.',

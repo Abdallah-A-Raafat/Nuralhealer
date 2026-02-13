@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Client } from '@stomp/stompjs';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../common/Button';
@@ -15,9 +16,8 @@ import { Send, ArrowLeft, MoreVertical } from 'lucide-react';
  * Only accessible for verified, active engagements.
  * 
  * Features:
- * - Real-time messaging
- * - Message history with pagination
- * - Read receipts
+ * - Real-time messaging via STOMP over WebSocket (/ws -> /topic/engagement/{id})
+ * - Message history (REST fallback)
  * - Access control (active engagements only)
  * - Auto-scroll to latest messages
  */
@@ -25,8 +25,9 @@ const EngagementChat = () => {
   const { engagementId } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const messagesEndRef = useRef(null);
+  const stompRef = useRef(null);
   
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -35,18 +36,50 @@ const EngagementChat = () => {
   const [isSending, setIsSending] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
 
+  const wsUrl = useMemo(() => {
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+    const baseHost = apiBase.replace(/\/api$/, '');
+    return baseHost.replace(/^http/, 'ws') + '/ws';
+  }, []);
+
   useEffect(() => {
     fetchEngagementAndMessages();
-    
-    // Poll for new messages every 5 seconds (replace with WebSocket in production)
-    const interval = setInterval(() => {
-      if (hasAccess) {
-        fetchMessages(false);
-      }
-    }, 5000);
-    
-    return () => clearInterval(interval);
   }, [engagementId]);
+
+  useEffect(() => {
+    if (!hasAccess) return;
+
+    const client = new Client({
+      brokerURL: wsUrl,
+      reconnectDelay: 5000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
+      onConnect: () => {
+        client.subscribe(`/topic/engagement/${engagementId}`, (frame) => {
+          try {
+            const payload = JSON.parse(frame.body);
+            const msg = payload?.metadata || payload;
+            const mapped = mapIncomingMessage(msg);
+            if (mapped) {
+              setMessages((prev) => [...prev, mapped]);
+            }
+          } catch (err) {
+            console.error('Failed to parse incoming message', err);
+          }
+        });
+      },
+      debug: () => {}
+    });
+
+    client.activate();
+    stompRef.current = client;
+
+    return () => {
+      client.deactivate();
+      stompRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAccess, engagementId, wsUrl]);
 
   useEffect(() => {
     scrollToBottom();
@@ -62,24 +95,14 @@ const EngagementChat = () => {
       
       // Fetch engagement details
       const engagements = await engagementService.getMyEngagements();
-      console.log('All engagements:', engagements);
-      console.log('Looking for engagement ID:', engagementId);
-      
-      const currentEngagement = engagements.find(e => 
-        String(e.id) === String(engagementId) || e.id === parseInt(engagementId)
-      );
+      const currentEngagement = engagements.find(e => String(e.id) === String(engagementId));
       
       if (!currentEngagement) {
-        console.error('Engagement not found. Available IDs:', engagements.map(e => e.id));
         showToast.error('Engagement not found');
         navigate('/profile');
         return;
       }
       
-      console.log('Found engagement:', currentEngagement);
-      console.log('Engagement status:', currentEngagement.status);
-      
-      // Check if engagement is active (case-insensitive)
       if (currentEngagement.status?.toLowerCase() !== 'active') {
         showToast.error('This engagement is not active. Status: ' + currentEngagement.status);
         setHasAccess(false);
@@ -90,9 +113,7 @@ const EngagementChat = () => {
       
       setEngagement(currentEngagement);
       setHasAccess(true);
-      
-      // Fetch messages
-      await fetchMessages(true);
+      await fetchMessages(true, currentEngagement);
       
     } catch (error) {
       console.error('Error loading engagement chat:', error);
@@ -102,21 +123,13 @@ const EngagementChat = () => {
     }
   };
 
-  const fetchMessages = async (showLoading = false) => {
+  const fetchMessages = async (showLoading = false, engagementData = engagement) => {
     try {
       if (showLoading) setIsLoading(true);
       
-      const response = await engagementChatService.getChatMessages(parseInt(engagementId));
-      setMessages(response.content || []);
-      
-      // Mark unread messages as read
-      const unreadMessages = response.content.filter(
-        msg => !msg.isRead && msg.senderType === 'DOCTOR'
-      );
-      
-      for (const msg of unreadMessages) {
-        await engagementChatService.markAsRead(msg.id);
-      }
+      const response = await engagementChatService.getChatMessages(engagementId);
+      const mapped = (response || []).map(mapIncomingMessage);
+      setMessages(mapped.filter(Boolean));
       
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -137,13 +150,21 @@ const EngagementChat = () => {
     try {
       setIsSending(true);
       
-      const sentMessage = await engagementChatService.sendMessage(
-        parseInt(engagementId),
-        newMessage.trim()
-      );
-      
-      setMessages(prev => [...prev, sentMessage]);
-      setNewMessage('');
+      if (stompRef.current?.connected) {
+        stompRef.current.publish({
+          destination: `/app/engagement/${engagementId}/message`,
+          body: JSON.stringify({ content: newMessage.trim() })
+        });
+        setNewMessage('');
+      } else {
+        const sentMessage = await engagementChatService.sendMessage(
+          engagementId,
+          newMessage.trim()
+        );
+        const mapped = mapIncomingMessage(sentMessage);
+        setMessages(prev => [...prev, mapped]);
+        setNewMessage('');
+      }
       
     } catch (error) {
       console.error('Error sending message:', error);
@@ -151,6 +172,33 @@ const EngagementChat = () => {
     } finally {
       setIsSending(false);
     }
+  };
+
+  const mapIncomingMessage = (msg) => {
+    if (!msg) return null;
+
+    const currentUserId = user?.userId || user?.id;
+    const senderId = msg.senderId || msg.sender_id || msg.senderID;
+    const senderIdStr = senderId ? String(senderId) : null;
+    const isCurrentUser = currentUserId && senderIdStr && String(currentUserId) === senderIdStr;
+    const effectiveRole = role || user?.role || 'PATIENT';
+    const isSystem = !!msg.isSystemMessage; // Only trust explicit flag from backend
+    const senderType = isCurrentUser
+      ? (effectiveRole === 'DOCTOR' ? 'DOCTOR' : 'PATIENT')
+      : (effectiveRole === 'DOCTOR' ? 'PATIENT' : 'DOCTOR');
+
+    return {
+      id: msg.id || msg.messageId,
+      engagementId: msg.engagementId || engagementId,
+      senderId: senderIdStr,
+      senderName: msg.senderName || (msg.isSystemMessage ? 'System' : 'Unknown'),
+      senderType,
+      message: msg.content || msg.message || '',
+      isSystemMessage: isSystem,
+      isMine: !!isCurrentUser,
+      isRead: !!msg.readAt || !!msg.isRead,
+      timestamp: msg.sentAt || msg.timestamp || new Date().toISOString()
+    };
   };
 
   const formatTimestamp = (timestamp) => {
@@ -252,38 +300,47 @@ const EngagementChat = () => {
               </p>
             </div>
           ) : (
-            messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.senderType === 'PATIENT' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[70%] rounded-lg p-4 ${
-                    message.senderType === 'PATIENT'
-                      ? 'bg-primary text-white'
-                      : 'bg-white dark:bg-[#241D30] text-textPrimary dark:text-white border border-gray-200 dark:border-[#3F3651]'
-                  }`}
-                >
-                  {message.senderType === 'DOCTOR' && (
-                    <p className="text-xs font-medium text-textSecondary dark:text-gray-400 mb-1">
-                      {message.senderName}
-                    </p>
+            messages.map((message) => {
+              const wrapperClass = message.isSystemMessage
+                ? 'justify-center'
+                : message.isMine
+                  ? 'justify-end'
+                  : 'justify-start';
+
+              return (
+                <div key={message.id} className={`flex w-full ${wrapperClass}`}>
+                  {message.isSystemMessage ? (
+                    <div className="bg-gray-200/80 dark:bg-gray-700/70 text-gray-700 dark:text-gray-100 text-xs px-4 py-2 rounded-full shadow-sm">
+                      {message.message}
+                    </div>
+                  ) : (
+                    <div
+                      className={`max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
+                        message.isMine
+                          ? 'bg-primary text-white rounded-br-sm'
+                          : 'bg-white dark:bg-[#241D30] text-textPrimary dark:text-white border border-gray-200 dark:border-[#3F3651] rounded-bl-sm'
+                      }`}
+                    >
+                      {!message.isMine && (
+                        <p className="text-xs font-medium text-textSecondary dark:text-gray-400 mb-1">
+                          {message.senderName}
+                        </p>
+                      )}
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.message}
+                      </p>
+                      <p
+                        className={`text-[11px] mt-2 ${
+                          message.isMine ? 'text-white/70' : 'text-textSecondary dark:text-gray-500'
+                        }`}
+                      >
+                        {formatTimestamp(message.timestamp)}
+                      </p>
+                    </div>
                   )}
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {message.message}
-                  </p>
-                  <p
-                    className={`text-xs mt-2 ${
-                      message.senderType === 'PATIENT'
-                        ? 'text-white/70'
-                        : 'text-textSecondary dark:text-gray-500'
-                    }`}
-                  >
-                    {formatTimestamp(message.timestamp)}
-                  </p>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
           <div ref={messagesEndRef} />
         </div>

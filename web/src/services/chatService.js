@@ -32,6 +32,14 @@ export const chatService = {
     return response.data;
   },
 
+  // Get session history for a specific patient (doctor view)
+  getPatientSessionHistory: async (patientId, page = 0, size = 10) => {
+    const response = await apiClient.get('/chat/sessions', {
+      params: { page, size, patientId }
+    });
+    return response.data;
+  },
+
   // Get details of a specific session including all messages
   getSessionDetails: async (sessionId) => {
     const response = await apiClient.get(`/chat/sessions/${sessionId}`);

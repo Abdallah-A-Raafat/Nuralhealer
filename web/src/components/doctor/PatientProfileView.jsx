@@ -6,8 +6,9 @@ import TherapyProgress from '../therapy/TherapyProgress';
 import engagementService from '../../services/engagementService';
 import userService from '../../services/userService';
 import therapyProgressService from '../../services/therapyProgressService';
+import chatService from '../../services/chatService';
 import { showToast } from '../../utils/toast';
-import { ArrowLeft, User, Mail, Calendar, Shield, Activity, Brain } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Shield, Activity, Brain, MessageSquare, Clock } from 'lucide-react';
 
 /**
  * PatientProfileView Component
@@ -34,6 +35,8 @@ const PatientProfileView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [patientChats, setPatientChats] = useState([]);
+  const [loadingChats, setLoadingChats] = useState(false);
 
   useEffect(() => {
     fetchPatientData();
@@ -59,6 +62,9 @@ const PatientProfileView = () => {
       const patientData = currentEngagement.patient;
       setPatient(patientData);
       
+      // Fetch patient AI chat history (doctor view)
+      await loadPatientChats(patientData?.id);
+      
       // Fetch therapy progress (patient-scoped when backend is ready)
       const progress = await therapyProgressService.getProgressHistory();
       setProgressData(progress.content || []);
@@ -77,6 +83,22 @@ const PatientProfileView = () => {
     }
   };
 
+  const loadPatientChats = async (patientId) => {
+    if (!patientId) return;
+    try {
+      // Backend does not yet expose patient chat history for doctors; avoid 500s
+      setLoadingChats(true);
+      setPatientChats([]);
+      // When backend supports it, call: chatService.getPatientSessionHistory(patientId, 0, 10)
+    } catch (error) {
+      console.error('Error loading patient chat history:', error);
+      showToast.error('Failed to load patient chat history');
+      setPatientChats([]);
+    } finally {
+      setLoadingChats(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -84,6 +106,24 @@ const PatientProfileView = () => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const formatChatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatChatDuration = (start, end) => {
+    if (!start || !end) return '—';
+    const diffMs = new Date(end) - new Date(start);
+    const mins = Math.max(1, Math.round(diffMs / 60000));
+    return `${mins} min`;
   };
 
   if (isLoading) {
@@ -143,8 +183,17 @@ const PatientProfileView = () => {
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-xs font-medium flex items-center gap-1">
                 <Shield className="w-3 h-3" />
-                FULL ACCESS
+                Active Engagement
               </span>
+              <Button
+                variant="outline"
+                size="small"
+                className="flex items-center gap-2"
+                onClick={() => navigate(`/engagement-chat/${engagementId}`)}
+              >
+                <MessageSquare className="w-4 h-4" />
+                View Chat History
+              </Button>
             </div>
           </div>
 
@@ -230,6 +279,46 @@ const PatientProfileView = () => {
                     Active since {formatDate(engagement?.startAt)}
                   </p>
                 </div>
+              </div>
+            </div>
+
+            {/* AI Chat History */}
+            <div className="bg-white dark:bg-[#241D30] rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-textPrimary dark:text-white flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  AI Chat History
+                </h2>
+                {loadingChats && (
+                  <span className="text-sm text-textSecondary dark:text-gray-400 flex items-center gap-2">
+                    <Clock className="w-4 h-4" /> Loading...
+                  </span>
+                )}
+              </div>
+
+              {(!patientChats || patientChats.length === 0) && !loadingChats && (
+                <p className="text-textSecondary dark:text-gray-400">
+                  AI chat history is not available yet for doctor view.
+                </p>
+              )}
+
+              <div className="grid md:grid-cols-2 gap-4">
+                {patientChats?.map((session) => (
+                  <div key={session.sessionId || session.id} className="border border-gray-200 dark:border-[#3F3651] rounded-lg p-4 bg-white dark:bg-[#1A1625]">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm text-textSecondary dark:text-gray-400">
+                        {session.sessionType === 'sound' ? 'Voice Session' : 'Text Session'}
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">{session.status || 'completed'}</span>
+                    </div>
+                    <div className="text-textPrimary dark:text-white font-semibold text-lg mb-1">
+                      {formatChatDateTime(session.startTime)}
+                    </div>
+                    <div className="text-sm text-textSecondary dark:text-gray-400 flex items-center gap-2">
+                      <Clock className="w-4 h-4" /> {formatChatDuration(session.startTime, session.endTime)} • {session.messageCount || 0} messages
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 

@@ -15,6 +15,9 @@ const Doctors = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [nearestDoctor, setNearestDoctor] = useState(null);
+  const [locationError, setLocationError] = useState('');
 
   // Fetch doctors from backend
   useEffect(() => {
@@ -74,6 +77,35 @@ const Doctors = () => {
         { duration: 5000 }
       );
     }
+  };
+
+  const findNearestDoctor = () => {
+    setLocationError('');
+    setNearestDoctor(null);
+
+    if (!('geolocation' in navigator)) {
+      setLocationError('Geolocation not supported on this device.');
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        // Backend proximity search not ready; pick top-rated doctor as a stand-in
+        if (doctors.length === 0) {
+          setLocationError('No doctors available yet.');
+        } else {
+          const fallback = [...doctors].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+          setNearestDoctor(fallback);
+        }
+        setLocating(false);
+      },
+      (err) => {
+        setLocationError(err.message || 'Unable to access location.');
+        setLocating(false);
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+    );
   };
 
   return (
@@ -151,16 +183,40 @@ const Doctors = () => {
             </div>
           )}
           
-          {/* Coming Soon - All Doctors */}
+          {/* All Doctors (frontend-only nearest doctor placeholder) */}
           {!loading && !error && activeTab === 'all-doctors' && (
-            <div className="col-span-full text-center py-12">
-              <div className="text-6xl mb-4">🏥</div>
-              <h3 className="text-xl font-semibold text-textPrimary mb-2">
-                {t.patient.doctors.comingSoon || 'Coming Soon'}
+            <div className="col-span-full text-center py-12 flex flex-col items-center gap-4">
+              <div className="text-6xl">🏥</div>
+              <h3 className="text-xl font-semibold text-textPrimary">
+                {t.patient.doctors.allDoctors || 'All Doctors'}
               </h3>
-              <p className="text-textSecondary">
-                {t.patient.doctors.allDoctorsDescription || 'We are adding doctors from across Egypt. Stay tuned!'}
+              <p className="text-textSecondary max-w-2xl">
+                {t.patient.doctors.allDoctorsDescription || 'Find a nearby doctor. Location search will use real proximity once backend data is ready.'}
               </p>
+              <div className="flex flex-col sm:flex-row gap-3 items-center">
+                <Button variant="primary" onClick={findNearestDoctor} disabled={locating}>
+                  {locating ? 'Locating…' : 'Find Nearest Doctor'}
+                </Button>
+                <span className="text-sm text-textSecondary">(Uses your location; provisional selection until backend proximity is live)</span>
+              </div>
+              {locationError && (
+                <div className="text-sm text-red-600">{locationError}</div>
+              )}
+              {nearestDoctor && (
+                <div className="mt-4 w-full max-w-md bg-white rounded-lg shadow p-6 text-left">
+                  <p className="text-sm text-textSecondary mb-2">Suggested doctor (temporary)</p>
+                  <h4 className="text-lg font-semibold text-textPrimary">{nearestDoctor.fullName}</h4>
+                  <p className="text-sm text-textSecondary">{nearestDoctor.specialization || nearestDoctor.title || 'General Practitioner'}</p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <Button variant="primary" size="small" onClick={() => handleBookSession(nearestDoctor)}>
+                      Book
+                    </Button>
+                    <Button variant="outline" size="small" onClick={() => handleSendEngagementRequest(nearestDoctor)}>
+                      Request Engagement
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

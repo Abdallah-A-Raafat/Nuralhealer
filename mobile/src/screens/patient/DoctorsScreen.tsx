@@ -24,9 +24,8 @@ import doctorService, { Doctor } from '../../services/doctorService';
 const DoctorCard: React.FC<{
   doctor: Doctor;
   onBook: () => void;
-  onEngage: () => void;
   theme: any;
-}> = ({ doctor, onBook, onEngage, theme }) => {
+}> = ({ doctor, onBook, theme }) => {
   const { t } = useTranslation();
   const fullName = `Dr. ${doctor.firstName} ${doctor.lastName}`;
 
@@ -104,32 +103,17 @@ const DoctorCard: React.FC<{
           </View>
         )}
 
-        {/* Price and Action Buttons */}
+        {/* Price and Book Button */}
         <View style={styles.cardFooter}>
-          <View style={styles.priceContainer}>
-            <Text style={[styles.price, { color: theme.colors.primary }]}>
-              ${doctor.price || 50}
-            </Text>
-            <Text style={[styles.priceLabel, { color: theme.colors.textSecondary }]}>
-              /session
-            </Text>
-          </View>
-          <View style={styles.actionsRow}>
-            <TouchableOpacity
-              style={[styles.engageButton, { borderColor: theme.colors.primary }]}
-              onPress={onEngage}
-            >
-              <Text style={[styles.engageText, { color: theme.colors.primary }]}>
-                {t('doctors.sendEngagement')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.bookButton, { backgroundColor: theme.colors.primary }]}
-              onPress={onBook}
-            >
-              <Text style={styles.bookButtonText}>{t('doctors.bookSession')}</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={[styles.price, { color: theme.colors.primary }]}>
+            ${doctor.price || 50}/session
+          </Text>
+          <TouchableOpacity
+            style={[styles.bookButton, { backgroundColor: theme.colors.primary }]}
+            onPress={onBook}
+          >
+            <Text style={styles.bookButtonText}>{t('doctors.bookSession')}</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -371,10 +355,10 @@ const DoctorsScreen: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
   const [_error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'our-doctors' | 'all-doctors'>('our-doctors');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [isEngagementModalOpen, setIsEngagementModalOpen] = useState(false);
 
   useEffect(() => {
     loadDoctors();
@@ -451,17 +435,22 @@ const DoctorsScreen: React.FC = () => {
     }
   };
 
-  const handleSendEngagementRequest = (doctor: Doctor) => {
-    setSelectedDoctor(doctor);
-    setIsEngagementModalOpen(true);
-  };
+  const filteredDoctors = doctors.filter((doctor) => {
+    const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
+    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) ||
+      doctor.specialization?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (selectedFilter === 'all') return matchesSearch;
+    if (selectedFilter === 'highRated') return matchesSearch && (doctor.rating || 0) >= 4.5;
+    if (selectedFilter === 'available') return matchesSearch && doctor.availability;
+    return matchesSearch;
+  });
 
-  const handleConfirmEngagement = async () => {
-    // TODO: Implement engagement request API call
-    console.log('Sending engagement request to:', selectedDoctor);
-    setIsEngagementModalOpen(false);
-    // Show success message
-  };
+  const filters = [
+    { id: 'all', label: t('doctors.allSpecializations') },
+    { id: 'highRated', label: t('doctors.highestRated') },
+    { id: 'available', label: t('doctors.availableToday') },
+  ];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -475,39 +464,54 @@ const DoctorsScreen: React.FC = () => {
         </Text>
       </View>
 
-      {/* Tabs */}
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
+      {/* Search */}
+      <View style={styles.searchContainer}>
+        <TextInput
           style={[
-            styles.tab,
-            activeTab === 'our-doctors' && styles.activeTab,
-            { backgroundColor: activeTab === 'our-doctors' ? theme.colors.primary : theme.colors.card }
+            styles.searchInput,
+            {
+              backgroundColor: theme.colors.inputBackground,
+              color: theme.colors.text,
+              borderColor: theme.colors.border,
+            },
           ]}
-          onPress={() => setActiveTab('our-doctors')}
-        >
-          <Text style={[
-            styles.tabText,
-            { color: activeTab === 'our-doctors' ? '#FFFFFF' : theme.colors.text }
-          ]}>
-            {t('doctors.ourDoctors')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === 'all-doctors' && styles.activeTab,
-            { backgroundColor: activeTab === 'all-doctors' ? theme.colors.primary : theme.colors.card }
-          ]}
-          onPress={() => setActiveTab('all-doctors')}
-        >
-          <Text style={[
-            styles.tabText,
-            { color: activeTab === 'all-doctors' ? '#FFFFFF' : theme.colors.text }
-          ]}>
-            {t('doctors.allDoctors')}
-          </Text>
-        </TouchableOpacity>
+          placeholder={t('doctors.searchPlaceholder')}
+          placeholderTextColor={theme.colors.placeholder}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
       </View>
+
+      {/* Filters */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filtersContainer}
+      >
+        {filters.map((filter) => (
+          <TouchableOpacity
+            key={filter.id}
+            style={[
+              styles.filterButton,
+              {
+                backgroundColor:
+                  selectedFilter === filter.id ? theme.colors.primary : theme.colors.card,
+                borderColor: theme.colors.border,
+              },
+            ]}
+            onPress={() => setSelectedFilter(filter.id)}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                { color: selectedFilter === filter.id ? '#FFFFFF' : theme.colors.text },
+              ]}
+            >
+              {filter.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       {/* Doctor List */}
       {loading ? (
@@ -517,37 +521,19 @@ const DoctorsScreen: React.FC = () => {
             {t('common.loading')}...
           </Text>
         </View>
-      ) : activeTab === 'our-doctors' && doctors.length === 0 ? (
+      ) : filteredDoctors.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>👨‍⚕️</Text>
-          <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
-            {t('doctors.noDoctorsYet')}
-          </Text>
           <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-            {t('doctors.checkBackSoon')}
-          </Text>
-        </View>
-      ) : activeTab === 'all-doctors' ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🏥</Text>
-          <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
-            {t('doctors.comingSoon')}
-          </Text>
-          <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-            {t('doctors.allDoctorsDescription')}
+            {t('doctors.noResults')}
           </Text>
         </View>
       ) : (
         <FlatList
-          data={doctors}
+          data={filteredDoctors}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <DoctorCard 
-              doctor={item} 
-              theme={theme} 
-              onBook={() => handleBook(item)}
-              onEngage={() => handleSendEngagementRequest(item)}
-            />
+            <DoctorCard doctor={item} theme={theme} onBook={() => handleBook(item)} />
           )}
           contentContainerStyle={styles.doctorList}
           showsVerticalScrollIndicator={false}
@@ -562,71 +548,6 @@ const DoctorsScreen: React.FC = () => {
         onClose={() => setIsBookingModalOpen(false)}
         onConfirm={handleConfirmBooking}
       />
-
-      {/* Engagement Request Modal */}
-      <Modal
-        visible={isEngagementModalOpen}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setIsEngagementModalOpen(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.engagementModalContent, { backgroundColor: theme.colors.card }]}>
-            {selectedDoctor && (
-              <>
-                <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
-                  {t('doctors.sendEngagementRequest')}
-                </Text>
-
-                {/* Doctor Summary */}
-                <View style={[styles.doctorSummary, { backgroundColor: theme.colors.background }]}>
-                  <Text style={styles.summaryEmoji}>👨‍⚕️</Text>
-                  <View style={styles.summaryInfo}>
-                    <Text style={[styles.summaryName, { color: theme.colors.text }]}>
-                      Dr. {selectedDoctor.firstName} {selectedDoctor.lastName}
-                    </Text>
-                    <Text style={[styles.summarySpec, { color: theme.colors.textSecondary }]}>
-                      {selectedDoctor.specialization}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Engagement Info */}
-                  <View style={styles.infoBox}>
-                  <Text style={[styles.infoTitle, { color: theme.colors.primary }]}>
-                    {t('doctors.whatIsEngagement')}
-                  </Text>
-                  <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-                    {t('doctors.engagementDescription')}
-                  </Text>
-                </View>
-
-                <Text style={[styles.confirmText, { color: theme.colors.text }]}>
-                  {t('doctors.engagementConfirmMessage')}
-                </Text>
-
-                {/* Action Buttons */}
-                <View style={styles.engagementActions}>
-                  <TouchableOpacity
-                    style={[styles.engageButton, { backgroundColor: theme.colors.primary }]}
-                    onPress={handleConfirmEngagement}
-                  >
-                    <Text style={styles.engageButtonText}>{t('doctors.sendRequest')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.cancelButton, { borderColor: theme.colors.border }]}
-                    onPress={() => setIsEngagementModalOpen(false)}
-                  >
-                    <Text style={[styles.cancelButtonText, { color: theme.colors.text }]}>
-                      {t('common.cancel')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -636,42 +557,17 @@ const styles = StyleSheet.create({
   header: { padding: 16, alignItems: 'center' },
   headerTitle: { fontSize: 28, fontWeight: 'bold', marginBottom: 8 },
   headerSubtitle: { fontSize: 15, textAlign: 'center', lineHeight: 22 },
-  
-  // Tabs
-  tabsContainer: { 
-    flexDirection: 'row', 
-    paddingHorizontal: 16, 
-    marginBottom: 16, 
-    gap: 12 
-  },
-  tab: { 
-    flex: 1, 
-    paddingVertical: 12, 
-    paddingHorizontal: 16, 
-    borderRadius: 12, 
-    alignItems: 'center' 
-  },
-  activeTab: { 
-    elevation: 2, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 1 }, 
-    shadowOpacity: 0.1, 
-    shadowRadius: 2 
-  },
-  tabText: { 
-    fontSize: 15, 
-    fontWeight: '600' 
-  },
-  
+  searchContainer: { paddingHorizontal: 16, marginBottom: 12 },
+  searchInput: { borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 15, borderWidth: 1 },
+  filtersContainer: { paddingHorizontal: 16, gap: 8, marginBottom: 12 },
+  filterButton: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
+  filterText: { fontSize: 14, fontWeight: '500' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 12, fontSize: 16 },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  emptyIcon: { fontSize: 72, marginBottom: 16 },
-  emptyTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' },
-  emptyText: { fontSize: 15, textAlign: 'center', lineHeight: 22 },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  emptyIcon: { fontSize: 48, marginBottom: 16 },
+  emptyText: { fontSize: 16, textAlign: 'center' },
   doctorList: { padding: 16 },
-  
-  // Doctor Card
   doctorCard: { borderRadius: 16, marginBottom: 16, overflow: 'hidden', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8 },
   cardHeader: { padding: 20, alignItems: 'center' },
   avatarEmoji: { fontSize: 48, marginBottom: 8 },
@@ -690,50 +586,10 @@ const styles = StyleSheet.create({
   availabilityBox: { borderRadius: 8, padding: 10, marginBottom: 12 },
   availabilityLabel: { fontSize: 12, fontWeight: '500' },
   availabilityValue: { fontSize: 12 },
-  
-  // Card Footer
-  cardFooter: { 
-    paddingTop: 12, 
-    borderTopWidth: 1, 
-    borderTopColor: '#E5E7EB' 
-  },
-  priceContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'baseline', 
-    marginBottom: 12 
-  },
-  price: { fontSize: 22, fontWeight: 'bold' },
-  priceLabel: { fontSize: 13, marginLeft: 2 },
-  actionsRow: { 
-    flexDirection: 'row', 
-    gap: 8 
-  },
-  engageButton: { 
-    flex: 1, 
-    paddingVertical: 10, 
-    paddingHorizontal: 12, 
-    borderRadius: 10, 
-    borderWidth: 1.5, 
-    alignItems: 'center' 
-  },
-  engageText: { 
-    fontSize: 13, 
-    fontWeight: '600' 
-  },
-  bookButton: { 
-    flex: 1, 
-    paddingVertical: 10, 
-    paddingHorizontal: 12, 
-    borderRadius: 10, 
-    alignItems: 'center' 
-  },
-  bookButtonText: { 
-    color: '#FFFFFF', 
-    fontSize: 13, 
-    fontWeight: '600' 
-  },
-  
-  // Booking Modal
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#E5E7EB' },
+  price: { fontSize: 18, fontWeight: 'bold' },
+  bookButton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 },
+  bookButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1 },
@@ -764,43 +620,6 @@ const styles = StyleSheet.create({
   confirmButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
   cancelButton: { paddingVertical: 14, borderRadius: 12, alignItems: 'center', borderWidth: 1 },
   cancelButtonText: { fontSize: 16 },
-  
-  // Engagement Modal
-  engagementModalContent: { 
-    borderTopLeftRadius: 24, 
-    borderTopRightRadius: 24, 
-    padding: 24, 
-    maxHeight: '80%' 
-  },
-  infoBox: { 
-    backgroundColor: '#EFF6FF', 
-    borderRadius: 12, 
-    padding: 16, 
-    marginVertical: 16 
-  },
-  infoTitle: { 
-    fontSize: 16, 
-    fontWeight: '600', 
-    marginBottom: 8 
-  },
-  infoText: { 
-    fontSize: 14, 
-    lineHeight: 20 
-  },
-  confirmText: { 
-    fontSize: 15, 
-    marginBottom: 16, 
-    lineHeight: 22 
-  },
-  engagementActions: { 
-    gap: 12, 
-    marginTop: 8 
-  },
-  engageButtonText: { 
-    color: '#FFFFFF', 
-    fontSize: 16, 
-    fontWeight: '600' 
-  },
 });
 
 export default DoctorsScreen;

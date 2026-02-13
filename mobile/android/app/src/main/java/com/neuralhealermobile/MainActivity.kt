@@ -1,4 +1,4 @@
-package com.neuralhealermobilenew
+package com.neuralhealermobile
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

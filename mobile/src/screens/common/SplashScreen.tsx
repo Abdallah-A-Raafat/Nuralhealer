@@ -4,7 +4,8 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Easing, Image } from 'react-native';
+import { View, StyleSheet, Animated, Easing } from 'react-native';
+import Logo from '../../assets/logo.svg';
 import { useThemeStore } from '../../store/themeStore';
 
 interface SplashScreenProps {
@@ -82,11 +83,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationEnd }) => {
           },
         ]}
       >
-        <Image 
-          source={require('../../assets/logo.png')} 
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <Logo width={150} height={150} />
       </Animated.View>
     </View>
   );
@@ -101,10 +98,6 @@ const styles = StyleSheet.create({
   logoContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  logo: {
-    width: 150,
-    height: 150,
   },
 });
 

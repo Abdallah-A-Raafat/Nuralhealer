@@ -60,6 +60,12 @@ export const chatService = {
     return response.data;
   },
 
+  // Get doctors authorized to view my AI chat history
+  getAuthorizedDoctors: async () => {
+    const response = await apiClient.get('/chats/authorized-doctors');
+    return response.data;
+  },
+
   // Get session statistics
   getSessionStats: async () => {
     const response = await apiClient.get('/chat/stats');

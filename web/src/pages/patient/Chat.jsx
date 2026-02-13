@@ -165,6 +165,27 @@ const TextSession = ({ onBack }) => {
   const [inputValue, setInputValue] = useState('');
   const [showEndSessionModal, setShowEndSessionModal] = useState(false);
   const [isEndingSession, setIsEndingSession] = useState(false);
+  const [authorizedDoctors, setAuthorizedDoctors] = useState([]);
+  const [loadingAuthorized, setLoadingAuthorized] = useState(false);
+  const [authorizedError, setAuthorizedError] = useState('');
+
+  useEffect(() => {
+    const loadAuthorized = async () => {
+      try {
+        setLoadingAuthorized(true);
+        setAuthorizedError('');
+        const data = await chatService.getAuthorizedDoctors();
+        setAuthorizedDoctors(data || []);
+      } catch (err) {
+        console.error('Failed to load authorized doctors', err);
+        setAuthorizedError('Could not load authorized doctors');
+      } finally {
+        setLoadingAuthorized(false);
+      }
+    };
+
+    loadAuthorized();
+  }, []);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
@@ -255,6 +276,7 @@ const TextSession = ({ onBack }) => {
                   </button>
                 )}
               </div>
+
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -290,6 +312,9 @@ const TextSession = ({ onBack }) => {
             onSelectSession={handleSelectSession}
             onNewChat={handleNewChat}
             onRenameSession={handleRenameSession}
+            authorizedDoctors={authorizedDoctors}
+            authorizedLoading={loadingAuthorized}
+            authorizedError={authorizedError}
           />
         </div>
 

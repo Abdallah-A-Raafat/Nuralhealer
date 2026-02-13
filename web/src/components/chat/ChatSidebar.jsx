@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { MessageSquare, Plus, Search, Calendar, MessageCircle, Edit2, Check, X } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { MessageSquare, Plus, Search, Calendar, MessageCircle, Edit2, Check, X, Users } from 'lucide-react';
 import { useLanguage } from '../../hooks/useLanguage';
 
 /**
@@ -13,12 +13,21 @@ const ChatSidebar = ({
   isLoading = false,
   onSelectSession,
   onNewChat,
-  onRenameSession
+  onRenameSession,
+  authorizedDoctors = [],
+  authorizedLoading = false,
+  authorizedError = ''
 }) => {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [editingSessionId, setEditingSessionId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
+  const [showAuthorized, setShowAuthorized] = useState(false);
+
+  useEffect(() => {
+    // Close the authorized doctors dropdown when switching sessions
+    setShowAuthorized(false);
+  }, [currentSession]);
 
   // Filter sessions based on search query
   const filteredSessions = useMemo(() => {
@@ -186,6 +195,25 @@ const ChatSidebar = ({
                             <Edit2 className="w-3 h-3" />
                           </button>
                         )}
+                        {currentSession === session.id && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowAuthorized(prev => !prev);
+                            }}
+                            className={`
+                              p-1 rounded transition-colors
+                              ${showAuthorized 
+                                ? 'text-primary-600 bg-primary-100 dark:text-primary-300 dark:bg-primary/20' 
+                                : currentSession === session.id 
+                                  ? 'text-primary-600 hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary/20'
+                                  : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-[#3F3651] dark:hover:text-gray-200'}
+                            `}
+                            title={t.chat?.authorizedDoctors || 'Doctors with access'}
+                          >
+                            <Users className="w-3 h-3" />
+                          </button>
+                        )}
                         {session.messageCount > 0 && (
                           <span className={`
                             text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap
@@ -213,6 +241,31 @@ const ChatSidebar = ({
                     </span>
                   )}
                 </div>
+
+                {currentSession === session.id && showAuthorized && (
+                  <div className="mt-2 bg-gray-50 dark:bg-[#2A2238] border border-gray-200 dark:border-[#3F3651] rounded-lg p-3 text-xs text-gray-700 dark:text-lightText" onClick={(e) => e.stopPropagation()}>
+                    <p className="font-semibold text-gray-900 dark:text-lightText mb-1">
+                      {t.chat?.authorizedDoctors || 'Doctors with access'}
+                    </p>
+                    {authorizedLoading && (
+                      <p>{t.common?.loading || 'Loading...'}</p>
+                    )}
+                    {!authorizedLoading && authorizedError && (
+                      <p className="text-red-600">{authorizedError}</p>
+                    )}
+                    {!authorizedLoading && !authorizedError && (
+                      authorizedDoctors.length === 0 ? (
+                        <p>{t.chat?.noAuthorizedDoctors || 'No doctors currently have access'}</p>
+                      ) : (
+                        <ul className="space-y-1 list-disc list-inside">
+                          {authorizedDoctors.map((doc, idx) => (
+                            <li key={idx}>{doc.fullName || doc.name || 'Doctor'}</li>
+                          ))}
+                        </ul>
+                      )
+                    )}
+                  </div>
+                )}
               </button>
             ))}
           </div>

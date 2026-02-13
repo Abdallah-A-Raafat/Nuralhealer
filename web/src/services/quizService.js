@@ -14,9 +14,12 @@ const quizService = {
       return response.data;
     },
     
-    getQuestions: async (questionId = null) => {
-      const params = questionId ? `?questionId=${questionId}` : '';
-      const response = await apiClient.get(`/quizzes/ipip120/questions${params}`);
+    getQuestions: async (language = 'en', questionId = null) => {
+      const params = [];
+      if (questionId) params.push(`questionId=${questionId}`);
+      if (language) params.push(`lang=${language}`);
+      const query = params.length ? `?${params.join('&')}` : '';
+      const response = await apiClient.get(`/quizzes/ipip120/questions${query}`);
       return response.data;
     },
     
@@ -48,9 +51,12 @@ const quizService = {
       return response.data;
     },
     
-    getQuestions: async (questionId = null) => {
-      const params = questionId ? `?questionId=${questionId}` : '';
-      const response = await apiClient.get(`/quizzes/ipip50/questions${params}`);
+    getQuestions: async (language = 'en', questionId = null) => {
+      const params = [];
+      if (questionId) params.push(`questionId=${questionId}`);
+      if (language) params.push(`lang=${language}`);
+      const query = params.length ? `?${params.join('&')}` : '';
+      const response = await apiClient.get(`/quizzes/ipip50/questions${query}`);
       return response.data;
     },
     
@@ -92,8 +98,9 @@ const quizService = {
       return response.data;
     },
     
-    getQuestions: async () => {
-      const response = await apiClient.get('/quizzes/phq9/questions');
+    getQuestions: async (language = 'en') => {
+      const query = language ? `?lang=${language}` : '';
+      const response = await apiClient.get(`/quizzes/phq9/questions${query}`);
       return response.data;
     },
     

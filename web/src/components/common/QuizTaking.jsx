@@ -18,13 +18,26 @@ const QuizTaking = ({ quizType, onComplete, onCancel }) => {
   const quizName = quizService.getQuizName(quizType);
   const totalQuestions = quizService.getTotalQuestions(quizType);
 
+  // Fallback Arabic text for PHQ-9 if backend doesn't return textAr
+  const phq9ArabicFallback = [
+    'قلة الاهتمام أو المتعة في القيام بالأشياء',
+    'الشعور بالاكتئاب أو الإحباط أو اليأس',
+    'صعوبة النوم أو كثرة النوم',
+    'الشعور بالتعب أو قلة الطاقة',
+    'ضعف الشهية أو الإفراط في الأكل',
+    'الشعور بسوء تجاه نفسك – أو أنك فاشل أو خذلت عائلتك',
+    'صعوبة التركيز على الأشياء، مثل قراءة الجريدة أو مشاهدة التلفاز',
+    'الحركة أو الكلام ببطء شديد لدرجة ملاحظتها من الآخرين، أو العكس – الشعور بالتململ أو الحركة الزائدة',
+    'التفكير بأنك ستكون أفضل حالًا لو مت، أو التفكير في إيذاء نفسك'
+  ];
+
   const loadQuestions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
       const service = quizService[quizType];
-      const questionsData = await service.getQuestions();
+      const questionsData = await service.getQuestions(language);
       
       setQuestions(questionsData);
       setProgress({ current: 0, total: questionsData.length });
@@ -217,6 +230,22 @@ const QuizTaking = ({ quizType, onComplete, onCancel }) => {
   const isLastQuestion = currentIndex === questions.length - 1;
   const isFirstQuestion = currentIndex === 0;
 
+  const getLocalizedQuestionText = (question) => {
+    const arFallback =
+      question.textAr ||
+      question.text_ar ||
+      question.arabic_text ||
+      question.translation?.ar;
+
+    if (isArabic) {
+      if (arFallback) return arFallback;
+      if (quizType === 'phq9' && phq9ArabicFallback[currentIndex]) {
+        return phq9ArabicFallback[currentIndex];
+      }
+    }
+    return question.text;
+  };
+
   return (
     <div className="max-w-3xl mx-auto">
       {/* Header */}
@@ -250,11 +279,11 @@ const QuizTaking = ({ quizType, onComplete, onCancel }) => {
           </span>
           
           <h3 className="text-xl font-semibold text-textPrimary dark:text-white leading-relaxed">
-            {isArabic && currentQuestion.textAr ? currentQuestion.textAr : currentQuestion.text}
+            {getLocalizedQuestionText(currentQuestion)}
           </h3>
-          {!isArabic && currentQuestion.textAr && (
+          {!isArabic && (currentQuestion.textAr || currentQuestion.text_ar || currentQuestion.arabic_text) && (
             <p className="text-lg text-textSecondary dark:text-gray-400 mt-3 font-arabic" dir="rtl">
-              {currentQuestion.textAr}
+              {currentQuestion.textAr || currentQuestion.text_ar || currentQuestion.arabic_text}
             </p>
           )}
         </div>

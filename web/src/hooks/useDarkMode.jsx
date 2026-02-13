@@ -29,14 +29,8 @@ export const DarkModeProvider = ({ children }) => {
 
   const applyDarkMode = (isDark) => {
     const root = document.documentElement;
-    if (isDark) {
-      root.classList.add('dark');
-      document.body.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-      document.body.classList.remove('dark');
-    }
-    // Force a re-render by updating a data attribute
+    root.classList.toggle('dark', isDark);
+    document.body.classList.toggle('dark', isDark);
     root.setAttribute('data-theme', isDark ? 'dark' : 'light');
   };
 

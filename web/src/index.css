@@ -90,6 +90,14 @@
 
 	.dark .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(155, 89, 182, 0.1); }
 	.dark .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(155, 89, 182, 0.05); }
+
+	/* Explicit light-mode overrides to ensure surfaces switch back when dark class is removed */
+	[data-theme="light"] .bg-white { background-color: #FFFFFF; }
+	[data-theme="light"] .bg-background { background-color: #F8F9FA; }
+	[data-theme="light"] .bg-gray-50 { background-color: #F9FAFB; }
+	[data-theme="light"] .bg-gray-100 { background-color: #F3F4F6; }
+	[data-theme="light"] .bg-primary\/10 { background-color: rgba(155, 89, 182, 0.10); }
+	[data-theme="light"] .bg-primary\/20 { background-color: rgba(155, 89, 182, 0.20); }
 }
 
 /* RTL Support for Arabic */

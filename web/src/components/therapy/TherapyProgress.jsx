@@ -59,12 +59,13 @@ const TherapyProgress = () => {
   };
 
   const getAssessmentName = (type) => {
-    const names = {
-      phq9: 'PHQ-9 Depression Screening',
-      ipip50: 'IPIP-50 Personality Assessment',
-      ipip120: 'IPIP-120 Comprehensive Assessment'
-    };
+    const names = t.therapyProgress?.assessmentNames || {};
     return names[type] || type;
+  };
+
+  const getSeverityLabel = (severity) => {
+    const labels = t.therapyProgress?.severityLabels || {};
+    return labels[severity] || severity;
   };
 
   const getSeverityColor = (severity) => {
@@ -117,13 +118,7 @@ const TherapyProgress = () => {
   };
 
   const getTraitLabel = (traitName) => {
-    const labels = {
-      openness: 'Openness',
-      conscientiousness: 'Conscientiousness',
-      extraversion: 'Extraversion',
-      agreeableness: 'Agreeableness',
-      neuroticism: 'Neuroticism'
-    };
+    const labels = t.therapyProgress?.traitLabels || {};
     return labels[traitName] || traitName;
   };
 
@@ -177,7 +172,7 @@ const TherapyProgress = () => {
       {summary && (
         <div className="grid md:grid-cols-3 gap-4">
           {/* Total Assessments */}
-          <div className="bg-white dark:bg-[#241D30] rounded-lg shadow-md p-6 border border-gray-200 dark:border-[#3F3651]">
+          <div className="bg-white bg-gradient-to-br from-white via-[#F8F9FA] to-primary/5 dark:bg-[#241D30] dark:bg-none rounded-lg shadow-md p-6 border border-primary/10 dark:border-[#3F3651]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-textSecondary dark:text-gray-400 mb-1">
@@ -196,14 +191,14 @@ const TherapyProgress = () => {
           </div>
 
           {/* Improvement Trend */}
-          <div className="bg-white dark:bg-[#241D30] rounded-lg shadow-md p-6 border border-gray-200 dark:border-[#3F3651]">
+          <div className="bg-white bg-gradient-to-br from-white via-[#F8F9FA] to-primary/5 dark:bg-[#241D30] dark:bg-none rounded-lg shadow-md p-6 border border-primary/10 dark:border-[#3F3651]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-textSecondary dark:text-gray-400 mb-1">
                   {t.therapyProgress?.trend || 'Trend'}
                 </p>
                 <p className="text-lg font-semibold text-textPrimary dark:text-white capitalize">
-                  {summary.improvementTrend}
+                  {t.therapyProgress?.[summary.improvementTrend] || summary.improvementTrend}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
@@ -214,7 +209,7 @@ const TherapyProgress = () => {
 
           {/* Latest PHQ-9 Score */}
           {summary.latestScores?.phq9 && (
-            <div className="bg-white dark:bg-[#241D30] rounded-lg shadow-md p-6 border border-gray-200 dark:border-[#3F3651]">
+            <div className="bg-white bg-gradient-to-br from-white via-[#F8F9FA] to-primary/5 dark:bg-[#241D30] dark:bg-none rounded-lg shadow-md p-6 border border-primary/10 dark:border-[#3F3651]">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-textSecondary dark:text-gray-400 mb-1">
@@ -224,7 +219,7 @@ const TherapyProgress = () => {
                     {summary.latestScores.phq9.score}
                   </p>
                   <span className={`inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(summary.latestScores.phq9.severity)}`}>
-                    {summary.latestScores.phq9.severity}
+                    {getSeverityLabel(summary.latestScores.phq9.severity)}
                   </span>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
@@ -245,7 +240,7 @@ const TherapyProgress = () => {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             selectedType === 'all'
               ? 'bg-primary text-white'
-              : 'bg-white dark:bg-[#241D30] text-textSecondary dark:text-gray-400 border border-gray-200 dark:border-[#3F3651] hover:bg-gray-50 dark:hover:bg-[#2A2235]'
+              : 'bg-[#F8F9FA] dark:bg-[#241D30] text-textSecondary dark:text-gray-400 border border-primary/10 dark:border-[#3F3651] hover:bg-primary/5 dark:hover:bg-[#2A2235]'
           }`}
         >
           {t.therapyProgress?.allAssessments || 'All Assessments'}
@@ -255,7 +250,7 @@ const TherapyProgress = () => {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             selectedType === 'phq9'
               ? 'bg-primary text-white'
-              : 'bg-white dark:bg-[#241D30] text-textSecondary dark:text-gray-400 border border-gray-200 dark:border-[#3F3651] hover:bg-gray-50 dark:hover:bg-[#2A2235]'
+              : 'bg-[#F8F9FA] dark:bg-[#241D30] text-textSecondary dark:text-gray-400 border border-primary/10 dark:border-[#3F3651] hover:bg-primary/5 dark:hover:bg-[#2A2235]'
           }`}
         >
           PHQ-9
@@ -265,7 +260,7 @@ const TherapyProgress = () => {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             selectedType === 'ipip50'
               ? 'bg-primary text-white'
-              : 'bg-white dark:bg-[#241D30] text-textSecondary dark:text-gray-400 border border-gray-200 dark:border-[#3F3651] hover:bg-gray-50 dark:hover:bg-[#2A2235]'
+              : 'bg-[#F8F9FA] dark:bg-[#241D30] text-textSecondary dark:text-gray-400 border border-primary/10 dark:border-[#3F3651] hover:bg-primary/5 dark:hover:bg-[#2A2235]'
           }`}
         >
           IPIP-50
@@ -275,7 +270,7 @@ const TherapyProgress = () => {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             selectedType === 'ipip120'
               ? 'bg-primary text-white'
-              : 'bg-white dark:bg-[#241D30] text-textSecondary dark:text-gray-400 border border-gray-200 dark:border-[#3F3651] hover:bg-gray-50 dark:hover:bg-[#2A2235]'
+              : 'bg-[#F8F9FA] dark:bg-[#241D30] text-textSecondary dark:text-gray-400 border border-primary/10 dark:border-[#3F3651] hover:bg-primary/5 dark:hover:bg-[#2A2235]'
           }`}
         >
           IPIP-120
@@ -283,7 +278,7 @@ const TherapyProgress = () => {
       </div>
 
       {/* Progress Timeline */}
-      <div className="bg-white dark:bg-[#241D30] rounded-lg shadow-md p-6 border border-gray-200 dark:border-[#3F3651]">
+      <div className="bg-white dark:bg-[#241D30] rounded-lg shadow-md p-6 border border-primary/10 dark:border-[#3F3651]">
         <h3 className="text-lg font-semibold text-textPrimary dark:text-white mb-6">
           {t.therapyProgress?.progressTimeline || 'Progress Timeline'}
         </h3>
@@ -306,7 +301,7 @@ const TherapyProgress = () => {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 bg-gray-50 dark:bg-[#1A1625] rounded-lg p-4 border border-gray-200 dark:border-[#3F3651]">
+                <div className="flex-1 bg-white dark:bg-[#1A1625] rounded-lg p-4 border border-primary/10 dark:border-[#3F3651]">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h4 className="font-semibold text-textPrimary dark:text-white">
@@ -318,7 +313,7 @@ const TherapyProgress = () => {
                     </div>
                     {item.severity && (
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getSeverityColor(item.severity)}`}>
-                        {item.severity}
+                        {getSeverityLabel(item.severity)}
                       </span>
                     )}
                   </div>
@@ -376,7 +371,7 @@ const TherapyProgress = () => {
                       {/* Expanded Personality Profile */}
                       {expandedItem === item.id && (
                         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                          <div className="bg-white dark:bg-[#241D30] rounded-lg p-6 space-y-6">
+                          <div className="bg-white dark:bg-[#241D30] rounded-lg p-6 space-y-6 border border-primary/10 dark:border-[#3F3651]">
                             {/* Header */}
                             <div className="text-center">
                               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -393,7 +388,7 @@ const TherapyProgress = () => {
                             {/* Traits */}
                             <div className="space-y-4">
                               {Object.entries(item.results.traits).map(([traitName, score]) => (
-                                <div key={traitName} className="bg-gray-50 dark:bg-[#1A1625] rounded-lg p-4 border border-gray-200 dark:border-[#3F3651]">
+                                <div key={traitName} className="bg-white dark:bg-[#1A1625] rounded-lg p-4 border border-primary/10 dark:border-[#3F3651]">
                                   <div className="flex items-center gap-3 mb-3">
                                     <span className="text-2xl">{getTraitIcon(traitName)}</span>
                                     <div className="flex-1">

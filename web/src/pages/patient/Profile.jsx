@@ -235,7 +235,7 @@ const Profile = () => {
               className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'overview'
                   ? 'text-primary border-b-2 border-primary'
-                  : 'text-textSecondary hover:text-textPrimary'
+                  : 'text-textSecondary hover:text-textPrimary dark:text-gray-400 dark:hover:text-white'
               }`}
             >
               {t.patient.profile.accountOverview}
@@ -245,7 +245,7 @@ const Profile = () => {
               className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'sessions'
                   ? 'text-primary border-b-2 border-primary'
-                  : 'text-textSecondary hover:text-textPrimary'
+                  : 'text-textSecondary hover:text-textPrimary dark:text-gray-400 dark:hover:text-white'
               }`}
             >
               {t.patient.profile.pastSessions}
@@ -255,7 +255,7 @@ const Profile = () => {
               className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'engagements'
                   ? 'text-primary border-b-2 border-primary'
-                  : 'text-textSecondary hover:text-textPrimary'
+                  : 'text-textSecondary hover:text-textPrimary dark:text-gray-400 dark:hover:text-white'
               }`}
             >
               {t.engagement?.myEngagements || 'My Engagements'}
@@ -265,7 +265,7 @@ const Profile = () => {
               className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'settings'
                   ? 'text-primary border-b-2 border-primary'
-                  : 'text-textSecondary hover:text-textPrimary'
+                  : 'text-textSecondary hover:text-textPrimary dark:text-gray-400 dark:hover:text-white'
               }`}
             >
               {t.patient.profile.settings}

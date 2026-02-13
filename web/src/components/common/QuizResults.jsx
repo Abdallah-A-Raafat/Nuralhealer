@@ -41,6 +41,8 @@ const QuizResults = ({ quizType, results, onClose, onRetake }) => {
           {Object.entries(results.traits).map(([trait, data]) => {
             const score = data.score || 0;
             const percentage = Math.round(score);
+            const traitLabel = t.therapyProgress?.traitLabels?.[trait] || t.therapyProgress?.traitLabels?.[trait.toLowerCase()] || trait;
+            const interpretation = isArabic && data.interpretationAr ? data.interpretationAr : data.interpretation;
             
             return (
               <div key={trait} className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-100 dark:border-gray-700">
@@ -49,7 +51,7 @@ const QuizResults = ({ quizType, results, onClose, onRetake }) => {
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-semibold text-textPrimary dark:text-white capitalize">
-                        {trait}
+                        {traitLabel}
                       </h3>
                       <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getScoreColor(percentage)}`}>
                         {percentage}%
@@ -65,9 +67,9 @@ const QuizResults = ({ quizType, results, onClose, onRetake }) => {
                     </div>
                     
                     {/* Interpretation */}
-                    {data.interpretation && (
-                      <p className="text-sm text-textSecondary dark:text-gray-400 leading-relaxed">
-                        {data.interpretation}
+                    {interpretation && (
+                      <p className="text-sm text-textSecondary dark:text-gray-400 leading-relaxed" dir={isArabic ? 'rtl' : 'ltr'}>
+                        {interpretation}
                       </p>
                     )}
                   </div>
@@ -94,9 +96,8 @@ const QuizResults = ({ quizType, results, onClose, onRetake }) => {
   };
 
   const renderPHQ9Results = () => {
-    if (results?.score === undefined) return null;
-
-    const score = results.score;
+    const score = results.score ?? results.totalScore ?? results?.result?.totalScore ?? results?.scores?.[0]?.score;
+    if (score === undefined) return null;
     const getSeverityLevel = () => {
       if (score <= 4) return { level: 'Minimal', color: 'green', description: 'Minimal or no depression' };
       if (score <= 9) return { level: 'Mild', color: 'yellow', description: 'Mild depression' };
@@ -105,7 +106,14 @@ const QuizResults = ({ quizType, results, onClose, onRetake }) => {
       return { level: 'Severe', color: 'red', description: 'Severe depression' };
     };
 
-    const severity = getSeverityLevel();
+    const baseSeverity = getSeverityLevel();
+    const severityLabel = isArabic ? (results.severityAr || t.therapyProgress?.severityLabels?.[baseSeverity.level] || baseSeverity.level) : (t.therapyProgress?.severityLabels?.[results.severity || baseSeverity.level] || results.severity || baseSeverity.level);
+    const severityDescription = (isArabic ? results.descriptionAr : results.description) || baseSeverity.description;
+    const severity = {
+      ...baseSeverity,
+      level: severityLabel,
+      description: severityDescription
+    };
     const colorClasses = {
       green: 'bg-green-100 text-green-800 border-green-200',
       yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -131,7 +139,7 @@ const QuizResults = ({ quizType, results, onClose, onRetake }) => {
         <div className={`rounded-lg p-8 border-2 ${colorClasses[severity.color]}`}>
           <div className="text-center">
             <div className="text-6xl font-bold mb-2">{score}</div>
-            <div className="text-xl font-semibold mb-2">{severity.level}</div>
+            <div className="text-xl font-semibold mb-2">{t.therapyProgress?.severityLabels?.[severity.level] || severity.level}</div>
             <p className="text-sm">{severity.description}</p>
           </div>
         </div>

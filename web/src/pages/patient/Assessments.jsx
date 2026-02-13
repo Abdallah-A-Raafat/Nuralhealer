@@ -68,12 +68,21 @@ const Assessments = () => {
     
     // For PHQ-9 depression screening
     if (activeQuiz === 'phq9' && results.result) {
+      const scoreDetail = Array.isArray(results.result.scores) ? results.result.scores[0] : null;
+      const totalScore = results.totalScore ?? results.result?.totalScore ?? scoreDetail?.score;
+
       transformedResults = {
-        totalScore: results.totalScore,
-        severity: results.result.severity,
-        recommendation: results.result.recommendation,
+        totalScore,
+        severity: scoreDetail?.level || results.result.severity,
+        severityAr: scoreDetail?.arabicLevel,
+        description: scoreDetail?.description,
+        descriptionAr: scoreDetail?.arabicDescription,
+        hasCriticalAlert: scoreDetail?.metadata?.hasCriticalAlert,
+        alertMessage: scoreDetail?.metadata?.alertMessageEn,
+        alertMessageAr: scoreDetail?.metadata?.alertMessageAr,
         completionDate: results.completionDate,
-        scores: results.result.itemScores
+        scores: scoreDetail ? [scoreDetail] : results.result.itemScores,
+        summary: results.result.summary || results.result.arabicSummary
       };
       
       console.log('🔄 [QUIZ] Transformed PHQ-9 results:', transformedResults);
@@ -152,16 +161,16 @@ const Assessments = () => {
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Quiz List View */}
           {quizView === 'list' && (
-            <div className="bg-white dark:bg-[#241D30] rounded-lg shadow-md p-8">
+            <div className="bg-white bg-gradient-to-br from-white via-[#F8F9FA] to-primary/5 dark:bg-[#241D30] dark:bg-none rounded-lg shadow-md p-8 border border-primary/10 dark:border-[#3F3651]">
               <div className="grid md:grid-cols-2 gap-6">
                 {/* PHQ-9 Depression Screening */}
                 <QuizCard
                   quiz={{
                     type: 'phq9',
-                    name: 'PHQ-9 Depression Screening',
-                    description: 'A 9-question screening tool widely used to assess depression severity',
-                    duration: '5 minutes',
-                    totalQuestions: 9,
+                    name: t.assessments?.phq9Name || 'PHQ-9 Depression Screening',
+                    description: t.assessments?.phq9Desc || 'A 9-question screening tool widely used to assess depression severity',
+                    duration: t.assessments?.phq9Duration || '5 minutes',
+                    totalQuestions: t.assessments?.phq9Questions || 9,
                   }}
                   onStart={handleStartQuiz}
                   onViewResults={handleViewResults}
@@ -173,10 +182,10 @@ const Assessments = () => {
                 <QuizCard
                   quiz={{
                     type: 'ipip50',
-                    name: 'IPIP-50 Personality Assessment',
-                    description: 'Discover your personality traits based on the Big Five model',
-                    duration: '10-15 minutes',
-                    totalQuestions: 50,
+                    name: t.assessments?.ipip50Name || 'IPIP-50 Personality Assessment',
+                    description: t.assessments?.ipip50Desc || 'Discover your personality traits based on the Big Five model',
+                    duration: t.assessments?.ipip50Duration || '10-15 minutes',
+                    totalQuestions: t.assessments?.ipip50Questions || 50,
                   }}
                   onStart={handleStartQuiz}
                   onViewResults={handleViewResults}
@@ -188,10 +197,10 @@ const Assessments = () => {
                 <QuizCard
                   quiz={{
                     type: 'ipip120',
-                    name: 'IPIP-120 Comprehensive Assessment',
-                    description: 'In-depth personality analysis with 120 questions for detailed insights',
-                    duration: '20-30 minutes',
-                    totalQuestions: 120,
+                    name: t.assessments?.ipip120Name || 'IPIP-120 Comprehensive Assessment',
+                    description: t.assessments?.ipip120Desc || 'In-depth personality analysis with 120 questions for detailed insights',
+                    duration: t.assessments?.ipip120Duration || '20-30 minutes',
+                    totalQuestions: t.assessments?.ipip120Questions || 120,
                   }}
                   onStart={handleStartQuiz}
                   onViewResults={handleViewResults}
@@ -201,11 +210,11 @@ const Assessments = () => {
               </div>
 
               {/* Info Box */}
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">
+              <div className="mt-6 p-4 bg-primary/5 dark:bg-blue-900/20 border border-primary/10 dark:border-blue-800 rounded-lg">
+                <h4 className="font-semibold text-textPrimary dark:text-blue-300 mb-2">
                   {t.patient.profile.assessmentInfo || 'Why Take Assessments?'}
                 </h4>
-                <ul className="text-sm text-blue-800 dark:text-blue-400 space-y-1">
+                <ul className="text-sm text-textSecondary dark:text-blue-400 space-y-1">
                   <li>✓ {t.patient.profile.assessmentBenefit1 || 'Better understand your mental health status'}</li>
                   <li>✓ {t.patient.profile.assessmentBenefit2 || 'Track your progress over time'}</li>
                   <li>✓ {t.patient.profile.assessmentBenefit3 || 'Help your doctor provide better care'}</li>

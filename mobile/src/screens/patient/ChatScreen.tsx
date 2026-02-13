@@ -136,11 +136,18 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     error,
     sendMessage,
     reconnect,
+    sessions,
+    currentSession,
+    isLoadingHistory,
+    isLoadingMessages,
+    fetchSessions,
+    loadSession,
+    createNewSession,
   } = useAiChat();
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
-    const sent = sendMessage(inputValue);
+    const sent = await sendMessage(inputValue);
     if (sent) {
       setInputValue('');
     }
@@ -155,6 +162,26 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         { text: t('chat.endSession'), style: 'destructive', onPress: () => onBack() },
       ]
     );
+  };
+
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
+
+  const handleSelectSession = (sessionId: string) => {
+    if (!sessionId) return;
+    loadSession(sessionId);
+  };
+
+  const handleNewChat = () => {
+    createNewSession();
+    setInputValue('');
+  };
+
+  const formatDate = (value?: string) => {
+    if (!value) return '';
+    const date = new Date(value);
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
 
   useEffect(() => {
@@ -263,6 +290,73 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         </View>
       )}
 
+      {/* Sessions list (parity with web sidebar) */}
+      <View style={[styles.sessionsCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}> 
+        <View style={styles.sessionsHeader}>
+          <View style={styles.sessionsHeaderLeft}>
+            <Text style={[styles.sessionsTitle, { color: theme.colors.text }]}>
+              {t('chat.sessionHistory')}
+            </Text>
+            {isLoadingHistory && <ActivityIndicator size="small" color={theme.colors.primary} />}
+          </View>
+          <View style={styles.sessionsHeaderActions}>
+            <TouchableOpacity onPress={fetchSessions} style={[styles.sessionActionButton, { borderColor: theme.colors.border }]}> 
+              <Text style={[styles.sessionActionText, { color: theme.colors.text }]}>{t('common.refresh') || 'Refresh'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleNewChat} style={[styles.sessionActionButtonPrimary, { backgroundColor: theme.colors.primary }]}> 
+              <Text style={styles.sessionActionPrimaryText}>{t('chat.newChat') || 'New Chat'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {(!sessions || sessions.length === 0) && !isLoadingHistory ? (
+          <Text style={[styles.emptySessionsText, { color: theme.colors.textSecondary }]}>
+            {t('chat.noSessions') || 'No chat sessions yet'}
+          </Text>
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sessionsList}> 
+            {sessions.map((session) => {
+              const active = currentSession === session.id;
+              return (
+                <TouchableOpacity
+                  key={session.id}
+                  style={[
+                    styles.sessionItem,
+                    {
+                      borderColor: active ? theme.colors.primary : theme.colors.border,
+                      backgroundColor: active ? theme.colors.primary + '15' : theme.colors.inputBackground,
+                    },
+                  ]}
+                  onPress={() => handleSelectSession(session.id)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.sessionTitle,
+                      { color: active ? theme.colors.primary : theme.colors.text },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {session.sessionTitle || t('chat.textSession')}
+                  </Text>
+                  <Text style={[styles.sessionMeta, { color: theme.colors.textSecondary }]}> 
+                    {formatDate(session.startedAt)}
+                  </Text>
+                  <Text style={[styles.sessionMeta, { color: theme.colors.textSecondary }]}> 
+                    {(session.messageCount ?? 0)} {t('chat.messages')}
+                  </Text>
+                  {session.isActive && (
+                    <Text style={[styles.sessionActiveBadge, { color: theme.colors.primary }]}> 
+                      {t('chat.active') || 'Active'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
+      </View>
+
       <KeyboardAvoidingView 
         style={styles.chatArea}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -277,6 +371,8 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           ListHeaderComponent={renderWelcomeMessage}
           ListFooterComponent={renderTypingIndicator}
           showsVerticalScrollIndicator={false}
+          refreshing={isLoadingMessages}
+          onRefresh={currentSession ? () => loadSession(currentSession) : undefined}
         />
 
         <View style={[styles.inputContainer, { backgroundColor: theme.colors.card, borderTopColor: theme.colors.border }]}>
@@ -401,6 +497,21 @@ const styles = StyleSheet.create({
   voiceSubtitle: { fontSize: 16, marginBottom: 24 },
   voiceBackButton: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
   voiceBackButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  sessionsCard: { marginHorizontal: 16, marginTop: 12, padding: 12, borderWidth: 1, borderRadius: 12 },
+  sessionsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  sessionsHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sessionsHeaderActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sessionsTitle: { fontSize: 16, fontWeight: '600' },
+  sessionActionButton: { paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderRadius: 10 },
+  sessionActionText: { fontSize: 13, fontWeight: '500' },
+  sessionActionButtonPrimary: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
+  sessionActionPrimaryText: { fontSize: 13, fontWeight: '600', color: '#FFFFFF' },
+  sessionsList: { gap: 10, paddingVertical: 4 },
+  sessionItem: { width: 180, padding: 12, borderWidth: 1, borderRadius: 12, marginRight: 8 },
+  sessionTitle: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  sessionMeta: { fontSize: 12, marginBottom: 2 },
+  sessionActiveBadge: { fontSize: 12, fontWeight: '600', marginTop: 4 },
+  emptySessionsText: { fontSize: 13, textAlign: 'left', paddingVertical: 6 },
 });
 
 export default ChatScreen;

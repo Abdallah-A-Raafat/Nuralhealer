@@ -1,94 +1,160 @@
+import { Client, IMessage } from '@stomp/stompjs';
+import apiClient from './apiClient';
+import { API_CONFIG } from '../config';
+import { useAuthStore } from '../store/authStore';
+
 /**
- * AI Chat WebSocket Service
- * Manages WebSocket connection to backend AI chat endpoint
+ * AI Chat STOMP WebSocket Service (mobile)
+ * Mirrors web implementation: STOMP over WebSocket with REST fallback and session handling
  */
 
 type MessageCallback = (message: any) => void;
 type StatusCallback = (status: string) => void;
 
 class AiChatService {
-  private ws: WebSocket | null = null;
+  private stompClient: Client | null = null;
   private messageListeners: MessageCallback[] = [];
   private statusListeners: StatusCallback[] = [];
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 3000;
+  private currentSessionId: string | null = null;
   private isManualDisconnect = false;
-  private wsUrl: string = '';
+
+  private readonly API_BASE = API_CONFIG.BASE_URL;
 
   /**
-   * Connect to AI WebSocket
+   * Connect to AI WebSocket using STOMP
    */
-  connect(wsUrl: string) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      console.log('✅ Already connected to AI WebSocket');
+  connect(wsUrl?: string) {
+    const resolvedUrl = wsUrl
+      ? wsUrl
+      : __DEV__
+        ? 'ws://10.0.2.2:8080/api/ws'
+        : 'wss://api.neuralhealer.com/api/ws';
+
+    if (this.stompClient && this.stompClient.connected) {
+      console.log('✅ Already connected to AI WebSocket (STOMP)');
       return;
     }
 
-    console.log('🔌 Connecting to AI WebSocket:', wsUrl);
-    this.wsUrl = wsUrl;
+    console.log('🔌 Connecting to AI WebSocket via STOMP:', resolvedUrl);
     this.isManualDisconnect = false;
 
     try {
-      this.ws = new WebSocket(wsUrl);
+      const token = useAuthStore.getState().token;
+      const connectHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+      const wsHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
-      this.ws.onopen = () => {
-        console.log('✅ Connected to AI Chat WebSocket');
-        this.reconnectAttempts = 0;
-        this.notifyStatusListeners('connected');
-      };
+      this.stompClient = new Client({
+        // For React Native we supply a factory to push auth headers into the handshake
+        webSocketFactory: () => new WebSocket(resolvedUrl, [], { headers: wsHeaders }),
+        connectHeaders,
+        reconnectDelay: 5000,
+        heartbeatIncoming: 10000,
+        heartbeatOutgoing: 10000,
+        debug: (msg) => {
+          if (__DEV__) console.log('[STOMP]', msg);
+        },
+        onConnect: () => {
+          console.log('✅ Connected to AI Chat WebSocket (STOMP)');
+          this.stompClient?.subscribe('/user/queue/ai', (message) => this.onAiMessage(message));
+          this.notifyStatusListeners('connected');
+        },
+        onDisconnect: () => {
+          console.log('🔌 Disconnected from AI Chat WebSocket (STOMP)');
+          this.notifyStatusListeners('disconnected');
+          if (!this.isManualDisconnect) {
+            console.log('🔄 Will attempt to reconnect via STOMP reconnectDelay...');
+          }
+        },
+        onStompError: (frame) => {
+          console.error('❌ STOMP error:', frame.headers['message']);
+          this.notifyStatusListeners('error');
+        },
+        onWebSocketError: (error) => {
+          console.error('❌ WebSocket error:', error);
+          this.notifyStatusListeners('error');
+        },
+      });
 
-      this.ws.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          console.log('📨 AI message received:', message);
-          this.notifyMessageListeners(message);
-        } catch (error) {
-          console.error('❌ Failed to parse WebSocket message:', error);
-        }
-      };
-
-      this.ws.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
-        this.notifyStatusListeners('error');
-      };
-
-      this.ws.onclose = () => {
-        console.log('🔌 Disconnected from AI Chat WebSocket');
-        this.notifyStatusListeners('disconnected');
-
-        if (!this.isManualDisconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
-          this.reconnectAttempts++;
-          console.log(`🔄 Reconnecting... Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
-          setTimeout(() => this.connect(this.wsUrl), this.reconnectDelay);
-        } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-          console.error('❌ Max reconnection attempts reached');
-          this.notifyStatusListeners('failed');
-        }
-      };
+      this.stompClient.activate();
     } catch (error) {
-      console.error('❌ Failed to create WebSocket:', error);
+      console.error('❌ Failed to create STOMP client:', error);
       this.notifyStatusListeners('error');
     }
   }
 
   /**
-   * Send a question to the AI
+   * Handle incoming AI messages from STOMP
    */
-  sendQuestion(question: string): boolean {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.error('❌ WebSocket not connected');
-      this.notifyStatusListeners('error');
-      return false;
+  private onAiMessage(message: IMessage) {
+    try {
+      const event = JSON.parse(message.body);
+      if (__DEV__) {
+        console.log('📨 AI event received:', event.type, event);
+      }
+      this.notifyMessageListeners(event);
+
+      if (event.sessionId && !this.currentSessionId) {
+        this.currentSessionId = event.sessionId;
+        if (__DEV__) console.log('📝 Session ID set from STOMP:', this.currentSessionId);
+      }
+    } catch (error) {
+      console.error('❌ Failed to parse STOMP message:', error);
+    }
+  }
+
+  /**
+   * Send a question to the AI via STOMP (with REST fallback)
+   */
+  async sendQuestion(question: string, sessionId?: string): Promise<boolean> {
+    const activeSessionId = sessionId || this.currentSessionId;
+
+    if (this.stompClient && this.stompClient.connected) {
+      try {
+        const destination = activeSessionId
+          ? `/app/ai/ask?sessionId=${activeSessionId}`
+          : '/app/ai/ask';
+
+        const payload = { question, country: 'egypt' };
+
+        this.stompClient.publish({
+          destination,
+          body: JSON.stringify(payload),
+        });
+
+        return true;
+      } catch (error) {
+        console.error('❌ Failed to send via STOMP:', error);
+      }
     }
 
+    // REST fallback
     try {
-      const message = { question };
-      this.ws.send(JSON.stringify(message));
-      console.log('📤 Question sent:', question);
+      const url = activeSessionId
+        ? `${this.API_BASE}/ai/ask/${activeSessionId}`
+        : `${this.API_BASE}/ai/ask`;
+
+      const response = await apiClient.post(url, { question, country: 'egypt' });
+      const data = response.data;
+
+      if (!this.currentSessionId && data.sessionId) {
+        this.currentSessionId = data.sessionId;
+        if (__DEV__) console.log('📝 Session ID set from REST:', this.currentSessionId);
+      }
+
+      this.notifyMessageListeners({
+        type: 'AI_RESPONSE',
+        content: data.answer,
+        sessionId: data.sessionId,
+        sources: data.sources,
+      });
+
       return true;
     } catch (error) {
-      console.error('❌ Failed to send question:', error);
+      console.error('❌ REST fallback failed:', error);
+      this.notifyMessageListeners({
+        type: 'AI_ERROR',
+        content: 'System Error: Unable to reach AI Service.',
+      });
       return false;
     }
   }
@@ -99,7 +165,7 @@ class AiChatService {
   onMessage(callback: MessageCallback): () => void {
     this.messageListeners.push(callback);
     return () => {
-      this.messageListeners = this.messageListeners.filter(cb => cb !== callback);
+      this.messageListeners = this.messageListeners.filter((cb) => cb !== callback);
     };
   }
 
@@ -109,12 +175,15 @@ class AiChatService {
   onStatusChange(callback: StatusCallback): () => void {
     this.statusListeners.push(callback);
     return () => {
-      this.statusListeners = this.statusListeners.filter(cb => cb !== callback);
+      this.statusListeners = this.statusListeners.filter((cb) => cb !== callback);
     };
   }
 
+  /**
+   * Notify all message listeners
+   */
   private notifyMessageListeners(message: any) {
-    this.messageListeners.forEach(callback => {
+    this.messageListeners.forEach((callback) => {
       try {
         callback(message);
       } catch (error) {
@@ -123,8 +192,11 @@ class AiChatService {
     });
   }
 
+  /**
+   * Notify all status listeners
+   */
   private notifyStatusListeners(status: string) {
-    this.statusListeners.forEach(callback => {
+    this.statusListeners.forEach((callback) => {
       try {
         callback(status);
       } catch (error) {
@@ -137,19 +209,54 @@ class AiChatService {
    * Disconnect from WebSocket
    */
   disconnect() {
-    console.log('🔌 Disconnecting from AI WebSocket...');
-    this.isManualDisconnect = true;
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
+    if (this.stompClient) {
+      this.isManualDisconnect = true;
+      this.stompClient.deactivate();
+      this.stompClient = null;
+      console.log('🔌 Manually disconnected from AI Chat (STOMP)');
     }
   }
 
-  /**
-   * Check if connected
-   */
   isConnected(): boolean {
-    return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
+    return !!(this.stompClient && this.stompClient.connected);
+  }
+
+  getStatus(): string {
+    if (!this.stompClient) return 'disconnected';
+    return this.stompClient.connected ? 'connected' : 'disconnected';
+  }
+
+  getSessionId(): string | null {
+    return this.currentSessionId;
+  }
+
+  setSessionId(sessionId: string) {
+    this.currentSessionId = sessionId;
+    if (__DEV__) console.log('📝 Session ID manually set:', sessionId);
+  }
+
+  clearSession() {
+    this.currentSessionId = null;
+    if (__DEV__) console.log('🗑️ Session cleared');
+  }
+
+  /**
+   * Chat history helpers
+   */
+  async fetchChatHistory() {
+    const response = await apiClient.get(`${this.API_BASE}/chats`);
+    return response.data;
+  }
+
+  async loadSessionMessages(sessionId: string) {
+    const response = await apiClient.get(`${this.API_BASE}/chats/${sessionId}/messages`);
+    return response.data;
+  }
+
+  async renameSession(sessionId: string, newTitle: string) {
+    await apiClient.put(`${this.API_BASE}/chats/${sessionId}/title`, newTitle, {
+      headers: { 'Content-Type': 'text/plain' },
+    });
   }
 }
 

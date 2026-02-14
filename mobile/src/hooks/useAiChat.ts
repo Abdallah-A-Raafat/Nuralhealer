@@ -3,7 +3,7 @@
  * STOMP WebSocket + REST fallback, session support to mirror web behavior
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import aiChatService from '../services/aiChatService';
 
 interface Message {
@@ -55,6 +55,8 @@ export const useAiChat = (): UseAiChatReturn => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
+  const wsUrl = useMemo(() => aiChatService.getDefaultWsUrl(), []);
+
   const addMessage = useCallback((message: Omit<Message, 'id'>) => {
     setMessages((prev) => [
       ...prev,
@@ -103,8 +105,6 @@ export const useAiChat = (): UseAiChatReturn => {
   );
 
   useEffect(() => {
-    const wsUrl = __DEV__ ? 'ws://10.0.2.2:8080/api/ws' : 'wss://api.neuralhealer.com/api/ws';
-
     aiChatService.connect(wsUrl);
 
     const unsubscribeStatus = aiChatService.onStatusChange((status) => {
@@ -127,7 +127,7 @@ export const useAiChat = (): UseAiChatReturn => {
       unsubscribeMessages();
       aiChatService.disconnect();
     };
-  }, [handleIncomingMessage]);
+  }, [handleIncomingMessage, wsUrl]);
 
   const sendMessage = useCallback(
     async (text: string): Promise<boolean> => {
@@ -235,10 +235,9 @@ export const useAiChat = (): UseAiChatReturn => {
   }, []);
 
   const reconnect = useCallback(() => {
-    const wsUrl = __DEV__ ? 'ws://10.0.2.2:8080/api/ws' : 'wss://api.neuralhealer.com/api/ws';
     aiChatService.disconnect();
     setTimeout(() => aiChatService.connect(wsUrl), 500);
-  }, []);
+  }, [wsUrl]);
 
   useEffect(() => {
     if (isConnected) {

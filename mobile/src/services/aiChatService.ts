@@ -1,4 +1,5 @@
 import { Client, IMessage } from '@stomp/stompjs';
+import { Platform } from 'react-native';
 import apiClient from './apiClient';
 import { API_CONFIG } from '../config';
 import { useAuthStore } from '../store/authStore';
@@ -21,14 +22,42 @@ class AiChatService {
   private readonly API_BASE = API_CONFIG.BASE_URL;
 
   /**
+   * Derive the WebSocket URL from API_BASE (keeps dev/prod in sync).
+   * Handles Android emulator special-case (10.0.2.2 when backend is localhost).
+   */
+  private buildWsUrl(overrideUrl?: string) {
+    if (overrideUrl) return overrideUrl;
+
+    try {
+      const apiUrl = new URL(this.API_BASE);
+      const isSecure = apiUrl.protocol === 'https:';
+
+      let host = apiUrl.hostname;
+      if (__DEV__ && Platform.OS === 'android' && (host === 'localhost' || host === '127.0.0.1')) {
+        host = '10.0.2.2';
+      }
+
+      const port = apiUrl.port ? `:${apiUrl.port}` : '';
+      const path = apiUrl.pathname.replace(/\/$/, '');
+
+      return `${isSecure ? 'wss' : 'ws'}://${host}${port}${path}/ws`;
+    } catch (error) {
+      if (__DEV__) {
+        console.warn('⚠️ Failed to derive WS URL from API_BASE, using fallback:', error);
+      }
+      return __DEV__ ? 'ws://10.0.2.2:8080/api/ws' : 'wss://api.neuralhealer.com/api/ws';
+    }
+  }
+
+  getDefaultWsUrl(customUrl?: string) {
+    return this.buildWsUrl(customUrl);
+  }
+
+  /**
    * Connect to AI WebSocket using STOMP
    */
   connect(wsUrl?: string) {
-    const resolvedUrl = wsUrl
-      ? wsUrl
-      : __DEV__
-        ? 'ws://10.0.2.2:8080/api/ws'
-        : 'wss://api.neuralhealer.com/api/ws';
+    const resolvedUrl = this.buildWsUrl(wsUrl);
 
     if (this.stompClient && this.stompClient.connected) {
       console.log('✅ Already connected to AI WebSocket (STOMP)');
@@ -40,18 +69,20 @@ class AiChatService {
 
     try {
       const token = useAuthStore.getState().token;
-      const connectHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-      const wsHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+      const authHeader = token && token !== 'session-cookie' ? { Authorization: `Bearer ${token}` } : {};
 
       this.stompClient = new Client({
-        // For React Native we supply a factory to push auth headers into the handshake
-        webSocketFactory: () => new WebSocket(resolvedUrl, [], { headers: wsHeaders }),
-        connectHeaders,
+        brokerURL: resolvedUrl,
+        connectHeaders: authHeader,
         reconnectDelay: 5000,
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,
         debug: (msg) => {
           if (__DEV__) console.log('[STOMP]', msg);
+        },
+        onWebSocketClose: (evt) => {
+          console.error('❌ WebSocket closed', evt.code, evt.reason || '');
+          this.notifyStatusListeners('error');
         },
         onConnect: () => {
           console.log('✅ Connected to AI Chat WebSocket (STOMP)');

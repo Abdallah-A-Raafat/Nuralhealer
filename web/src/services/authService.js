@@ -108,4 +108,33 @@ export const authService = {
     
     return response.data;
   },
+  /**
+   * Verify OTP code for email verification
+   * @param {string} email
+   * @param {string} otpCode
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
+  verifyOtp: async (email, otpCode) => {
+    try {
+      const response = await apiClient.post('/auth/verify-email', { email, otpCode });
+      return { success: true, data: response.data };
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Verification failed';
+      return { success: false, error: message };
+    }
+  },
+  /**
+   * Resend OTP code for email verification
+   * @param {string} email
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
+  resendOtp: async (email) => {
+    try {
+      const response = await apiClient.post('/auth/resend-otp', { email });
+      return { success: true, data: response.data };
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Resend failed';
+      return { success: false, error: message };
+    }
+  },
 };

@@ -60,7 +60,7 @@ const Doctors = () => {
     if (!selectedDoctor) return;
     
     try {
-      await engagementService.requestEngagement(selectedDoctor.id, 'FULL_ACCESS');
+      await engagementService.initiatePatientEngagement(selectedDoctor.id, 'FULL_ACCESS');
       
       showToast.success(
         t('engagementSentSuccess') || 'Engagement request sent successfully! The doctor will review and verify your request.',

@@ -106,6 +106,25 @@ export const useAuth = () => {
    */
   const accountType = role ? role.toLowerCase() : null;
 
+  /**
+   * Verify OTP code for email verification
+   * @param {string} email
+   * @param {string} otpCode
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
+  const verifyOtp = async (email, otpCode) => {
+    return await authService.verifyOtp(email, otpCode);
+  };
+
+  /**
+   * Resend OTP code for email verification
+   * @param {string} email
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
+  const resendOtp = async (email) => {
+    return await authService.resendOtp(email);
+  };
+
   return {
     user,
     isLoggedIn,
@@ -115,6 +134,8 @@ export const useAuth = () => {
     registerUser,
     logoutUser,
     checkAuthStatus,
+    verifyOtp,
+    resendOtp,
     isAuthenticated: () => isLoggedIn,
     isDoctor: () => role === 'DOCTOR',
     isPatient: () => role === 'PATIENT',

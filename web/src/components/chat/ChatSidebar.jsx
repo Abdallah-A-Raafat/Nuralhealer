@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { MessageSquare, Plus, Search, Calendar, MessageCircle, Edit2, Check, X, Users } from 'lucide-react';
+import { MessageSquare, Plus, Search, Calendar, MessageCircle, Edit2, Check, X, Users, Shield } from 'lucide-react';
 import { useLanguage } from '../../hooks/useLanguage';
 
 /**
@@ -16,18 +16,30 @@ const ChatSidebar = ({
   onRenameSession,
   authorizedDoctors = [],
   authorizedLoading = false,
-  authorizedError = ''
+  authorizedError = '',
+  engagements = [],
+  engagementsLoading = false,
+  onUpdateChatAccess
 }) => {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [editingSessionId, setEditingSessionId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [showAuthorized, setShowAuthorized] = useState(false);
+  const [showAccessManagement, setShowAccessManagement] = useState(false);
+  const [selectedDoctors, setSelectedDoctors] = useState(new Set());
 
   useEffect(() => {
     // Close the authorized doctors dropdown when switching sessions
     setShowAuthorized(false);
+    setShowAccessManagement(false);
   }, [currentSession]);
+
+  useEffect(() => {
+    // Update selected doctors when authorized doctors change
+    const doctorIds = new Set(authorizedDoctors.map(doc => doc.id || doc.doctorId));
+    setSelectedDoctors(doctorIds);
+  }, [authorizedDoctors]);
 
   // Filter sessions based on search query
   const filteredSessions = useMemo(() => {
@@ -56,6 +68,31 @@ const ChatSidebar = ({
       return date.toLocaleDateString([], { weekday: 'short' });
     } else {
       return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+  };
+
+  const getActiveEngagements = () => {
+    return engagements.filter(e => e.status === 'active');
+  };
+
+  const getEndedEngagements = () => {
+    return engagements.filter(e => e.status === 'ended' || e.status === 'cancelled');
+  };
+
+  const handleDoctorSelection = (doctorId, isSelected) => {
+    const newSelected = new Set(selectedDoctors);
+    if (isSelected) {
+      newSelected.add(doctorId);
+    } else {
+      newSelected.delete(doctorId);
+    }
+    setSelectedDoctors(newSelected);
+  };
+
+  const handleSaveAccess = async () => {
+    if (onUpdateChatAccess && currentSession) {
+      await onUpdateChatAccess(currentSession, Array.from(selectedDoctors));
+      setShowAccessManagement(false);
     }
   };
 
@@ -195,11 +232,32 @@ const ChatSidebar = ({
                             <Edit2 className="w-3 h-3" />
                           </button>
                         )}
+                        {currentSession === session.id && onUpdateChatAccess && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowAccessManagement(prev => !prev);
+                              setShowAuthorized(false);
+                            }}
+                            className={`
+                              p-1 rounded transition-colors
+                              ${showAccessManagement 
+                                ? 'text-primary-600 bg-primary-100 dark:text-primary-300 dark:bg-primary/20' 
+                                : currentSession === session.id 
+                                  ? 'text-primary-600 hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary/20'
+                                  : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-[#3F3651] dark:hover:text-gray-200'}
+                            `}
+                            title={t.chat?.manageAccess || 'Doctors who can see this chat'}
+                          >
+                            <Shield className="w-3 h-3" />
+                          </button>
+                        )}
                         {currentSession === session.id && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setShowAuthorized(prev => !prev);
+                              setShowAccessManagement(false);
                             }}
                             className={`
                               p-1 rounded transition-colors
@@ -263,6 +321,92 @@ const ChatSidebar = ({
                           ))}
                         </ul>
                       )
+                    )}
+                  </div>
+                )}
+
+                {currentSession === session.id && showAccessManagement && (
+                  <div className="mt-2 bg-gray-50 dark:bg-[#2A2238] border border-gray-200 dark:border-[#3F3651] rounded-lg p-3 text-xs" onClick={(e) => e.stopPropagation()}>
+                    <p className="font-semibold text-gray-900 dark:text-lightText mb-2">
+                      {t.chat?.manageAccess || 'Doctors who can see this chat'}
+                    </p>
+                    
+                    {engagementsLoading && (
+                      <p>{t.common?.loading || 'Loading...'}</p>
+                    )}
+                    
+                    {!engagementsLoading && (
+                      <>
+                        {/* Active Engagements */}
+                        {getActiveEngagements().length > 0 && (
+                          <div className="mb-3">
+                            <p className="font-medium text-gray-800 dark:text-lightText mb-1">
+                              {t.chat?.activeEngagements || 'Active Engagements'}
+                            </p>
+                            <div className="space-y-1">
+                              {getActiveEngagements().map((engagement) => (
+                                <label key={engagement.id} className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedDoctors.has(engagement.doctor.id)}
+                                    onChange={(e) => handleDoctorSelection(engagement.doctor.id, e.target.checked)}
+                                    className="w-3 h-3 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                                  />
+                                  <span className="text-gray-700 dark:text-lightText">
+                                    {engagement.doctor.fullName || engagement.doctor.name}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Ended Engagements */}
+                        {getEndedEngagements().length > 0 && (
+                          <div className="mb-3">
+                            <p className="font-medium text-gray-800 dark:text-lightText mb-1">
+                              {t.chat?.endedEngagements || 'Ended Engagements'}
+                            </p>
+                            <div className="space-y-1">
+                              {getEndedEngagements().map((engagement) => (
+                                <label key={engagement.id} className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedDoctors.has(engagement.doctor.id)}
+                                    onChange={(e) => handleDoctorSelection(engagement.doctor.id, e.target.checked)}
+                                    className="w-3 h-3 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                                  />
+                                  <span className="text-gray-700 dark:text-lightText">
+                                    {engagement.doctor.fullName || engagement.doctor.name}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {getActiveEngagements().length === 0 && getEndedEngagements().length === 0 && (
+                          <p className="text-gray-600 dark:text-gray-400">
+                            {t.chat?.noEngagements || 'No engagements found'}
+                          </p>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 mt-3 pt-2 border-t border-gray-200 dark:border-[#3F3651]">
+                          <button
+                            onClick={handleSaveAccess}
+                            className="flex-1 px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition-colors"
+                          >
+                            {t.common?.save || 'Save'}
+                          </button>
+                          <button
+                            onClick={() => setShowAccessManagement(false)}
+                            className="px-3 py-1 bg-gray-300 text-gray-700 text-xs rounded hover:bg-gray-400 transition-colors"
+                          >
+                            {t.common?.cancel || 'Cancel'}
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                 )}

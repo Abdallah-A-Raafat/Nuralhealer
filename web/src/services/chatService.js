@@ -46,9 +46,11 @@ export const chatService = {
     return response.data;
   },
 
-  // Get AI suggestions for the current session
-  getSuggestions: async (sessionId) => {
-    const response = await apiClient.get(`/sessions/${sessionId}/suggestions`);
+  // Update authorized doctors for a chat session
+  updateSessionAccess: async (sessionId, doctorIds) => {
+    const response = await apiClient.put(`/chats/sessions/${sessionId}/access`, {
+      doctorIds
+    });
     return response.data;
   },
 

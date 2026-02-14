@@ -5,6 +5,7 @@ import ChatSidebar from '../../components/chat/ChatSidebar';
 import { useAiChat } from '../../hooks/useAiChat';
 import { useLanguage } from '../../hooks/useLanguage';
 import { chatService } from '../../services/chatService';
+import engagementService from '../../services/engagementService';
 import { showToast } from '../../utils/toast';
 
 const Chat = () => {
@@ -168,6 +169,8 @@ const TextSession = ({ onBack }) => {
   const [authorizedDoctors, setAuthorizedDoctors] = useState([]);
   const [loadingAuthorized, setLoadingAuthorized] = useState(false);
   const [authorizedError, setAuthorizedError] = useState('');
+  const [engagements, setEngagements] = useState([]);
+  const [loadingEngagements, setLoadingEngagements] = useState(false);
 
   useEffect(() => {
     const loadAuthorized = async () => {
@@ -185,6 +188,22 @@ const TextSession = ({ onBack }) => {
     };
 
     loadAuthorized();
+  }, []);
+
+  useEffect(() => {
+    const loadEngagements = async () => {
+      try {
+        setLoadingEngagements(true);
+        const data = await engagementService.getMyEngagements();
+        setEngagements(data || []);
+      } catch (err) {
+        console.error('Failed to load engagements', err);
+      } finally {
+        setLoadingEngagements(false);
+      }
+    };
+
+    loadEngagements();
   }, []);
 
   const handleSendMessage = async () => {
@@ -215,6 +234,20 @@ const TextSession = ({ onBack }) => {
     } catch (error) {
       console.error('Failed to rename session:', error);
       showToast.error(t.chat?.renameError || 'Failed to rename session');
+    }
+  };
+
+  const handleUpdateChatAccess = async (sessionId, doctorIds) => {
+    try {
+      await chatService.updateSessionAccess(sessionId, doctorIds);
+      showToast.success(t.chat?.accessUpdated || 'Chat access updated successfully');
+      
+      // Refresh authorized doctors
+      const data = await chatService.getAuthorizedDoctors();
+      setAuthorizedDoctors(data || []);
+    } catch (error) {
+      console.error('Failed to update chat access:', error);
+      showToast.error(t.chat?.accessUpdateError || 'Failed to update chat access');
     }
   };
 
@@ -315,6 +348,9 @@ const TextSession = ({ onBack }) => {
             authorizedDoctors={authorizedDoctors}
             authorizedLoading={loadingAuthorized}
             authorizedError={authorizedError}
+            engagements={engagements}
+            engagementsLoading={loadingEngagements}
+            onUpdateChatAccess={handleUpdateChatAccess}
           />
         </div>
 

@@ -69,10 +69,10 @@ const Register = () => {
     
     const result = await registerUser(userData);
 
+
     if (result.success) {
-      // Navigate based on role from backend response
-      const userRole = result.data.role; // 'DOCTOR' or 'PATIENT'
-      navigate(userRole === 'DOCTOR' ? '/doctor-dashboard' : '/doctors');
+      // After registration, redirect to OTP verification page
+      navigate('/verify-email', { state: { email: userData.email } });
     } else {
       setApiError(result.error);
     }

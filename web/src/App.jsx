@@ -19,6 +19,8 @@ import Doctors from './pages/patient/Doctors';
 import Profile from './pages/patient/Profile';
 import Assessments from './pages/patient/Assessments';
 import EngagementChat from './components/engagement/EngagementChat';
+import EngagementVerification from './pages/EngagementVerification';
+import OtpVerification from './pages/OtpVerification';
 
 function App() {
   return (
@@ -57,6 +59,15 @@ function App() {
           <Route path="/about" element={<AboutContact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<OtpVerification />} />
+          <Route
+            path="/verify-engagement"
+            element={
+              <DoctorProtectedRoute>
+                <EngagementVerification />
+              </DoctorProtectedRoute>
+            }
+          />
           <Route 
             path="/chat" 
             element={

@@ -25,21 +25,28 @@ const ChatSidebar = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [editingSessionId, setEditingSessionId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
-  const [showAuthorized, setShowAuthorized] = useState(false);
+  const [showAuthoribzed, setShowAuthorized] = useState(false);
   const [showAccessManagement, setShowAccessManagement] = useState(false);
+  const [accessManagementSessionId, setAccessManagementSessionId] = useState(null);
   const [selectedDoctors, setSelectedDoctors] = useState(new Set());
 
   useEffect(() => {
     // Close the authorized doctors dropdown when switching sessions
     setShowAuthorized(false);
     setShowAccessManagement(false);
+    setAccessManagementSessionId(null);
   }, [currentSession]);
 
   useEffect(() => {
-    // Update selected doctors when authorized doctors change
+    // Update selected doctors when authorized doctors, engagements change, or when opening access management for a different session
     const doctorIds = new Set(authorizedDoctors.map(doc => doc.id || doc.doctorId));
+    
+    // Always include doctors from active engagements
+    const activeEngagementDoctors = getActiveEngagements().map(e => e.doctor.id);
+    activeEngagementDoctors.forEach(id => doctorIds.add(id));
+    
     setSelectedDoctors(doctorIds);
-  }, [authorizedDoctors]);
+  }, [authorizedDoctors, engagements, accessManagementSessionId]);
 
   // Filter sessions based on search query
   const filteredSessions = useMemo(() => {
@@ -75,10 +82,6 @@ const ChatSidebar = ({
     return engagements.filter(e => e.status === 'active');
   };
 
-  const getEndedEngagements = () => {
-    return engagements.filter(e => e.status === 'ended' || e.status === 'cancelled');
-  };
-
   const handleDoctorSelection = (doctorId, isSelected) => {
     const newSelected = new Set(selectedDoctors);
     if (isSelected) {
@@ -90,9 +93,10 @@ const ChatSidebar = ({
   };
 
   const handleSaveAccess = async () => {
-    if (onUpdateChatAccess && currentSession) {
-      await onUpdateChatAccess(currentSession, Array.from(selectedDoctors));
+    if (onUpdateChatAccess && accessManagementSessionId) {
+      await onUpdateChatAccess(accessManagementSessionId, Array.from(selectedDoctors));
       setShowAccessManagement(false);
+      setAccessManagementSessionId(null);
     }
   };
 
@@ -232,16 +236,18 @@ const ChatSidebar = ({
                             <Edit2 className="w-3 h-3" />
                           </button>
                         )}
-                        {currentSession === session.id && onUpdateChatAccess && (
+                        {onUpdateChatAccess && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setShowAccessManagement(prev => !prev);
+                              const newShowState = !showAccessManagement || accessManagementSessionId !== session.id;
+                              setShowAccessManagement(newShowState);
+                              setAccessManagementSessionId(newShowState ? session.id : null);
                               setShowAuthorized(false);
                             }}
                             className={`
                               p-1 rounded transition-colors
-                              ${showAccessManagement 
+                              ${showAccessManagement && accessManagementSessionId === session.id
                                 ? 'text-primary-600 bg-primary-100 dark:text-primary-300 dark:bg-primary/20' 
                                 : currentSession === session.id 
                                   ? 'text-primary-600 hover:bg-primary-100 dark:text-primary-300 dark:hover:bg-primary/20'
@@ -325,7 +331,7 @@ const ChatSidebar = ({
                   </div>
                 )}
 
-                {currentSession === session.id && showAccessManagement && (
+                {showAccessManagement && accessManagementSessionId === session.id && (
                   <div className="mt-2 bg-gray-50 dark:bg-[#2A2238] border border-gray-200 dark:border-[#3F3651] rounded-lg p-3 text-xs" onClick={(e) => e.stopPropagation()}>
                     <p className="font-semibold text-gray-900 dark:text-lightText mb-2">
                       {t.chat?.manageAccess || 'Doctors who can see this chat'}
@@ -353,7 +359,11 @@ const ChatSidebar = ({
                                     className="w-3 h-3 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
                                   />
                                   <span className="text-gray-700 dark:text-lightText">
-                                    {engagement.doctor.fullName || engagement.doctor.name}
+                                    {engagement.doctor ? 
+                                      `${engagement.doctor.firstName} ${engagement.doctor.lastName}`.trim() || 
+                                      engagement.doctor.email || 
+                                      'Doctor' 
+                                      : 'Doctor'}
                                   </span>
                                 </label>
                               ))}
@@ -361,33 +371,9 @@ const ChatSidebar = ({
                           </div>
                         )}
 
-                        {/* Ended Engagements */}
-                        {getEndedEngagements().length > 0 && (
-                          <div className="mb-3">
-                            <p className="font-medium text-gray-800 dark:text-lightText mb-1">
-                              {t.chat?.endedEngagements || 'Ended Engagements'}
-                            </p>
-                            <div className="space-y-1">
-                              {getEndedEngagements().map((engagement) => (
-                                <label key={engagement.id} className="flex items-center gap-2 cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedDoctors.has(engagement.doctor.id)}
-                                    onChange={(e) => handleDoctorSelection(engagement.doctor.id, e.target.checked)}
-                                    className="w-3 h-3 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                                  />
-                                  <span className="text-gray-700 dark:text-lightText">
-                                    {engagement.doctor.fullName || engagement.doctor.name}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {getActiveEngagements().length === 0 && getEndedEngagements().length === 0 && (
+                        {getActiveEngagements().length === 0 && (
                           <p className="text-gray-600 dark:text-gray-400">
-                            {t.chat?.noEngagements || 'No engagements found'}
+                            {t.chat?.noEngagements || 'No active engagements found'}
                           </p>
                         )}
 

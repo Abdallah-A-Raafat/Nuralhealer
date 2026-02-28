@@ -33,6 +33,7 @@ export default function LiveSession() {
   const [session, setSession] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  // scriptLoading: true only while external_api.js is being fetched (max 4 s)
   const [scriptLoading, setScriptLoading] = useState(false);
   const [joined, setJoined] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -83,10 +84,10 @@ export default function LiveSession() {
         },
       });
 
-      // Clear loading as soon as iframe API responds
+      // Jitsi fires this when the conference UI is ready
       api.addEventListener('videoConferenceJoined', () => setScriptLoading(false));
-      // Safety: clear loading after 4 s regardless (iframe is already visible)
-      setTimeout(() => setScriptLoading(false), 4000);
+      // Safety fallback: iframe is visually usable before the event fires in some configs
+      const safetyTimer = setTimeout(() => setScriptLoading(false), 4000);
 
       api.addEventListener('participantJoined', () => {
         setParticipantCount((n) => n + 1);
@@ -96,6 +97,7 @@ export default function LiveSession() {
         setParticipantCount((n) => Math.max(1, n - 1)),
       );
       api.addEventListener('readyToClose', () => {
+        clearTimeout(safetyTimer);
         api.dispose();
         jitsiApiRef.current = null;
         navigate(-1);

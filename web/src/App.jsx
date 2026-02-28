@@ -21,6 +21,7 @@ import Assessments from './pages/patient/Assessments';
 import EngagementChat from './components/engagement/EngagementChat';
 import EngagementVerification from './pages/EngagementVerification';
 import OtpVerification from './pages/OtpVerification';
+import LiveSession from './pages/livesession/LiveSession';
 
 function App() {
   return (
@@ -108,6 +109,10 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          {/* Live Session Routes — public for functionality testing */}
+          <Route path="/live-session" element={<LiveSession />} />
+          <Route path="/live-session/:sessionId" element={<LiveSession />} />
+
           {/* Doctor Routes */}
           <Route 
             path="/doctor-dashboard" 

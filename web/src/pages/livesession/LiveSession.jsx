@@ -10,15 +10,16 @@ import {
   AlertCircle,
   Loader2,
   ArrowLeft,
+  Wifi,
 } from 'lucide-react';
 import liveSessionService from './liveSessionService';
 
 /**
- * LiveSession — self-contained Jitsi video-call page.
+ * LiveSession  self-contained Jitsi video-call page.
  *
  * Routes:
- *   /live-session               → create a new session
- *   /live-session/:sessionId    → join an existing session
+ *   /live-session                create a new session
+ *   /live-session/:sessionId     join an existing session
  */
 export default function LiveSession() {
   const { sessionId: paramSessionId } = useParams();
@@ -32,26 +33,25 @@ export default function LiveSession() {
   const [session, setSession] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [jitsiLoading, setJitsiLoading] = useState(false);
+  const [scriptLoading, setScriptLoading] = useState(false);
   const [joined, setJoined] = useState(false);
   const [copied, setCopied] = useState(false);
   const [participantCount, setParticipantCount] = useState(1);
+  const [showShareBanner, setShowShareBanner] = useState(true);
 
   const shareLink = session
     ? `${window.location.origin}/live-session/${session.sessionId}`
     : '';
 
-  // ── copy share link ──
-
+  //  copy link 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareLink).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 2500);
     });
   };
 
-  // ── mount Jitsi ──
-
+  //  Jitsi bootstrap 
   const startJitsi = useCallback(
     (roomName, domain, displayName) => {
       if (jitsiApiRef.current) return;
@@ -60,10 +60,13 @@ export default function LiveSession() {
         roomName,
         parentNode: jitsiContainerRef.current,
         userInfo: { displayName },
+        width: '100%',
+        height: '100%',
         configOverwrite: {
           startWithAudioMuted: true,
           startWithVideoMuted: false,
           prejoinPageEnabled: false,
+          disableDeepLinking: true,
         },
         interfaceConfigOverwrite: {
           SHOW_JITSI_WATERMARK: false,
@@ -80,10 +83,15 @@ export default function LiveSession() {
         },
       });
 
-      api.addEventListener('videoConferenceJoined', () => setJitsiLoading(false));
-      api.addEventListener('participantJoined', () =>
-        setParticipantCount((n) => n + 1),
-      );
+      // Clear loading as soon as iframe API responds
+      api.addEventListener('videoConferenceJoined', () => setScriptLoading(false));
+      // Safety: clear loading after 4 s regardless (iframe is already visible)
+      setTimeout(() => setScriptLoading(false), 4000);
+
+      api.addEventListener('participantJoined', () => {
+        setParticipantCount((n) => n + 1);
+        setShowShareBanner(false);
+      });
       api.addEventListener('participantLeft', () =>
         setParticipantCount((n) => Math.max(1, n - 1)),
       );
@@ -101,7 +109,7 @@ export default function LiveSession() {
   useEffect(() => {
     if (!session || !joined) return;
 
-    setJitsiLoading(true);
+    setScriptLoading(true);
 
     const loadScript = () =>
       new Promise((resolve, reject) => {
@@ -110,14 +118,16 @@ export default function LiveSession() {
         s.src = `https://${session.jitsiDomain}/external_api.js`;
         s.async = true;
         s.onload = resolve;
-        s.onerror = () => reject(new Error('Could not load Jitsi — check your internet connection.'));
+        s.onerror = () =>
+          reject(new Error('Could not reach Jitsi  check your internet connection.'));
         document.head.appendChild(s);
       });
 
     loadScript()
       .then(() => startJitsi(session.roomName, session.jitsiDomain, name))
       .catch((err) => {
-        setJitsiLoading(false);
+        setScriptLoading(false);
+        setJoined(false);
         setError(err.message);
       });
 
@@ -129,8 +139,7 @@ export default function LiveSession() {
     };
   }, [session, joined, name, startJitsi]);
 
-  // ── create ──
-
+  //  create 
   const handleCreate = async () => {
     if (!name.trim()) return;
     setLoading(true);
@@ -146,8 +155,7 @@ export default function LiveSession() {
     }
   };
 
-  // ── join ──
-
+  //  join 
   const handleJoin = async () => {
     if (!name.trim() || !paramSessionId) return;
     setLoading(true);
@@ -168,8 +176,7 @@ export default function LiveSession() {
     paramSessionId ? handleJoin() : handleCreate();
   };
 
-  // ── end ──
-
+  //  end 
   const handleEnd = async () => {
     if (session) {
       try { await liveSessionService.end(session.sessionId); } catch { /* best-effort */ }
@@ -181,207 +188,254 @@ export default function LiveSession() {
     navigate(-1);
   };
 
-  // ────────────────────────────────────────────
+  // 
   // IN-CALL VIEW
-  // ────────────────────────────────────────────
-
+  // 
   if (joined && session) {
     return (
       <div className="flex flex-col h-[calc(100vh-64px)] bg-gray-950">
 
-        {/* ── top bar ── */}
-        <div className="flex items-center gap-3 px-4 py-2 bg-gray-900/95 backdrop-blur border-b border-gray-800 flex-shrink-0">
+        {/* Top bar */}
+        <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-800 flex-shrink-0">
 
-          {/* Session badge */}
-          <div className="flex items-center gap-2 text-gray-300 text-sm font-mono bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
-            <Video size={14} className="text-indigo-400" />
-            <span className="text-gray-400">Session</span>
-            <span className="text-white font-semibold tracking-wider">{session.sessionId}</span>
+          {/* Session ID */}
+          <div className="flex items-center gap-1.5 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 flex-shrink-0">
+            <Video size={13} className="text-indigo-400" />
+            <span className="text-gray-500 text-xs">Session</span>
+            <span className="text-white text-xs font-mono font-semibold">{session.sessionId}</span>
           </div>
 
-          {/* Participant count */}
-          <div className="flex items-center gap-1.5 text-gray-400 text-sm bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
-            <Users size={14} className="text-green-400" />
-            <span>{participantCount}</span>
+          {/* Participants */}
+          <div className="flex items-center gap-1.5 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 flex-shrink-0">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+            </span>
+            <Users size={13} className="text-gray-400" />
+            <span className="text-gray-300 text-xs">{participantCount}</span>
           </div>
 
-          {/* Share link */}
+          {/* Share link  grows */}
           <div className="flex items-center gap-2 flex-1 min-w-0 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5">
-            <Link2 size={14} className="text-gray-500 flex-shrink-0" />
-            <span className="text-gray-300 text-xs truncate flex-1 select-all font-mono">
+            <Link2 size={13} className="text-gray-500 flex-shrink-0" />
+            <span className="text-gray-400 text-xs font-mono truncate flex-1 select-all">
               {shareLink}
             </span>
             <button
               onClick={handleCopy}
-              title="Copy invite link"
-              className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex-shrink-0"
+              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white transition-all duration-150 flex-shrink-0"
             >
-              {copied ? <Check size={12} /> : <Copy size={12} />}
-              {copied ? 'Copied!' : 'Copy'}
+              {copied ? <Check size={11} /> : <Copy size={11} />}
+              <span>{copied ? 'Copied' : 'Copy'}</span>
             </button>
           </div>
 
-          {/* End session */}
+          {/* End */}
           <button
             onClick={handleEnd}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
+            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
           >
-            <PhoneOff size={14} />
+            <PhoneOff size={13} />
             End
           </button>
         </div>
 
-        {/* ── Jitsi loading overlay ── */}
-        <div className="relative flex-1">
-          {jitsiLoading && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-950 gap-4">
-              <Loader2 size={40} className="text-indigo-400 animate-spin" />
-              <p className="text-gray-400 text-sm">Connecting to video call…</p>
+        {/* Script-loading shimmer  only shown while external_api.js loads (4 s) */}
+        {scriptLoading ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-5 bg-gray-950">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 flex items-center justify-center">
+                <Wifi size={28} className="text-indigo-400" />
+              </div>
+              <span className="absolute -bottom-1 -right-1 flex h-4 w-4">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-60" />
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-indigo-500 items-center justify-center">
+                  <Loader2 size={10} className="text-white animate-spin" />
+                </span>
+              </span>
             </div>
-          )}
-          <div ref={jitsiContainerRef} className="w-full h-full" />
-        </div>
+            <div className="text-center">
+              <p className="text-white text-sm font-medium">Setting up your call</p>
+              <p className="text-gray-500 text-xs mt-1">Loading Jitsi Meet</p>
+            </div>
+          </div>
+        ) : (
+          <div ref={jitsiContainerRef} className="flex-1" />
+        )}
 
-        {/* ── share panel shown right after creation ── */}
-        {session && copied === false && participantCount < 2 && (
-          <div className="flex items-center justify-between gap-4 px-4 py-3 bg-indigo-950/60 border-t border-indigo-800/40 flex-shrink-0">
-            <div className="flex items-center gap-2 text-indigo-300 text-sm">
-              <Users size={16} />
-              <span>Waiting for the other participant — share the invite link above.</span>
+        {/* Waiting-for-participant banner */}
+        {showShareBanner && !scriptLoading && participantCount < 2 && (
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-indigo-950/80 border-t border-indigo-800/50 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2 flex-shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
+              </span>
+              <span className="text-indigo-300 text-xs">Waiting for the other participant</span>
             </div>
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-2 text-sm px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex-shrink-0"
-            >
-              <Copy size={14} />
-              Copy invite link
-            </button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+              >
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+                {copied ? 'Copied!' : 'Copy invite link'}
+              </button>
+              <button
+                onClick={() => setShowShareBanner(false)}
+                className="text-gray-500 hover:text-gray-300 text-xs px-1 transition-colors"
+                title="Dismiss"
+              >
+                
+              </button>
+            </div>
           </div>
         )}
       </div>
     );
   }
 
-  // ────────────────────────────────────────────
-  // LOBBY FORM
-  // ────────────────────────────────────────────
-
+  // 
+  // LOBBY
+  // 
   const isJoining = !!paramSessionId;
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-[#1A1625] px-4">
-      <div className="w-full max-w-md">
+    <div className="relative flex items-center justify-center min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-[#1A1625] px-4 overflow-hidden">
+
+      {/* Subtle background blobs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative w-full max-w-sm">
 
         {/* Card */}
-        <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700">
+        <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden border border-white/60 dark:border-gray-700/60">
 
           {/* Header */}
-          <div className="bg-gradient-to-br from-indigo-600 to-purple-600 px-8 py-8 text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-white/20 rounded-2xl mb-4">
-              <Video size={28} className="text-white" />
+          <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-700 px-8 pt-8 pb-10 text-center relative overflow-hidden">
+            {/* shine */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-4 shadow-lg">
+                <Video size={30} className="text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">
+                {isJoining ? 'Join Session' : 'Live Session'}
+              </h1>
+              <p className="mt-1.5 text-indigo-200/90 text-sm leading-relaxed">
+                {isJoining
+                  ? 'Enter your name to join the video call'
+                  : 'Start a private video call and share the link'}
+              </p>
             </div>
-            <h1 className="text-2xl font-bold text-white">
-              {isJoining ? 'Join Session' : 'Start a Live Session'}
-            </h1>
-            <p className="mt-1 text-indigo-200 text-sm">
-              {isJoining
-                ? 'Enter your name to join the video call'
-                : 'Create a room and invite someone to join'}
-            </p>
           </div>
 
-          {/* Body */}
-          <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
+          {/* Negative margin pull-up effect */}
+          <div className="px-7 pt-6 pb-7 space-y-4 -mt-4 relative">
 
-            {/* Session ID badge (join mode) */}
+            {/* Session badge (join mode) */}
             {isJoining && (
-              <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-lg px-4 py-3">
-                <Link2 size={16} className="text-indigo-500 flex-shrink-0" />
+              <div className="flex items-center gap-3 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-700/60 rounded-2xl px-4 py-3">
+                <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-800 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Link2 size={15} className="text-indigo-600 dark:text-indigo-300" />
+                </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-indigo-500 dark:text-indigo-400 font-medium uppercase tracking-wide">Session ID</p>
-                  <p className="text-indigo-800 dark:text-indigo-200 font-mono font-semibold text-sm truncate">{paramSessionId}</p>
+                  <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold uppercase tracking-widest">
+                    Session ID
+                  </p>
+                  <p className="text-indigo-800 dark:text-indigo-200 font-mono font-bold text-sm truncate mt-0.5">
+                    {paramSessionId}
+                  </p>
                 </div>
               </div>
             )}
 
             {/* Error */}
             {error && (
-              <div className="flex items-start gap-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 p-4 rounded-lg text-sm">
+              <div className="flex items-start gap-3 bg-red-50 dark:bg-red-900/25 border border-red-200 dark:border-red-700/50 text-red-600 dark:text-red-400 px-4 py-3.5 rounded-2xl text-sm">
                 <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
-                <span>{error}</span>
+                <span className="flex-1 leading-snug">{error}</span>
                 <button
                   type="button"
                   onClick={() => setError(null)}
-                  className="ml-auto text-red-400 hover:text-red-600 flex-shrink-0"
+                  className="text-red-400 hover:text-red-600 flex-shrink-0 leading-none"
                 >
-                  ✕
+                  
                 </button>
               </div>
             )}
 
-            {/* Name input */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Your display name
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Dr. Ahmed"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoFocus
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl
-                           bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400
-                           focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none
-                           transition-shadow text-sm"
-              />
-            </div>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-1">
+                  Your name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Dr. Ahmed"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoFocus
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-2xl
+                             bg-gray-50 dark:bg-gray-700/60 text-gray-900 dark:text-white
+                             placeholder-gray-400 dark:placeholder-gray-500
+                             focus:ring-2 focus:ring-indigo-400 focus:border-transparent
+                             outline-none transition-all text-sm"
+                />
+              </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading || !name.trim()}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700
-                         disabled:opacity-50 disabled:cursor-not-allowed
-                         text-white font-semibold rounded-xl transition-colors text-sm shadow-sm"
-            >
-              {loading ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Connecting…
-                </>
-              ) : isJoining ? (
-                <>
-                  <Video size={16} />
-                  Join Session
-                </>
-              ) : (
-                <>
-                  <Video size={16} />
-                  Create Session
-                </>
-              )}
-            </button>
+              <button
+                type="submit"
+                disabled={loading || !name.trim()}
+                className="w-full flex items-center justify-center gap-2 py-3.5
+                           bg-gradient-to-r from-indigo-600 to-purple-600
+                           hover:from-indigo-500 hover:to-purple-500
+                           disabled:opacity-50 disabled:cursor-not-allowed
+                           text-white font-semibold rounded-2xl
+                           transition-all duration-200 text-sm shadow-md shadow-indigo-500/25
+                           active:scale-[0.98]"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Connecting
+                  </>
+                ) : isJoining ? (
+                  <>
+                    <Video size={16} />
+                    Join Session
+                  </>
+                ) : (
+                  <>
+                    <Video size={16} />
+                    Create Session
+                  </>
+                )}
+              </button>
+            </form>
 
             {/* Back */}
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-gray-500 dark:text-gray-400
-                         hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 py-2 text-xs
+                         text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300
+                         transition-colors"
             >
-              <ArrowLeft size={14} />
+              <ArrowLeft size={13} />
               Go back
             </button>
-          </form>
+          </div>
         </div>
 
-        {/* Info note */}
-        {!isJoining && (
-          <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-4">
-            Powered by Jitsi Meet · No account required for participants
-          </p>
-        )}
+        {/* Footer note */}
+        <p className="text-center text-[11px] text-gray-400 dark:text-gray-600 mt-5">
+          Powered by Jitsi Meet  No account required for guests
+        </p>
       </div>
     </div>
   );

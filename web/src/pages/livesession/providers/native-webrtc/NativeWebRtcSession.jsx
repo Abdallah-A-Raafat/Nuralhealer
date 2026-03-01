@@ -1,31 +1,50 @@
 import { useState, useEffect, useRef } from 'react';
-import { Video, PhoneOff, Copy, Check, Link2, Mic, MicOff, VideoOff, Users } from 'lucide-react';
+import { Video, PhoneOff, Copy, Check, Link2, Mic, MicOff, VideoOff, Users, Activity } from 'lucide-react';
+import Participant from '../shared-webrtc/Participant';
 
+/**
+ * Premium Native WebRTC Session Component.
+ * Optimized for high-fidelity audio/video without screen sharing.
+ */
 export default function NativeWebRtcSession({ session, displayName, micDeviceId, onLeave }) {
     const [copied, setCopied] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
     const [connectedPeers, setConnectedPeers] = useState(0);
-    const [connectionStatus, setConnectionStatus] = useState('Connecting...');
+    const [connectionStatus, setConnectionStatus] = useState('Initializing Engine...');
 
     // Maps peer ID -> MediaStream
     const [remoteStreams, setRemoteStreams] = useState({});
+    // Maps peer ID -> { isMuted, isVideoOff }
+    const [participantStates, setParticipantStates] = useState({});
 
-    const localVideoRef = useRef(null);
-    const remoteVideosRef = useRef({});
     const localStreamRef = useRef(null);
 
     // WebRTC refs
     const wsRef = useRef(null);
     const peerConnectionsRef = useRef({}); // peerId -> RTCPeerConnection
 
-    const shareLink = `${window.location.origin}/live-session/${session.sessionId}`;
+    // Use the specific native route for sharing
+    const shareLink = `${window.location.origin}/live-session/native/${session.sessionId}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(shareLink).then(() => {
             setCopied(true);
             setTimeout(() => setCopied(false), 2500);
         });
+    };
+
+    // Broadcast own state
+    const broadcastStatus = (muted, videoOff) => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'status-update',
+                roomId: session.sessionId,
+                peerId: displayName,
+                isMuted: muted,
+                isVideoOff: videoOff
+            }));
+        }
     };
 
     // 1. Initialize local media
@@ -37,18 +56,15 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
                     audio: micDeviceId ? { deviceId: { exact: micDeviceId } } : true
                 });
                 localStreamRef.current = stream;
-                if (localVideoRef.current) {
-                    localVideoRef.current.srcObject = stream;
-                }
                 connectWebSocket();
             } catch (err) {
                 console.error("Failed to get local media", err);
-                setConnectionStatus("Camera/Mic access denied");
+                setConnectionStatus("Access Denied");
             }
         };
         startLocalVideo();
 
-        const pcs = peerConnectionsRef.current;
+        const currentPcs = peerConnectionsRef.current;
         return () => {
             if (localStreamRef.current) {
                 localStreamRef.current.getTracks().forEach(t => t.stop());
@@ -56,29 +72,28 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
             if (wsRef.current) {
                 wsRef.current.close();
             }
-            Object.values(pcs).forEach(pc => pc.close());
+            Object.values(currentPcs).forEach(pc => pc.close());
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [micDeviceId]);
 
     // 2. Connect to Spring Boot WebSocket Signaling Server
     const connectWebSocket = () => {
-        // Determine WS protocol based on current origin
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        // Use the backend API host, assuming typical React proxy setup or direct local dev
         const host = window.location.hostname === 'localhost' ? 'localhost:8080' : window.location.host;
-
-        // Adjust if your backend is on a different explicit port/path
         const wsUrl = `${protocol}//${host}/api/ws/webrtc`;
 
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
 
         ws.onopen = () => {
-            setConnectionStatus('Waiting for others...');
+            setConnectionStatus('Syncing...');
             ws.send(JSON.stringify({
                 type: 'join',
                 roomId: session.sessionId,
-                peerId: displayName // Using display name as a simple peer ID for this example
+                peerId: displayName,
+                isMuted,
+                isVideoOff
             }));
         };
 
@@ -88,18 +103,30 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
 
             switch (msg.type) {
                 case 'join':
-                    // Someone else joined, so we should create an offer to them
                     if (msg.peerId !== displayName) {
+                        setParticipantStates(prev => ({
+                            ...prev,
+                            [msg.peerId]: { isMuted: msg.isMuted, isVideoOff: msg.isVideoOff }
+                        }));
                         await createOffer(msg.peerId);
                         setConnectedPeers(prev => prev + 1);
-                        setConnectionStatus('Connected');
+                        setConnectionStatus('Secured');
+                        broadcastStatus(isMuted, isVideoOff);
+                    }
+                    break;
+                case 'status-update':
+                    if (msg.peerId !== displayName) {
+                        setParticipantStates(prev => ({
+                            ...prev,
+                            [msg.peerId]: { isMuted: msg.isMuted, isVideoOff: msg.isVideoOff }
+                        }));
                     }
                     break;
                 case 'offer':
                     if (msg.peerId !== displayName) {
                         await handleOffer(msg.peerId, msg.sdp);
                         setConnectedPeers(prev => prev + 1);
-                        setConnectionStatus('Connected');
+                        setConnectionStatus('Secured');
                     }
                     break;
                 case 'answer':
@@ -120,10 +147,7 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
             }
         };
 
-        ws.onerror = (err) => {
-            console.error("WebSocket error", err);
-            setConnectionStatus("Signaling server disconnected");
-        };
+        ws.onerror = () => setConnectionStatus("Offline");
     };
 
     // 3. WebRTC Peer Connection Helpers
@@ -164,13 +188,7 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
         const pc = createPeerConnection(peerId);
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-
-        wsRef.current.send(JSON.stringify({
-            type: 'offer',
-            roomId: session.sessionId,
-            peerId: displayName,
-            sdp: offer
-        }));
+        wsRef.current.send(JSON.stringify({ type: 'offer', roomId: session.sessionId, peerId: displayName, sdp: offer }));
     };
 
     const handleOffer = async (peerId, offerSdp) => {
@@ -178,27 +196,17 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
         await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-
-        wsRef.current.send(JSON.stringify({
-            type: 'answer',
-            roomId: session.sessionId,
-            peerId: displayName,
-            sdp: answer
-        }));
+        wsRef.current.send(JSON.stringify({ type: 'answer', roomId: session.sessionId, peerId: displayName, sdp: answer }));
     };
 
     const handleAnswer = async (peerId, answerSdp) => {
         const pc = peerConnectionsRef.current[peerId];
-        if (pc) {
-            await pc.setRemoteDescription(new RTCSessionDescription(answerSdp));
-        }
+        if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answerSdp));
     };
 
     const handleIceCandidate = async (peerId, candidate) => {
         const pc = peerConnectionsRef.current[peerId];
-        if (pc) {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        }
+        if (pc) await pc.addIceCandidate(new RTCIceCandidate(candidate));
     };
 
     const handlePeerLeave = (peerId) => {
@@ -206,145 +214,138 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
             peerConnectionsRef.current[peerId].close();
             delete peerConnectionsRef.current[peerId];
         }
-        setRemoteStreams(prev => {
-            const next = { ...prev };
-            delete next[peerId];
-            return next;
-        });
+        setRemoteStreams(prev => { const n = { ...prev }; delete n[peerId]; return n; });
+        setParticipantStates(prev => { const n = { ...prev }; delete n[peerId]; return n; });
         setConnectedPeers(prev => Math.max(0, prev - 1));
-        if (Object.keys(peerConnectionsRef.current).length === 0) {
-            setConnectionStatus("Waiting for others...");
-        }
+        if (Object.keys(peerConnectionsRef.current).length === 0) setConnectionStatus("Awaiting Peers...");
     };
-
-    // Bind remote streams to video elements
-    useEffect(() => {
-        Object.entries(remoteStreams).forEach(([peerId, stream]) => {
-            const videoEl = remoteVideosRef.current[peerId];
-            if (videoEl && videoEl.srcObject !== stream) {
-                videoEl.srcObject = stream;
-            }
-        });
-    }, [remoteStreams]);
 
     // Controls
     const toggleMute = () => {
         if (localStreamRef.current) {
-            const audioTrack = localStreamRef.current.getAudioTracks()[0];
-            if (audioTrack) {
-                audioTrack.enabled = !audioTrack.enabled;
-                setIsMuted(!audioTrack.enabled);
+            const track = localStreamRef.current.getAudioTracks()[0];
+            if (track) {
+                track.enabled = !track.enabled;
+                setIsMuted(!track.enabled);
+                broadcastStatus(!track.enabled, isVideoOff);
             }
         }
     };
 
     const toggleVideo = () => {
         if (localStreamRef.current) {
-            const videoTrack = localStreamRef.current.getVideoTracks()[0];
-            if (videoTrack) {
-                videoTrack.enabled = !videoTrack.enabled;
-                setIsVideoOff(!videoTrack.enabled);
+            const track = localStreamRef.current.getVideoTracks()[0];
+            if (track) {
+                track.enabled = !track.enabled;
+                setIsVideoOff(!track.enabled);
+                broadcastStatus(isMuted, !track.enabled);
             }
         }
     };
 
     return (
-        <div className="relative flex flex-col h-[calc(100vh-64px)] bg-gray-950 overflow-hidden text-white font-sans">
+        <div className="relative flex flex-col h-screen bg-[#0A0A0C] overflow-hidden text-white font-sans selection:bg-indigo-500/30">
 
-            {/* Top bar */}
-            <div className="relative z-10 flex items-center justify-between gap-4 px-4 py-3 bg-gray-900/80 backdrop-blur-md border-b border-gray-800/60 shadow-lg">
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center p-2 bg-indigo-500/10 rounded-xl">
-                        <Video size={18} className="text-indigo-400" />
+            {/* Ultra-Modern Header */}
+            <div className="relative z-20 flex items-center justify-between gap-4 px-8 py-5 bg-black/20 backdrop-blur-3xl border-b border-white/5 shadow-2xl">
+                <div className="flex items-center gap-5">
+                    <div className="p-3 bg-indigo-500/10 rounded-[1.25rem] border border-indigo-500/20 shadow-inner group transition-all hover:bg-indigo-500/20">
+                        <Video size={18} className="text-indigo-400 group-hover:scale-110 transition-transform" />
                     </div>
                     <div>
-                        <h2 className="text-sm font-bold text-white leading-tight">Native WebRTC Session</h2>
-                        <div className="flex items-center gap-2 text-xs">
-                            <span className="text-emerald-400 font-medium">{connectionStatus}</span>
-                            <span className="text-gray-600">•</span>
-                            <span className="text-gray-400 flex items-center gap-1"><Users size={10} /> {connectedPeers + 1} participant{connectedPeers !== 0 && 's'}</span>
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-sm font-black text-white/90 uppercase tracking-[0.2em]">Precision Live Hub</h2>
+                            <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[9px] uppercase font-black tracking-widest border border-emerald-500/10">Connected</span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 opacity-60">
+                            <span className="flex items-center gap-1.5 text-indigo-400 text-[10px] font-black uppercase tracking-widest">
+                                <span className="flex h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                                {connectionStatus}
+                            </span>
+                            <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                            <span className="text-white/60 text-[10px] flex items-center gap-1.5 font-black uppercase tracking-widest">
+                                <Users size={12} className="opacity-50" /> {connectedPeers + 1} ACTIVE
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 bg-gray-800/60 border border-gray-700/50 rounded-xl px-3 py-2">
-                    <Link2 size={14} className="text-gray-500" />
-                    <span className="text-gray-400 text-xs font-mono w-24 truncate select-all">{shareLink}</span>
-                    <button onClick={handleCopy}
-                        className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition-colors border border-indigo-500/20">
-                        {copied ? <Check size={12} /> : <Copy size={12} />}
-                        {copied ? 'Copied' : 'Copy'}
-                    </button>
+                <div className="flex items-center gap-4">
+                    <div className="hidden lg:flex items-center gap-3 bg-white/5 border border-white/5 rounded-2xl px-5 py-2.5 transition-all hover:bg-white/10 group">
+                        <Link2 size={14} className="text-white/20 group-hover:text-indigo-400 transition-colors" />
+                        <span className="text-white/40 text-[10px] font-mono w-32 truncate select-all tracking-tighter uppercase">{session.sessionId}</span>
+                        <button onClick={handleCopy}
+                            className="flex items-center gap-2 text-[10px] px-3 py-1.5 rounded-xl bg-white/5 text-white/60 font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all active:scale-95 border border-white/5">
+                            {copied ? <Check size={12} /> : <Copy size={12} />}
+                            {copied ? 'Copied' : 'Invite'}
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Video Grid */}
-            <div className="flex-1 w-full p-4 relative overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr h-full">
+            {/* Immersive Video Grid */}
+            <div className="flex-1 w-full p-8 relative overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_50%_0%,_rgba(31,27,45,0.4)_0%,_transparent_70%)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr h-full max-w-7xl mx-auto">
 
-                    {/* Local Video */}
-                    <div className="relative bg-gray-900 rounded-2xl overflow-hidden border border-gray-800 shadow-2xl flex items-center justify-center min-h-[200px]">
-                        <video
-                            ref={localVideoRef}
-                            autoPlay
-                            playsInline
-                            muted
-                            className={`w-full h-full object-cover ${isVideoOff ? 'opacity-0' : 'opacity-100'}`}
+                    <Participant
+                        stream={localStreamRef.current}
+                        name={displayName}
+                        isLocal={true}
+                        isMuted={isMuted}
+                        isVideoOff={isVideoOff}
+                    />
+
+                    {Object.entries(remoteStreams).map(([peerId, stream]) => (
+                        <Participant
+                            key={peerId}
+                            stream={stream}
+                            name={peerId}
+                            isLocal={false}
+                            isMuted={participantStates[peerId]?.isMuted || false}
+                            isVideoOff={participantStates[peerId]?.isVideoOff || false}
                         />
-                        {isVideoOff && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-800">
-                                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-3">
-                                    <span className="text-2xl font-bold text-gray-300">{displayName.charAt(0).toUpperCase()}</span>
-                                </div>
-                            </div>
-                        )}
-                        <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 border border-white/10">
-                            {displayName} (You)
-                            {isMuted && <MicOff size={12} className="text-red-400" />}
-                        </div>
-                    </div>
-
-                    {/* Remote Videos */}
-                    {Object.keys(remoteStreams).map(peerId => (
-                        <div key={peerId} className="relative bg-gray-900 rounded-2xl overflow-hidden border border-gray-800 shadow-2xl flex items-center justify-center min-h-[200px]">
-                            <video
-                                ref={el => remoteVideosRef.current[peerId] = el}
-                                autoPlay
-                                playsInline
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10">
-                                {peerId}
-                            </div>
-                        </div>
                     ))}
 
+                    {connectedPeers === 0 && (
+                        <div className="col-span-full flex flex-col items-center justify-center space-y-6 opacity-20 py-20">
+                            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
+                                <Activity size={40} className="text-white animate-pulse" />
+                            </div>
+                            <p className="text-white text-xs font-black uppercase tracking-[0.5em] text-center max-w-xs leading-loose">
+                                Securing Peer-to-Peer Tunnel...<br />Waiting for direct link connection
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Bottom Controls */}
-            <div className="relative z-10 flex items-center justify-center gap-4 px-4 py-4 bg-gray-900/90 backdrop-blur-xl border-t border-gray-800/60 pb-8">
-                <button onClick={toggleMute}
-                    className={`flex items-center justify-center w-12 h-12 rounded-full transition-all border ${isMuted
-                        ? 'bg-red-500/20 text-red-500 border-red-500/30 hover:bg-red-500/30'
-                        : 'bg-gray-700 text-white border-gray-600 hover:bg-gray-600'
-                        }`}>
-                    {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
-                </button>
+            {/* Orbital Control Bar */}
+            <div className="relative z-30 px-8 py-10">
+                <div className="flex items-center justify-center gap-8 max-w-md mx-auto bg-white/5 backdrop-blur-3xl border border-white/5 rounded-[3rem] p-5 shadow-2xl relative">
+                    <div className="absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-                <button onClick={toggleVideo}
-                    className={`flex items-center justify-center w-12 h-12 rounded-full transition-all border ${isVideoOff
-                        ? 'bg-red-500/20 text-red-500 border-red-500/30 hover:bg-red-500/30'
-                        : 'bg-gray-700 text-white border-gray-600 hover:bg-gray-600'
-                        }`}>
-                    {isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
-                </button>
+                    <button onClick={toggleMute}
+                        className={`group flex items-center justify-center w-16 h-16 rounded-full transition-all duration-500 transform active:scale-90 border-2 ${isMuted
+                                ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 shadow-lg shadow-red-500/10'
+                                : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'
+                            }`}>
+                        {isMuted ? <MicOff size={24} className="animate-pulse" /> : <Mic size={24} />}
+                    </button>
 
-                <button onClick={onLeave}
-                    className="flex items-center justify-center gap-2 px-6 h-12 rounded-full bg-red-600 hover:bg-red-500 text-white font-semibold transition-colors border border-red-500 ml-4 shadow-lg shadow-red-600/20">
-                    <PhoneOff size={18} />
-                    Leave Call
-                </button>
+                    <button onClick={toggleVideo}
+                        className={`group flex items-center justify-center w-16 h-16 rounded-full transition-all duration-500 transform active:scale-90 border-2 ${isVideoOff
+                                ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 shadow-lg shadow-red-500/10'
+                                : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'
+                            }`}>
+                        {isVideoOff ? <VideoOff size={24} className="animate-pulse" /> : <Video size={24} />}
+                    </button>
+
+                    <button onClick={onLeave}
+                        className="group flex items-center justify-center gap-4 px-10 h-16 rounded-full bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest text-xs transition-all duration-500 shadow-2xl shadow-red-600/30 hover:shadow-red-500/40 active:scale-95 border border-red-400/20">
+                        <PhoneOff size={20} className="group-hover:-translate-x-1 transition-transform" />
+                        TERMINATE
+                    </button>
+                </div>
             </div>
 
         </div>

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { LanguageProvider } from './hooks/useLanguage.jsx';
 import { DarkModeProvider } from './hooks/useDarkMode.jsx';
@@ -22,13 +22,19 @@ import EngagementChat from './components/engagement/EngagementChat';
 import EngagementVerification from './pages/EngagementVerification';
 import OtpVerification from './pages/OtpVerification';
 import LiveSession from './pages/livesession/LiveSession';
+import NativeWebRtcPage from './pages/livesession/providers/native-webrtc/NativeWebRtcPage';
+
+function LiveSessionRedirect() {
+  const { sessionId } = useParams();
+  return <Navigate to={`/live-session/jitsi/${sessionId}`} replace />;
+}
 
 function App() {
   return (
     <DarkModeProvider>
       <LanguageProvider>
         <Router>
-          <Toaster 
+          <Toaster
             position="top-right"
             toastOptions={{
               duration: 4000,
@@ -56,96 +62,102 @@ function App() {
           <div className="min-h-screen bg-background dark:bg-[#1A1625] transition-colors duration-300">
             <Navbar />
             <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<AboutContact />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verify-email" element={<OtpVerification />} />
-          <Route
-            path="/verify-engagement"
-            element={
-              <DoctorProtectedRoute>
-                <EngagementVerification />
-              </DoctorProtectedRoute>
-            }
-          />
-          <Route 
-            path="/chat" 
-            element={
-              <ProtectedRoute>
-                <Chat />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/booking" 
-            element={
-              <ProtectedRoute>
-                <Doctors />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/assessments" 
-            element={
-              <ProtectedRoute>
-                <Assessments />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/engagement-chat/:engagementId" 
-            element={
-              <ProtectedRoute>
-                <EngagementChat />
-              </ProtectedRoute>
-            } 
-          />
-          {/* Live Session Routes — public for functionality testing */}
-          <Route path="/live-session" element={<LiveSession />} />
-          <Route path="/live-session/:sessionId" element={<LiveSession />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<AboutContact />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/verify-email" element={<OtpVerification />} />
+              <Route
+                path="/verify-engagement"
+                element={
+                  <DoctorProtectedRoute>
+                    <EngagementVerification />
+                  </DoctorProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <Chat />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/booking"
+                element={
+                  <ProtectedRoute>
+                    <Doctors />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/assessments"
+                element={
+                  <ProtectedRoute>
+                    <Assessments />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/engagement-chat/:engagementId"
+                element={
+                  <ProtectedRoute>
+                    <EngagementChat />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Live Session Routes — separate providers */}
+              <Route path="/live-session/jitsi" element={<LiveSession />} />
+              <Route path="/live-session/jitsi/:sessionId" element={<LiveSession />} />
+              <Route path="/live-session/native" element={<NativeWebRtcPage />} />
+              <Route path="/live-session/native/:sessionId" element={<NativeWebRtcPage />} />
 
-          {/* Doctor Routes */}
-          <Route 
-            path="/doctor-dashboard" 
-            element={
-              <DoctorProtectedRoute>
-                <DoctorDashboard />
-              </DoctorProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/doctor-appointments" 
-            element={
-              <DoctorProtectedRoute>
-                <DoctorAppointments />
-              </DoctorProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/doctor-patients" 
-            element={
-              <DoctorProtectedRoute>
-                <DoctorPatients />
-              </DoctorProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/patient-profile/:engagementId" 
-            element={
-              <DoctorProtectedRoute>
-                <PatientProfileView />
-              </DoctorProtectedRoute>
-            } 
-          />
+              {/* Backward compatibility / Default */}
+              <Route path="/live-session" element={<Navigate to="/live-session/jitsi" replace />} />
+              <Route path="/live-session/:sessionId" element={<LiveSessionRedirect />} />
+
+              {/* Doctor Routes */}
+              <Route
+                path="/doctor-dashboard"
+                element={
+                  <DoctorProtectedRoute>
+                    <DoctorDashboard />
+                  </DoctorProtectedRoute>
+                }
+              />
+              <Route
+                path="/doctor-appointments"
+                element={
+                  <DoctorProtectedRoute>
+                    <DoctorAppointments />
+                  </DoctorProtectedRoute>
+                }
+              />
+              <Route
+                path="/doctor-patients"
+                element={
+                  <DoctorProtectedRoute>
+                    <DoctorPatients />
+                  </DoctorProtectedRoute>
+                }
+              />
+              <Route
+                path="/patient-profile/:engagementId"
+                element={
+                  <DoctorProtectedRoute>
+                    <PatientProfileView />
+                  </DoctorProtectedRoute>
+                }
+              />
             </Routes>
           </div>
         </Router>

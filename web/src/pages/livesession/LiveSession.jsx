@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Video,
   Mic,
@@ -23,6 +23,11 @@ export default function LiveSession() {
   const { sessionId: paramSessionId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isNative = location.pathname.includes('/live-session/native');
+  const provider = isNative ? 'native-webrtc' : 'jitsi';
+  const providerPath = isNative ? 'native' : 'jitsi';
 
   // lobby
   const [name, setName] = useState(searchParams.get('name') || '');
@@ -48,7 +53,7 @@ export default function LiveSession() {
   const [inCall, setInCall] = useState(false);
 
   const shareLink = session
-    ? `${window.location.origin}/live-session/${session.sessionId}`
+    ? `${window.location.origin}/live-session/${providerPath}/${session.sessionId}`
     : '';
 
   const handleCopy = () => {
@@ -178,26 +183,26 @@ export default function LiveSession() {
     if (!displayName) return;
     setLoading(true); setError(null);
     try {
-      const data = await liveSessionService.create(displayName);
+      const data = await liveSessionService.create(displayName, provider);
       setSession(data);
       startCall();
     } catch (e) {
       setError(e.response?.data?.error || 'Failed to create session. Is the backend running?');
     } finally { setLoading(false); }
-  }, [name, startCall]);
+  }, [name, provider, startCall]);
 
   const handleJoin = useCallback(async (overrideName) => {
     const displayName = overrideName || name.trim();
     if (!displayName || !paramSessionId) return;
     setLoading(true); setError(null);
     try {
-      const data = await liveSessionService.join(paramSessionId, displayName);
+      const data = await liveSessionService.join(paramSessionId, displayName, provider);
       setSession(data);
       startCall();
     } catch (e) {
       setError(e.response?.data?.error || 'Session not found or expired.');
     } finally { setLoading(false); }
-  }, [name, paramSessionId, startCall]);
+  }, [name, paramSessionId, provider, startCall]);
 
   // ── auto-trigger for logged-in users (runs once after auth check) ─────────
   useEffect(() => {
@@ -427,8 +432,8 @@ export default function LiveSession() {
             </button>
           </div>
         </div>
-        <p className="text-center text-[11px] text-gray-400 dark:text-gray-600 mt-5">
-          End-to-end encrypted · Powered by Jitsi
+        <p className="text-center text-[11px] text-gray-400 dark:text-gray-600 mt-5 uppercase tracking-widest font-bold">
+          End-to-end encrypted · {isNative ? 'Native WebRTC Engine' : 'Powered by Jitsi'}
         </p>
       </div>
     </div>

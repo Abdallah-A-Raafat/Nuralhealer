@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Video, PhoneOff, Copy, Check, Link2 } from 'lucide-react';
 
 // Build a Jitsi URL.
@@ -33,7 +33,7 @@ export default function JitsiSession({ session, displayName, micDeviceId, onLeav
     const [jitsiUrl, setJitsiUrl] = useState('');
     const [copied, setCopied] = useState(false);
 
-    const shareLink = `${window.location.origin}/live-session/${session.sessionId}`;
+    const shareLink = `${window.location.origin}/live-session/jitsi/${session.sessionId}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(shareLink).then(() => {

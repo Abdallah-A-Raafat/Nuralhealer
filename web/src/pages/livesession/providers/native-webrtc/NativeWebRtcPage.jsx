@@ -1,12 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-    Video,
     Mic,
-    PhoneOff,
-    Copy,
-    Check,
-    Link2,
     Loader2,
     AlertCircle,
     ArrowLeft,
@@ -24,7 +19,6 @@ import useAudioAnalyzer from '../shared-webrtc/useAudioAnalyzer';
 export default function NativeWebRtcPage() {
     const { sessionId: paramSessionId } = useParams();
     const navigate = useNavigate();
-    const location = useLocation();
 
     // ── States ──────────────────────────────────────────────────────────────
     const [inCall, setInCall] = useState(false);
@@ -35,7 +29,6 @@ export default function NativeWebRtcPage() {
     // Lobby States
     const [name, setName] = useState('');
     const [currentUser, setCurrentUser] = useState(null);
-    const [isAuthLoading, setIsAuthLoading] = useState(true);
     const [mics, setMics] = useState([]);
     const [selectedMic, setSelectedMic] = useState('');
     const [previewStream, setPreviewStream] = useState(null);
@@ -54,7 +47,9 @@ export default function NativeWebRtcPage() {
                     const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
                     if (fullName) setName(fullName);
                 }
-            } catch (e) { } finally { setIsAuthLoading(false); }
+            } catch (err) {
+                console.debug("User not logged in, continuing as guest", err);
+            }
 
             // 2. Enumerate Mics & Tech Preview
             try {
@@ -70,6 +65,7 @@ export default function NativeWebRtcPage() {
                 if (audioInputs.length > 0) setSelectedMic(audioInputs[0].deviceId);
 
             } catch (err) {
+                console.error("Tech check failure:", err);
                 setError("Camera and Microphone access are required to join this native high-fidelity session.");
             }
         };

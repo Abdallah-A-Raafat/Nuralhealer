@@ -1,66 +1,51 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Video,
-  VideoOff,
   Mic,
-  MicOff,
   PhoneOff,
   Copy,
   Check,
   Link2,
-  Users,
   Loader2,
   AlertCircle,
   ArrowLeft,
-  Monitor,
-  MonitorOff,
+  ChevronDown,
 } from 'lucide-react';
 import liveSessionService from './liveSessionService';
+import userService from '../../services/userService';
 
-// ─── constants ──────────────────────────────────────────────────────────────
-const JITSI_DOMAIN = import.meta.env.VITE_JITSI_DOMAIN || 'meet.jit.si';
+import JitsiSession from './providers/jitsi/JitsiSession';
+import NativeWebRtcSession from './providers/native-webrtc/NativeWebRtcSession';
 
-// ─── load external_api.js once ──────────────────────────────────────────────
-function loadJitsiIframeAPI() {
-  return new Promise((resolve, reject) => {
-    if (window.JitsiMeetExternalAPI) return resolve();
-    const s = document.createElement('script');
-    s.src = `https://${JITSI_DOMAIN}/external_api.js`;
-    s.async = true;
-    s.onload = () => {
-      if (window.JitsiMeetExternalAPI) resolve();
-      else reject(new Error('JitsiMeetExternalAPI not available after script load'));
-    };
-    s.onerror = () => reject(new Error(`Failed to load Jitsi API from ${JITSI_DOMAIN}`));
-    (document.head || document.body).appendChild(s);
-  });
-}
-
-// ════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════════
 export default function LiveSession() {
   const { sessionId: paramSessionId } = useParams();
-  const [searchParams]                = useSearchParams();
-  const navigate                      = useNavigate();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // lobby
-  const [name,    setName]    = useState(searchParams.get('name') || '');
+  const [name, setName] = useState(searchParams.get('name') || '');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState(null);
-  const [copied,  setCopied]  = useState(false);
+  const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  // microphone
+  const [mics, setMics] = useState([]);        // [{deviceId, label}]
+  const [selectedMic, setSelectedMic] = useState('');
+  const [micVolume, setMicVolume] = useState(0);         // 0 to 100 for visualize bar
+
+  // Store references for the audio analyzer to clean up on unmount or device change
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const streamRef = useRef(null);
+  const reqFrameRef = useRef(null);
 
   // call
-  const [phase,            setPhase]            = useState('lobby'); // lobby | connecting | call
-  const [connectingMsg,    setConnectingMsg]    = useState('');
-  const [audioMuted,       setAudioMuted]       = useState(true);   // starts muted
-  const [videoMuted,       setVideoMuted]       = useState(false);
-  const [sharing,          setSharing]          = useState(false);
-  const [participantCount, setParticipantCount] = useState(1);
-
-  const containerRef = useRef(null);
-  const apiRef       = useRef(null);
-  const timeoutRef   = useRef(null);
+  const [inCall, setInCall] = useState(false);
 
   const shareLink = session
     ? `${window.location.origin}/live-session/${session.sessionId}`
@@ -73,342 +58,199 @@ export default function LiveSession() {
     });
   };
 
-  // ── start call ────────────────────────────────────────────────────────────
-  const startCall = useCallback(async (roomName, domain, displayName) => {
-    setPhase('connecting');
-    setConnectingMsg('Loading video engine…');
-    setError(null);
+  // ── enumerate microphones ─────────────────────────────────────────────────
+  useEffect(() => {
+    const loadMics = async () => {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const audioInputs = devices
+          .filter((d) => d.kind === 'audioinput')
+          .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Microphone ${i + 1}` }));
+        setMics(audioInputs);
+        if (audioInputs.length > 0) setSelectedMic(audioInputs[0].deviceId);
+      } catch {
+        // Permission denied or no mic
+      }
+    };
+    loadMics();
+  }, []);
 
-    try {
-      await loadJitsiIframeAPI();
-    } catch (e) {
-      setError(e.message);
-      setPhase('lobby');
+  // ── microphone volume analyzer ────────────────────────────────────────────
+  useEffect(() => {
+    if (!selectedMic || inCall) {
+      setMicVolume(0);
       return;
     }
 
-    setConnectingMsg('Connecting to the call…');
+    let isMounted = true;
 
-    // 25-second hard timeout
-    timeoutRef.current = setTimeout(() => {
-      setError('Connection timed out — check your network and try again.');
-      setPhase('lobby');
-      if (apiRef.current) { try { apiRef.current.dispose(); } catch { /* ignore */ } apiRef.current = null; }
-    }, 25000);
+    const startAnalyzing = async () => {
+      try {
+        // Stop old stream if any
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(t => t.stop());
+        }
 
-    // We'll create the IFrame API once we switch to 'call' phase and the
-    // container div is rendered. So we store the params and let the effect
-    // (below) create the API.
-    // Actually, we need the container in the DOM first; we'll render it
-    // hidden behind the connecting overlay, then instantiate.
-    setPhase('call-init');
-    // stash params for the effect
-    apiRef.current = { pending: true, roomName, domain, displayName };
-  }, []);
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { deviceId: { exact: selectedMic } },
+          video: false,
+        });
 
-  // Effect: when phase becomes 'call-init' and we have a container, create the API
-  useEffect(() => {
-    if (phase !== 'call-init') return;
-    if (!containerRef.current) return;
-    const pending = apiRef.current;
-    if (!pending || !pending.pending) return;
+        if (!isMounted) {
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
 
-    const { roomName, domain, displayName } = pending;
+        streamRef.current = stream;
 
-    const api = new window.JitsiMeetExternalAPI(domain, {
-      roomName: roomName.toLowerCase(),
-      parentNode: containerRef.current,
-      width: '100%',
-      height: '100%',
-      userInfo: { displayName },
-      lang: 'en',
-      configOverwrite: {
-        prejoinPageEnabled: false,
-        prejoinConfig: { enabled: false },
-        startWithAudioMuted: true,
-        startWithVideoMuted: false,
-        disableDeepLinking: true,
-        hideConferenceSubject: true,
-        hideConferenceTimer: true,
-        disableProfile: true,
-        hideParticipantsStats: true,
-        enableClosePage: false,
-        disableInviteFunctions: true,
-        enableNoisyMicDetection: false,
-        enableNoAudioDetection: false,
-        requireDisplayName: false,
-        notifications: [],
-        toolbarButtons: [],
-        disableThirdPartyRequests: true,
-        analytics: { disabled: true },
-        // lobby / auth
-        enableLobbyChat: false,
-        hideLobbyButton: true,
-        autoKnockLobby: true,
-        enableInsecureRoomNameWarning: false,
-      },
-      interfaceConfigOverwrite: {
-        TOOLBAR_BUTTONS: [],
-        TOOLBAR_ALWAYS_VISIBLE: false,
-        SHOW_JITSI_WATERMARK: false,
-        SHOW_WATERMARK_FOR_GUESTS: false,
-        SHOW_BRAND_WATERMARK: false,
-        SHOW_POWERED_BY: false,
-        DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
-        HIDE_INVITE_MORE_HEADER: true,
-        MOBILE_APP_PROMO: false,
-        VIDEO_LAYOUT_FIT: 'both',
-        DISABLE_FOCUS_INDICATOR: true,
-        DISABLE_DOMINANT_SPEAKER_INDICATOR: true,
-        VERTICAL_FILMSTRIP: false,
-        DEFAULT_BACKGROUND: '#030712',
-        INITIAL_TOOLBAR_TIMEOUT: 0,
-        TOOLBAR_TIMEOUT: 0,
-        filmStripOnly: false,
-        DISABLE_VIDEO_BACKGROUND: true,
-      },
-    });
+        if (!audioContextRef.current) {
+          audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        }
 
-    apiRef.current = api;
+        const ctx = audioContextRef.current;
+        const source = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+        analyserRef.current = analyser;
 
-    api.addEventListener('videoConferenceJoined', () => {
-      clearTimeout(timeoutRef.current);
-      setPhase('call');
-      setConnectingMsg('');
-    });
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-    api.addEventListener('videoConferenceLeft', () => {
-      api.dispose();
-      apiRef.current = null;
-      setPhase('lobby');
-    });
+        const updateVolume = () => {
+          if (!isMounted || !analyserRef.current) return;
+          analyserRef.current.getByteFrequencyData(dataArray);
 
-    api.addEventListener('audioMuteStatusChanged', ({ muted }) => setAudioMuted(muted));
-    api.addEventListener('videoMuteStatusChanged', ({ muted }) => setVideoMuted(muted));
-    api.addEventListener('screenSharingStatusChanged', ({ on }) => setSharing(on));
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+          const avg = sum / dataArray.length;
 
-    api.addEventListener('participantJoined', () => setParticipantCount((n) => n + 1));
-    api.addEventListener('participantLeft',   () => setParticipantCount((n) => Math.max(1, n - 1)));
+          // Map 0-255 broadly to 0-100% for the UI bar
+          const volPercent = Math.min(100, Math.round((avg / 128) * 100));
+          setMicVolume(volPercent);
 
-    api.addEventListener('readyToClose', () => {
-      api.dispose();
-      apiRef.current = null;
-      navigate(-1);
-    });
+          reqFrameRef.current = requestAnimationFrame(updateVolume);
+        };
 
-    // Fallback: sometimes videoConferenceJoined fires late — give it 8s then show anyway
-    const fallback = setTimeout(() => {
-      setPhase((p) => (p === 'call-init' ? 'call' : p));
-      clearTimeout(timeoutRef.current);
-    }, 8000);
+        updateVolume();
 
-    return () => {
-      clearTimeout(fallback);
-    };
-  }, [phase, navigate]);
-
-  // cleanup
-  useEffect(() => {
-    return () => {
-      clearTimeout(timeoutRef.current);
-      if (apiRef.current && apiRef.current.dispose) {
-        try { apiRef.current.dispose(); } catch { /* ignore */ }
-        apiRef.current = null;
+      } catch (err) {
+        console.error("Failed to analyze mic audio:", err);
       }
     };
+
+    startAnalyzing();
+
+    return () => {
+      isMounted = false;
+      if (reqFrameRef.current) cancelAnimationFrame(reqFrameRef.current);
+      if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    };
+  }, [selectedMic, inCall]);
+
+  // ── fetch user on mount / auto-fill ──────────────────────────────────────
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const user = await userService.getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+          const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+          if (fullName) setName(fullName);
+        }
+      } catch {
+        // not logged in — guest flow
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+    init();
   }, []);
 
-  // ── controls via IFrame commands ──────────────────────────────────────────
-  const toggleAudio  = () => apiRef.current?.executeCommand?.('toggleAudio');
-  const toggleVideo  = () => apiRef.current?.executeCommand?.('toggleVideo');
-  const toggleScreen = () => apiRef.current?.executeCommand?.('toggleShareScreen');
-  const hangUp       = async () => {
-    if (apiRef.current?.dispose) {
-      apiRef.current.executeCommand('hangup');
-      setTimeout(() => {
-        if (apiRef.current?.dispose) { try { apiRef.current.dispose(); } catch { /* ignore */ } }
-        apiRef.current = null;
-      }, 500);
+  // ── start the call ────────────────────────────────────────────────────────
+  const startCall = useCallback(() => {
+    setInCall(true);
+  }, []);
+
+  // ── backend actions ───────────────────────────────────────────────────────
+  const handleCreate = useCallback(async (overrideName) => {
+    const displayName = overrideName || name.trim();
+    if (!displayName) return;
+    setLoading(true); setError(null);
+    try {
+      const data = await liveSessionService.create(displayName);
+      setSession(data);
+      startCall();
+    } catch (e) {
+      setError(e.response?.data?.error || 'Failed to create session. Is the backend running?');
+    } finally { setLoading(false); }
+  }, [name, startCall]);
+
+  const handleJoin = useCallback(async (overrideName) => {
+    const displayName = overrideName || name.trim();
+    if (!displayName || !paramSessionId) return;
+    setLoading(true); setError(null);
+    try {
+      const data = await liveSessionService.join(paramSessionId, displayName);
+      setSession(data);
+      startCall();
+    } catch (e) {
+      setError(e.response?.data?.error || 'Session not found or expired.');
+    } finally { setLoading(false); }
+  }, [name, paramSessionId, startCall]);
+
+  // ── auto-trigger for logged-in users (runs once after auth check) ─────────
+  useEffect(() => {
+    if (!isAuthLoading && currentUser && name.trim() && !session && !loading && !error) {
+      if (paramSessionId) handleJoin(name.trim());
+      else handleCreate(name.trim());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthLoading]);
+
+  const handleSubmit = (e) => { e?.preventDefault(); paramSessionId ? handleJoin() : handleCreate(); };
+
+  // ── hang up ───────────────────────────────────────────────────────────────
+  const hangUp = async () => {
+    setInCall(false);
     if (session) { try { await liveSessionService.end(session.sessionId); } catch { /* ignore */ } }
     navigate(-1);
   };
 
-  // ── backend actions ───────────────────────────────────────────────────────
-  const handleCreate = async () => {
-    if (!name.trim()) return;
-    setLoading(true); setError(null);
-    try {
-      const data = await liveSessionService.create(name.trim());
-      setSession(data);
-    } catch (e) {
-      setError(e.response?.data?.error || 'Failed to create session. Is the backend running?');
-    } finally { setLoading(false); }
-  };
-
-  const handleJoin = async () => {
-    if (!name.trim() || !paramSessionId) return;
-    setLoading(true); setError(null);
-    try {
-      const data = await liveSessionService.join(paramSessionId, name.trim());
-      setSession(data);
-      startCall(data.roomName, data.jitsiDomain || JITSI_DOMAIN, name.trim());
-    } catch (e) {
-      setError(e.response?.data?.error || 'Session not found or expired.');
-    } finally { setLoading(false); }
-  };
-
-  const handleSubmit = (e) => { e?.preventDefault(); paramSessionId ? handleJoin() : handleCreate(); };
-
   // ─────────────────────────────────────────────────────────────────────────
-  // CALL VIEW  (phase === 'call' or 'call-init')
+  // CALL VIEW (Router)
   // ─────────────────────────────────────────────────────────────────────────
-  if ((phase === 'call' || phase === 'call-init') && session) {
-    return (
-      <div className="relative flex flex-col h-[calc(100vh-64px)] bg-gray-950 overflow-hidden">
-
-        {/* Jitsi IFrame container — fills the whole area behind our overlay */}
-        <div
-          ref={containerRef}
-          className="absolute inset-0 z-0"
-          style={{ background: '#030712' }}
+  if (inCall && session) {
+    if (session.provider === 'native-webrtc') {
+      return (
+        <NativeWebRtcSession
+          session={session}
+          displayName={name.trim()}
+          micDeviceId={selectedMic}
+          onLeave={hangUp}
         />
+      );
+    }
 
-        {/* Connecting overlay — shown during call-init */}
-        {phase === 'call-init' && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-gray-950/90 gap-5">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-                <Video size={26} className="text-indigo-400" />
-              </div>
-              <span className="absolute -bottom-1 -right-1 flex h-5 w-5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-60" />
-                <span className="relative inline-flex rounded-full h-5 w-5 bg-indigo-600 items-center justify-center">
-                  <Loader2 size={12} className="text-white animate-spin" />
-                </span>
-              </span>
-            </div>
-            <div className="text-center">
-              <p className="text-white text-sm font-semibold">Joining the call…</p>
-              <p className="text-gray-500 text-xs mt-1">{connectingMsg || 'Connecting…'}</p>
-            </div>
-            <button
-              onClick={() => { setPhase('lobby'); if (apiRef.current?.dispose) { try { apiRef.current.dispose(); } catch { /* ignore */ } apiRef.current = null; } }}
-              className="text-xs text-gray-600 hover:text-gray-400 transition-colors mt-2"
-            >Cancel</button>
-          </div>
-        )}
-
-        {/* ── Top bar ──────────────────────────────────────────────────── */}
-        <div className="relative z-10 flex items-center gap-2 px-3 py-2 bg-gray-900/80 backdrop-blur-sm border-b border-gray-800/60 flex-shrink-0">
-          <div className="flex items-center gap-1.5 bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-1.5">
-            <Video size={12} className="text-indigo-400" />
-            <span className="text-gray-500 text-[11px]">Session</span>
-            <span className="text-white text-[11px] font-mono font-bold">{session.sessionId}</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-1.5">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
-            </span>
-            <Users size={12} className="text-gray-400" />
-            <span className="text-gray-300 text-[11px]">{participantCount}</span>
-          </div>
-          <div className="flex items-center gap-2 flex-1 min-w-0 bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-1.5">
-            <Link2 size={12} className="text-gray-600 flex-shrink-0" />
-            <span className="text-gray-500 text-[11px] font-mono truncate flex-1 select-all">{shareLink}</span>
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex-shrink-0"
-            >
-              {copied ? <Check size={10} /> : <Copy size={10} />}
-              {copied ? 'Copied' : 'Copy'}
-            </button>
-          </div>
-        </div>
-
-        {/* ── Waiting banner (solo) ────────────────────────────────────── */}
-        {participantCount < 2 && phase === 'call' && (
-          <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-2 bg-indigo-950/70 backdrop-blur-sm border-b border-indigo-800/40 flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2 flex-shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
-              </span>
-              <span className="text-indigo-300 text-xs">Waiting for others — share the invite link</span>
-            </div>
-            <button onClick={handleCopy}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors">
-              {copied ? <Check size={11} /> : <Copy size={11} />}
-              {copied ? 'Copied!' : 'Copy invite'}
-            </button>
-          </div>
-        )}
-
-        {/* spacer pushes controls to bottom */}
-        <div className="flex-1" />
-
-        {/* ── Bottom controls ──────────────────────────────────────────── */}
-        <div className="relative z-10 flex items-center justify-center gap-3 px-4 py-3 bg-gray-900/80 backdrop-blur-sm border-t border-gray-800/60 flex-shrink-0">
-          <button onClick={toggleAudio}
-            className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all ${
-              audioMuted ? 'bg-red-600/20 border-red-500/40 text-red-400 hover:bg-red-600/30'
-                         : 'bg-gray-800/80 border-gray-700/60 text-gray-300 hover:bg-gray-700'}`}>
-            {audioMuted ? <MicOff size={18} /> : <Mic size={18} />}
-            <span className="text-[10px] font-medium">{audioMuted ? 'Unmute' : 'Mute'}</span>
-          </button>
-
-          <button onClick={toggleVideo}
-            className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all ${
-              videoMuted ? 'bg-red-600/20 border-red-500/40 text-red-400 hover:bg-red-600/30'
-                         : 'bg-gray-800/80 border-gray-700/60 text-gray-300 hover:bg-gray-700'}`}>
-            {videoMuted ? <VideoOff size={18} /> : <Video size={18} />}
-            <span className="text-[10px] font-medium">{videoMuted ? 'Show cam' : 'Camera'}</span>
-          </button>
-
-          <button onClick={toggleScreen}
-            className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all ${
-              sharing ? 'bg-indigo-600/30 border-indigo-500/50 text-indigo-400 hover:bg-indigo-600/40'
-                      : 'bg-gray-800/80 border-gray-700/60 text-gray-300 hover:bg-gray-700'}`}>
-            {sharing ? <MonitorOff size={18} /> : <Monitor size={18} />}
-            <span className="text-[10px] font-medium">{sharing ? 'Stop share' : 'Share'}</span>
-          </button>
-
-          <button onClick={hangUp}
-            className="flex flex-col items-center gap-1 p-3 px-6 rounded-2xl bg-red-600 hover:bg-red-500 active:bg-red-700 border border-red-500 text-white transition-all">
-            <PhoneOff size={18} />
-            <span className="text-[10px] font-semibold">Leave</span>
-          </button>
-        </div>
-      </div>
+    // Default fallback to Jitsi (or if explicitly 'jitsi')
+    return (
+      <JitsiSession
+        session={session}
+        displayName={name.trim()}
+        micDeviceId={selectedMic}
+        onLeave={hangUp}
+      />
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // CONNECTING (standalone, before container is rendered)
+  // AUTH LOADING
   // ─────────────────────────────────────────────────────────────────────────
-  if (phase === 'connecting') {
+  if (isAuthLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] bg-gray-950 gap-6">
-        <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-            <Video size={26} className="text-indigo-400" />
-          </div>
-          <span className="absolute -bottom-1 -right-1 flex h-5 w-5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-60" />
-            <span className="relative inline-flex rounded-full h-5 w-5 bg-indigo-600 items-center justify-center">
-              <Loader2 size={12} className="text-white animate-spin" />
-            </span>
-          </span>
-        </div>
-        <div className="text-center">
-          <p className="text-white text-sm font-semibold">Joining the call…</p>
-          <p className="text-gray-500 text-xs mt-1">{connectingMsg || 'Preparing…'}</p>
-        </div>
-        <button
-          onClick={() => setPhase('lobby')}
-          className="text-xs text-gray-600 hover:text-gray-400 transition-colors mt-2"
-        >Cancel</button>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-[#1A1625] gap-4">
+        <Loader2 size={32} className="text-indigo-600 animate-spin" />
+        <p className="text-gray-500 text-sm animate-pulse">Checking authentication…</p>
       </div>
     );
   }
@@ -467,14 +309,18 @@ export default function LiveSession() {
 
             {!session && (
               <form onSubmit={handleSubmit} className="space-y-3">
+                {/* Name field */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-1">Your name</label>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-1">
+                    Your name
+                    {currentUser && <span className="ml-1 text-indigo-400 normal-case font-normal">(auto-filled)</span>}
+                  </label>
                   <input
                     type="text"
                     placeholder="e.g. Dr. Ahmed"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    autoFocus
+                    autoFocus={!currentUser}
                     className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-2xl
                                bg-gray-50 dark:bg-gray-700/60 text-gray-900 dark:text-white
                                placeholder-gray-400 dark:placeholder-gray-500
@@ -482,6 +328,48 @@ export default function LiveSession() {
                                outline-none transition-all text-sm"
                   />
                 </div>
+
+                {/* Microphone selector + Volume meter */}
+                {mics.length > 0 && (
+                  <div className="space-y-1.5">
+                    <label className="flex items-center justify-between pl-1 pr-1">
+                      <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <Mic size={11} />
+                        Microphone
+                      </span>
+                      {/* Active Volume indicator (small text) */}
+                      {micVolume > 0 && (
+                        <span className="text-[10px] items-center flex gap-1 font-medium text-emerald-500 animate-pulse">
+                          Receiving audio
+                        </span>
+                      )}
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedMic}
+                        onChange={(e) => setSelectedMic(e.target.value)}
+                        className="w-full appearance-none px-4 py-3 pb-4 pr-9 border border-gray-200 dark:border-gray-600 rounded-2xl
+                                   bg-gray-50 dark:bg-gray-700/60 text-gray-900 dark:text-white
+                                   focus:ring-2 focus:ring-indigo-400 focus:border-transparent
+                                   outline-none transition-all text-sm cursor-pointer relative z-10 bg-transparent"
+                      >
+                        {mics.map((m) => (
+                          <option key={m.deviceId} value={m.deviceId}>{m.label}</option>
+                        ))}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10" />
+
+                      {/* Volume Bar overlay inside the input */}
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-600 rounded-b-2xl overflow-hidden z-0">
+                        <div
+                          className="h-full bg-emerald-500 transition-all duration-75 ease-out"
+                          style={{ width: `${micVolume}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <button type="submit" disabled={loading || !name.trim()}
                   className="w-full flex items-center justify-center gap-2 py-3.5
                              bg-gradient-to-r from-indigo-600 to-purple-600
@@ -492,13 +380,13 @@ export default function LiveSession() {
                   {loading
                     ? <><Loader2 size={15} className="animate-spin" /> {isJoining ? 'Joining…' : 'Creating…'}</>
                     : isJoining
-                    ? <><Video size={15} /> Join Session</>
-                    : <><Video size={15} /> Create Session</>}
+                      ? <><Video size={15} /> Join Session</>
+                      : <><Video size={15} /> Create Session</>}
                 </button>
               </form>
             )}
 
-            {/* after create: show invite + join now */}
+            {/* After create: show invite + join now */}
             {session && !isJoining && (
               <div className="space-y-3">
                 <div className="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200/60 dark:border-indigo-700/60 rounded-2xl px-4 py-4 space-y-3">
@@ -519,7 +407,7 @@ export default function LiveSession() {
                   </div>
                 </div>
                 <button
-                  onClick={() => startCall(session.roomName, session.jitsiDomain || JITSI_DOMAIN, name.trim())}
+                  onClick={() => startCall()}
                   className="w-full flex items-center justify-center gap-2 py-3.5
                              bg-gradient-to-r from-green-600 to-emerald-600
                              hover:from-green-500 hover:to-emerald-500

@@ -1,17 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
-import { Video, PhoneOff, Copy, Check, Link2, Mic, MicOff, VideoOff, Users, Activity } from 'lucide-react';
+import { Video, PhoneOff, Copy, Check, Link2, Mic, MicOff, VideoOff, Users, Activity, Settings, ShieldCheck, ChevronUp, ChevronDown } from 'lucide-react';
 import Participant from '../shared-webrtc/Participant';
 
 /**
  * Premium Native WebRTC Session Component.
- * Optimized for high-fidelity audio/video without screen sharing.
+ * Aligned with NeuralHealer Professional Brand Palette.
  */
-export default function NativeWebRtcSession({ session, displayName, micDeviceId, onLeave }) {
+export default function NativeWebRtcSession({
+    session,
+    displayName,
+    micDeviceId,
+    initialMuted = false,
+    initialVideoOff = false,
+    onLeave
+}) {
     const [copied, setCopied] = useState(false);
-    const [isMuted, setIsMuted] = useState(false);
-    const [isVideoOff, setIsVideoOff] = useState(false);
+    const [isMuted, setIsMuted] = useState(initialMuted);
+    const [isVideoOff, setIsVideoOff] = useState(initialVideoOff);
     const [connectedPeers, setConnectedPeers] = useState(0);
-    const [connectionStatus, setConnectionStatus] = useState('Initializing Engine...');
+    const [connectionStatus, setConnectionStatus] = useState('Initializing Security...');
+
+    // Device Management
+    const [availableMics, setAvailableMics] = useState([]);
+    const [currentMicId, setCurrentMicId] = useState(micDeviceId);
+    const [showMicSelector, setShowMicSelector] = useState(false);
 
     // Maps peer ID -> MediaStream
     const [remoteStreams, setRemoteStreams] = useState({});
@@ -51,10 +63,22 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
     useEffect(() => {
         const startLocalVideo = async () => {
             try {
+                // Enumerate devices
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const m = devices
+                    .filter(d => d.kind === 'audioinput')
+                    .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Microphone ${i + i}` }));
+                setAvailableMics(m);
+
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: true,
-                    audio: micDeviceId ? { deviceId: { exact: micDeviceId } } : true
+                    audio: currentMicId ? { deviceId: { exact: currentMicId } } : true
                 });
+
+                // Set initial states from props
+                stream.getAudioTracks().forEach(t => t.enabled = !initialMuted);
+                stream.getVideoTracks().forEach(t => t.enabled = !initialVideoOff);
+
                 localStreamRef.current = stream;
                 connectWebSocket();
             } catch (err) {
@@ -87,7 +111,7 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
         wsRef.current = ws;
 
         ws.onopen = () => {
-            setConnectionStatus('Syncing...');
+            setConnectionStatus('Syncing Node...');
             ws.send(JSON.stringify({
                 type: 'join',
                 roomId: session.sessionId,
@@ -111,6 +135,7 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
                         await createOffer(msg.peerId);
                         setConnectedPeers(prev => prev + 1);
                         setConnectionStatus('Secured');
+                        // Send current state to newly joined peer
                         broadcastStatus(isMuted, isVideoOff);
                     }
                     break;
@@ -147,7 +172,8 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
             }
         };
 
-        ws.onerror = () => setConnectionStatus("Offline");
+        ws.onclose = () => setConnectionStatus("Disconnected");
+        ws.onerror = () => setConnectionStatus("Network Error");
     };
 
     // 3. WebRTC Peer Connection Helpers
@@ -243,39 +269,86 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
         }
     };
 
-    return (
-        <div className="relative flex flex-col h-screen bg-[#0A0A0C] overflow-hidden text-white font-sans selection:bg-indigo-500/30">
+    const changeMicrophone = async (deviceId) => {
+        try {
+            if (deviceId === currentMicId) {
+                setShowMicSelector(false);
+                return;
+            }
 
-            {/* Ultra-Modern Header */}
-            <div className="relative z-20 flex items-center justify-between gap-4 px-8 py-5 bg-black/20 backdrop-blur-3xl border-b border-white/5 shadow-2xl">
-                <div className="flex items-center gap-5">
-                    <div className="p-3 bg-indigo-500/10 rounded-[1.25rem] border border-indigo-500/20 shadow-inner group transition-all hover:bg-indigo-500/20">
-                        <Video size={18} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+            // 1. Get new audio track
+            const newStream = await navigator.mediaDevices.getUserMedia({
+                audio: { deviceId: { exact: deviceId } }
+            });
+            const newTrack = newStream.getAudioTracks()[0];
+
+            // 2. Stop old track
+            const oldTrack = localStreamRef.current.getAudioTracks()[0];
+            if (oldTrack) {
+                localStreamRef.current.removeTrack(oldTrack);
+                oldTrack.stop();
+            }
+
+            // 3. Update local stream ref
+            localStreamRef.current.addTrack(newTrack);
+
+            // 4. Update Peer Connections (replaceTrack)
+            for (const pc of Object.values(peerConnectionsRef.current)) {
+                const senders = pc.getSenders();
+                const audioSender = senders.find(s => s.track && s.track.kind === 'audio');
+                if (audioSender) {
+                    await audioSender.replaceTrack(newTrack);
+                } else {
+                    // If for fallback, we could addTrack, but usually there's already a sender
+                    pc.addTrack(newTrack, localStreamRef.current);
+                }
+            }
+
+            // 5. Sync states
+            newTrack.enabled = !isMuted;
+            setCurrentMicId(deviceId);
+            setShowMicSelector(false);
+
+        } catch (err) {
+            console.error("Failed to switch microphone:", err);
+            setConnectionStatus("Mic Switch Failed");
+        }
+    };
+
+    return (
+        <div className="relative flex flex-col h-screen bg-[#F8F9FA] dark:bg-[#1A1625] overflow-hidden text-[#2C1A3F] dark:text-[#ECE8F5] font-sans">
+
+            {/* Header Aligned with Dashboard Style */}
+            <div className="relative z-20 flex items-center justify-between px-8 py-5 bg-white/80 dark:bg-[#2C1A3F]/80 backdrop-blur-2xl border-b border-[#9B59B6]/10 shadow-sm">
+                <div className="flex items-center gap-6">
+                    <div className="p-3 bg-[#9B59B6]/10 rounded-2xl border border-[#9B59B6]/20 transition-all hover:bg-[#9B59B6]/20 shadow-sm group">
+                        <Video size={18} className="text-[#9B59B6] group-hover:scale-110 transition-transform" />
                     </div>
                     <div>
                         <div className="flex items-center gap-3">
-                            <h2 className="text-sm font-black text-white/90 uppercase tracking-[0.2em]">Precision Live Hub</h2>
-                            <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[9px] uppercase font-black tracking-widest border border-emerald-500/10">Connected</span>
+                            <h2 className="text-sm font-black text-[#2C1A3F] dark:text-white uppercase tracking-[0.2em]">NeuralHealer Live</h2>
+                            <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] uppercase font-black tracking-widest border border-emerald-200 dark:border-emerald-500/10">Active Session</span>
                         </div>
-                        <div className="flex items-center gap-3 mt-1 opacity-60">
-                            <span className="flex items-center gap-1.5 text-indigo-400 text-[10px] font-black uppercase tracking-widest">
-                                <span className="flex h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                        <div className="flex items-center gap-3 mt-1.5">
+                            <span className="flex items-center gap-2 text-[#9B59B6] text-[10px] font-black uppercase tracking-widest">
+                                <span className="flex h-2 w-2 rounded-full bg-[#9B59B6] animate-pulse"></span>
                                 {connectionStatus}
                             </span>
-                            <span className="w-1 h-1 rounded-full bg-white/20"></span>
-                            <span className="text-white/60 text-[10px] flex items-center gap-1.5 font-black uppercase tracking-widest">
-                                <Users size={12} className="opacity-50" /> {connectedPeers + 1} ACTIVE
+                            <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-white/20"></span>
+                            <span className="text-[#5D4E6D] dark:text-[#BB8FCE]/60 text-[10px] flex items-center gap-2 font-black uppercase tracking-widest">
+                                <Users size={12} /> {connectedPeers + 1} Connected
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <div className="hidden lg:flex items-center gap-3 bg-white/5 border border-white/5 rounded-2xl px-5 py-2.5 transition-all hover:bg-white/10 group">
-                        <Link2 size={14} className="text-white/20 group-hover:text-indigo-400 transition-colors" />
-                        <span className="text-white/40 text-[10px] font-mono w-32 truncate select-all tracking-tighter uppercase">{session.sessionId}</span>
+                <div className="flex items-center gap-6">
+                    <div className="hidden lg:flex items-center gap-3 bg-gray-50 dark:bg-[#1A1625]/60 border border-gray-200 dark:border-[#9B59B6]/20 rounded-2xl px-5 py-3 shadow-inner">
+                        <ShieldCheck size={14} className="text-[#9B59B6]" />
+                        <span className="text-[#5D4E6D] dark:text-[#BB8FCE]/40 text-[10px] font-mono tracking-tighter uppercase">Peer-to-Peer Tunnel Secure</span>
+                        <div className="w-px h-4 bg-[#9B59B6]/10 mx-2" />
                         <button onClick={handleCopy}
-                            className="flex items-center gap-2 text-[10px] px-3 py-1.5 rounded-xl bg-white/5 text-white/60 font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all active:scale-95 border border-white/5">
+                            className="flex items-center gap-2 text-[10px] px-4 py-1.5 rounded-xl bg-white dark:bg-[#2C1A3F] text-[#9B59B6] font-black uppercase tracking-widest hover:bg-[#9B59B6] hover:text-white transition-all active:scale-95 shadow-sm border border-[#9B59B6]/20">
                             {copied ? <Check size={12} /> : <Copy size={12} />}
                             {copied ? 'Copied' : 'Invite'}
                         </button>
@@ -283,9 +356,9 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
                 </div>
             </div>
 
-            {/* Immersive Video Grid */}
-            <div className="flex-1 w-full p-8 relative overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_50%_0%,_rgba(31,27,45,0.4)_0%,_transparent_70%)]">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr h-full max-w-7xl mx-auto">
+            {/* Content Area with Radial Gradient */}
+            <div className="flex-1 w-full p-8 relative overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_50%_0%,_rgba(155,89,182,0.05)_0%,_transparent_70%)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 auto-rows-fr h-full max-w-7xl mx-auto">
 
                     <Participant
                         stream={localStreamRef.current}
@@ -307,43 +380,77 @@ export default function NativeWebRtcSession({ session, displayName, micDeviceId,
                     ))}
 
                     {connectedPeers === 0 && (
-                        <div className="col-span-full flex flex-col items-center justify-center space-y-6 opacity-20 py-20">
-                            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
-                                <Activity size={40} className="text-white animate-pulse" />
+                        <div className="col-span-full flex flex-col items-center justify-center space-y-8 opacity-40 py-20 animate-in fade-in duration-1000">
+                            <div className="w-24 h-24 bg-[#9B59B6]/5 rounded-full flex items-center justify-center border border-[#9B59B6]/10 shadow-inner">
+                                <Activity size={40} className="text-[#9B59B6] animate-pulse" />
                             </div>
-                            <p className="text-white text-xs font-black uppercase tracking-[0.5em] text-center max-w-xs leading-loose">
-                                Securing Peer-to-Peer Tunnel...<br />Waiting for direct link connection
+                            <p className="text-[#5D4E6D] dark:text-[#BB8FCE] text-xs font-black uppercase tracking-[0.5em] text-center max-w-xs leading-loose">
+                                Establishing Neural Tunnel...<br />Waiting for room discovery
                             </p>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Orbital Control Bar */}
+            {/* Refined Docking Bar */}
             <div className="relative z-30 px-8 py-10">
-                <div className="flex items-center justify-center gap-8 max-w-md mx-auto bg-white/5 backdrop-blur-3xl border border-white/5 rounded-[3rem] p-5 shadow-2xl relative">
-                    <div className="absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                <div className="flex items-center justify-center gap-10 max-w-lg mx-auto bg-white/60 dark:bg-[#2C1A3F]/60 backdrop-blur-3xl border border-white dark:border-[#9B59B6]/20 rounded-[3.5rem] p-6 shadow-2xl relative">
+                    <div className="absolute inset-x-24 top-0 h-px bg-gradient-to-r from-transparent via-[#9B59B6]/30 to-transparent" />
 
-                    <button onClick={toggleMute}
-                        className={`group flex items-center justify-center w-16 h-16 rounded-full transition-all duration-500 transform active:scale-90 border-2 ${isMuted
-                                ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 shadow-lg shadow-red-500/10'
-                                : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'
-                            }`}>
-                        {isMuted ? <MicOff size={24} className="animate-pulse" /> : <Mic size={24} />}
-                    </button>
+                    <div className="relative flex items-center">
+                        <button onClick={toggleMute}
+                            className={`group flex items-center justify-center w-16 h-16 rounded-[2.5rem] transition-all duration-500 transform active:scale-90 border-2 shadow-xl ${isMuted
+                                ? 'bg-[#E74C3C]/10 text-[#E74C3C] border-[#E74C3C]/20 hover:bg-[#E74C3C]/20 shadow-[#E74C3C]/10'
+                                : 'bg-white dark:bg-[#1A1625] text-[#9B59B6] border-white dark:border-[#9B59B6]/20 hover:bg-gray-50 dark:hover:bg-[#3D2656]'
+                                }`}>
+                            {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
+                        </button>
+
+                        {availableMics.length > 1 && (
+                            <button
+                                onClick={() => setShowMicSelector(!showMicSelector)}
+                                className="absolute -right-2 -top-2 p-1.5 bg-white dark:bg-[#2C1A3F] border border-[#9B59B6]/20 rounded-full shadow-lg text-[#9B59B6] hover:scale-110 transition-all z-10"
+                            >
+                                {showMicSelector ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
+                            </button>
+                        )}
+
+                        {showMicSelector && (
+                            <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-64 bg-white dark:bg-[#2C1A3F] backdrop-blur-3xl border border-[#9B59B6]/20 rounded-3xl shadow-2xl p-4 space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-300 z-50">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[#5D4E6D] dark:text-[#BB8FCE]/40 px-2 mb-2">Voice Sources</p>
+                                <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                                    {availableMics.map(mic => (
+                                        <button
+                                            key={mic.deviceId}
+                                            onClick={() => changeMicrophone(mic.deviceId)}
+                                            className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-bold transition-all flex items-center justify-between group ${mic.deviceId === currentMicId
+                                                    ? 'bg-[#9B59B6] text-white'
+                                                    : 'hover:bg-[#9B59B6]/10 text-[#2C1A3F] dark:text-[#ECE8F5]'
+                                                }`}
+                                        >
+                                            <span className="truncate pr-2">{mic.label}</span>
+                                            {mic.deviceId === currentMicId && <Check size={12} />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     <button onClick={toggleVideo}
-                        className={`group flex items-center justify-center w-16 h-16 rounded-full transition-all duration-500 transform active:scale-90 border-2 ${isVideoOff
-                                ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 shadow-lg shadow-red-500/10'
-                                : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'
+                        className={`group flex items-center justify-center w-16 h-16 rounded-[2.5rem] transition-all duration-500 transform active:scale-90 border-2 shadow-xl ${isVideoOff
+                            ? 'bg-[#E74C3C]/10 text-[#E74C3C] border-[#E74C3C]/20 hover:bg-[#E74C3C]/20 shadow-[#E74C3C]/10'
+                            : 'bg-white dark:bg-[#1A1625] text-[#9B59B6] border-white dark:border-[#9B59B6]/20 hover:bg-gray-50 dark:hover:bg-[#3D2656]'
                             }`}>
-                        {isVideoOff ? <VideoOff size={24} className="animate-pulse" /> : <Video size={24} />}
+                        {isVideoOff ? <VideoOff size={24} /> : <Video size={24} />}
                     </button>
 
+                    <div className="w-px h-10 bg-[#9B59B6]/10" />
+
                     <button onClick={onLeave}
-                        className="group flex items-center justify-center gap-4 px-10 h-16 rounded-full bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest text-xs transition-all duration-500 shadow-2xl shadow-red-600/30 hover:shadow-red-500/40 active:scale-95 border border-red-400/20">
+                        className="group flex items-center justify-center gap-5 px-12 h-16 rounded-[2.5rem] bg-[#E74C3C] hover:bg-[#C0392B] text-white font-black uppercase tracking-[0.25em] text-[11px] transition-all duration-500 shadow-2xl shadow-[#E74C3C]/30 active:scale-95 border border-white/20">
                         <PhoneOff size={20} className="group-hover:-translate-x-1 transition-transform" />
-                        TERMINATE
+                        Disconnect
                     </button>
                 </div>
             </div>

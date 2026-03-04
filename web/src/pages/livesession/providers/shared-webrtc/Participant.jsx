@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, User } from 'lucide-react';
+import { Mic, MicOff, User, Activity } from 'lucide-react';
 
 /**
- * Individual Participant component aligned with Nuralhealer Brand.
- * Professional medical aesthetic (Purple/Gray).
+ * Luxury Participant Component.
+ * High-end Wellness Aesthetic with 3D depth and refined status indicators.
  */
 export default function Participant({ stream, name, isLocal, isMuted, isVideoOff }) {
     const videoRef = useRef(null);
@@ -49,8 +49,7 @@ export default function Participant({ stream, name, isLocal, isMuted, isVideoOff
                 for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
                 const average = sum / dataArray.length;
 
-                // Threshold for "speaking"
-                setIsSpeaking(average > 15);
+                setIsSpeaking(average > 18);
                 animationFrame = requestAnimationFrame(checkVolume);
             };
 
@@ -69,57 +68,74 @@ export default function Participant({ stream, name, isLocal, isMuted, isVideoOff
     }, [stream, isLocal, isMuted]);
 
     return (
-        <div className={`relative bg-gray-50 dark:bg-[#1A1625] rounded-[2.5rem] overflow-hidden border-2 transition-all duration-700 shadow-2xl flex items-center justify-center min-h-[220px] ${isSpeaking
-                ? 'border-[#9B59B6] ring-8 ring-[#9B59B6]/10 scale-[1.01]'
-                : 'border-white dark:border-[#2C1A3F]'
+        <div className={`relative bg-white dark:bg-white/5 rounded-[2.5rem] overflow-hidden border transition-all duration-700 shadow-2xl flex items-center justify-center min-h-[300px] md:min-h-[400px] group ${isSpeaking
+            ? 'border-primary shadow-[0_0_60px_rgba(155,89,182,0.15)] ring-1 ring-primary/20 scale-[1.01]'
+            : 'border-transparent dark:border-white/10 ring-1 ring-black/[0.03] dark:ring-white/[0.05]'
             }`}>
+
+            {/* Mesh Surface for Camera Off */}
+            <div className={`absolute inset-0 z-0 bg-gradient-to-br from-gray-50 via-white to-primary/5 dark:from-black/40 dark:via-black/20 dark:to-primary/10 transition-opacity duration-1000 ${isVideoOff ? 'opacity-100' : 'opacity-0'}`} />
 
             <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted={isLocal}
-                className={`w-full h-full object-cover transition-all duration-1000 ${isVideoOff ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+                className={`w-full h-full object-cover transition-all duration-1000 scale-[1.02] ${isVideoOff ? 'opacity-0' : 'opacity-100'}`}
             />
 
             {(isVideoOff || !stream) && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 dark:bg-[#2C1A3F]">
-                    <div className="w-24 h-24 bg-[#9B59B6]/10 rounded-full flex items-center justify-center mb-4 border border-[#9B59B6]/10 shadow-inner relative group">
-                        <div className="absolute inset-0 bg-[#9B59B6]/5 rounded-full blur-xl group-hover:bg-[#9B59B6]/20 transition-all duration-700" />
-                        {name ? (
-                            <span className="text-4xl font-black text-[#9B59B6]/60 uppercase tracking-tighter relative z-10 drop-shadow-md">
-                                {name.charAt(0)}
-                            </span>
-                        ) : (
-                            <User size={40} className="text-[#9B59B6]/30" />
-                        )}
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
+                    <div className="relative">
+                        <div className={`absolute -inset-8 bg-primary/10 rounded-full blur-2xl transition-all duration-1000 ${isSpeaking ? 'opacity-100 scale-150' : 'opacity-0 scale-50'}`} />
+                        <div className="w-24 h-24 md:w-32 md:h-32 bg-white dark:bg-white/10 rounded-full flex items-center justify-center shadow-2xl border border-gray-50 dark:border-white/10 relative z-20 group-hover:scale-110 transition-transform duration-700">
+                            {name ? (
+                                <span className="text-4xl font-black text-primary/40 dark:text-primary/60 uppercase">
+                                    {name.charAt(0)}
+                                </span>
+                            ) : (
+                                <User size={40} className="text-primary/10" />
+                            )}
+                        </div>
                     </div>
-                    <p className="text-[#5D4E6D] dark:text-[#BB8FCE]/40 text-[9px] font-black uppercase tracking-[0.4em]">{name || 'Connecting...'}</p>
+                    <p className="mt-8 text-[11px] font-black text-primary/30 dark:text-primary/50 uppercase tracking-[0.4em] animate-pulse">{name || 'Establishing...'}</p>
                 </div>
             )}
 
-            {/* NeuralHealer Participant Tag */}
-            <div className={`absolute bottom-6 left-6 bg-white/80 dark:bg-black/60 backdrop-blur-2xl px-5 py-2.5 rounded-2xl text-[10px] font-black flex items-center gap-3 border border-[#9B59B6]/10 shadow-2xl transition-all duration-500 ${isSpeaking ? 'translate-y--2' : ''}`}>
+            {/* Luxury Identity Tag */}
+            <div className={`absolute bottom-6 left-6 md:bottom-8 md:left-8 z-30 transition-all duration-700 bg-white/60 dark:bg-white/10 backdrop-blur-3xl px-6 py-3 rounded-2xl border border-white dark:border-white/10 shadow-xl flex items-center gap-4 group-hover:px-8 ${isSpeaking ? 'bg-primary/5 dark:bg-primary/20 border-primary/20 scale-105' : ''}`}>
                 <div className="flex items-center gap-3">
                     {isSpeaking ? (
-                        <div className="flex gap-1 items-end h-3.5 w-4 mb-0.5">
-                            <div className="w-1 bg-[#9B59B6] animate-bounce h-1.5" style={{ animationDuration: '0.4s' }}></div>
-                            <div className="w-1 bg-[#9B59B6] animate-bounce h-3" style={{ animationDuration: '0.3s' }}></div>
-                            <div className="w-1 bg-[#9B59B6] animate-bounce h-2" style={{ animationDuration: '0.5s' }}></div>
+                        <div className="flex items-center gap-1.5 h-4">
+                            <div className="w-1.5 bg-primary rounded-full animate-bounce h-2" style={{ animationDuration: '0.4s' }}></div>
+                            <div className="w-1.5 bg-primary rounded-full animate-bounce h-4" style={{ animationDuration: '0.3s' }}></div>
+                            <div className="w-1.5 bg-primary rounded-full animate-bounce h-3" style={{ animationDuration: '0.5s' }}></div>
                         </div>
                     ) : (
-                        isMuted ? <MicOff size={14} className="text-[#E74C3C]" /> : <Mic size={14} className="text-[#9B59B6]" />
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${isMuted ? 'bg-error/5 border-error/10 text-error' : 'bg-primary/5 dark:bg-primary/20 border-primary/10 dark:border-primary/30 text-primary dark:text-primary-light'}`}>
+                            {isMuted ? <MicOff size={14} /> : <Mic size={14} />}
+                        </div>
                     )}
-                    <span className="text-[#2C1A3F] dark:text-white tracking-widest uppercase">
-                        {name} {isLocal && <span className="text-[#9B59B6]/60 ml-1 font-black underline decoration-2 underline-offset-4">YOU</span>}
-                    </span>
+                    <div className="flex flex-col">
+                        <h4 className="text-[11px] font-black text-textPrimary dark:text-lightText uppercase tracking-widest leading-none">
+                            {name} {isLocal && <span className="text-primary/60 dark:text-primary/40 ml-1.5 underline decoration-2 underline-offset-4">(Consultant)</span>}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-1.5 opacity-60">
+                            <div className={`w-1.5 h-1.5 rounded-full ${isSpeaking ? 'bg-success animate-pulse' : 'bg-gray-300 dark:bg-white/20'}`} />
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-textSecondary dark:text-lightText/60">
+                                {isSpeaking ? 'Active Voice' : isMuted ? 'Muted' : 'Listening'}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Corner Status */}
-            {isMuted && !isSpeaking && (
-                <div className="absolute top-6 right-6 p-2.5 bg-[#E74C3C]/10 backdrop-blur-md rounded-xl border border-[#E74C3C]/20 shadow-lg">
-                    <MicOff size={12} className="text-[#E74C3C]" />
+            {/* Signal Indicator */}
+            {!isLocal && (
+                <div className="absolute top-6 right-6 md:top-8 md:right-8 z-30 flex flex-col items-end gap-2.5">
+                    <div className="p-2.5 bg-white/30 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/40 dark:border-white/10 shadow-sm opacity-40 hover:opacity-100 transition-opacity">
+                        <Activity size={14} className="text-primary" />
+                    </div>
                 </div>
             )}
         </div>

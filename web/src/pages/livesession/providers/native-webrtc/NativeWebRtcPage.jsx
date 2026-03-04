@@ -12,14 +12,22 @@ import {
     Camera,
     Settings,
     ShieldCheck,
-    Zap,
-    User
+    User,
+    Heart,
+    Activity,
+    Maximize2,
+    Smartphone
 } from 'lucide-react';
 import liveSessionService from '../../liveSessionService';
 import userService from '../../../../services/userService';
+import Button from '../../../../components/common/Button';
 import NativeWebRtcSession from './NativeWebRtcSession';
 import useAudioAnalyzer from '../shared-webrtc/useAudioAnalyzer';
 
+/**
+ * V2 Luxury Wellness Consultation Lobby.
+ * Optimized for Perfect Responsiveness and Premium Aesthetics.
+ */
 export default function NativeWebRtcPage() {
     const { sessionId: paramSessionId } = useParams();
     const navigate = useNavigate();
@@ -32,7 +40,6 @@ export default function NativeWebRtcPage() {
 
     // Lobby States
     const [name, setName] = useState('');
-    const [currentUser, setCurrentUser] = useState(null);
     const [mics, setMics] = useState([]);
     const [selectedMic, setSelectedMic] = useState('');
     const [previewStream, setPreviewStream] = useState(null);
@@ -48,7 +55,6 @@ export default function NativeWebRtcPage() {
             try {
                 const user = await userService.getCurrentUser();
                 if (user) {
-                    setCurrentUser(user);
                     const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
                     if (fullName) setName(fullName);
                 }
@@ -63,7 +69,6 @@ export default function NativeWebRtcPage() {
     useEffect(() => {
         const getDevices = async () => {
             try {
-                // Initial request to trigger permission prompt
                 const initialStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
                 initialStream.getTracks().forEach(t => t.stop());
 
@@ -82,7 +87,7 @@ export default function NativeWebRtcPage() {
         getDevices();
     }, [selectedMic]);
 
-    // Update Preview Stream when Mic/Settings change
+    // Update Preview Stream
     useEffect(() => {
         if (inCall) return;
 
@@ -99,10 +104,8 @@ export default function NativeWebRtcPage() {
                 });
 
                 if (isMounted) {
-                    // Sync with toggle states
                     stream.getVideoTracks().forEach(t => t.enabled = isVideoEnabled);
                     stream.getAudioTracks().forEach(t => t.enabled = isAudioEnabled);
-
                     setPreviewStream(stream);
                     if (videoPreviewRef.current) videoPreviewRef.current.srcObject = stream;
                 } else {
@@ -114,10 +117,7 @@ export default function NativeWebRtcPage() {
         };
 
         startPreview();
-
-        return () => {
-            isMounted = false;
-        };
+        return () => { isMounted = false; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedMic, inCall]);
 
@@ -166,196 +166,270 @@ export default function NativeWebRtcPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#1A1625] text-[#2C1A3F] dark:text-[#ECE8F5] transition-colors duration-500 overflow-x-hidden relative flex flex-col">
+        <div className="min-h-screen bg-background dark:bg-backgroundDark text-textPrimary dark:text-lightText font-sans selection:bg-primary selection:text-white overflow-x-hidden relative flex flex-col transition-colors duration-500">
 
-            {/* NeuralHealer Background Elements */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#9B59B6]/5 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#8E44AD]/5 rounded-full blur-[120px]" />
+            {/* Premium Mesh Background */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden scale-110 opacity-70 dark:opacity-40">
+                <div className="absolute -top-[10%] -right-[10%] w-[60%] h-[60%] bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-full blur-[120px] animate-pulse duration-[10s]" />
+                <div className="absolute top-[40%] -left-[10%] w-[50%] h-[50%] bg-gradient-to-tr from-secondary/5 via-primary/5 to-transparent rounded-full blur-[100px] animate-pulse duration-[8s]" />
+                <div className="absolute -bottom-[10%] left-[20%] w-[40%] h-[40%] bg-gradient-to-t from-primary/5 to-transparent rounded-full blur-[100px]" />
             </div>
 
-            <div className="flex-1 container mx-auto px-6 py-8 max-w-6xl relative z-10 flex flex-col">
+            {/* Header Overlay */}
+            <header className="relative z-50 w-full px-6 py-6 md:px-12 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-white/60 dark:bg-white/10 backdrop-blur-xl border border-white dark:border-white/10 rounded-2xl shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-500 group active:scale-95"
+                    >
+                        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform dark:text-lightText" />
+                    </button>
+                    <div className="hidden md:block">
+                        <h1 className="text-sm font-black uppercase tracking-[0.2em] text-primary/80">Nuralhealer</h1>
+                        <p className="text-[10px] font-bold text-textSecondary dark:text-lightText/60 uppercase tracking-widest">Wellness Platform</p>
+                    </div>
+                </div>
 
-                {/* Top Bar */}
-                <div className="flex items-center justify-between mb-8 pb-6 border-b border-[#9B59B6]/10">
-                    <div className="flex items-center gap-5">
-                        <button onClick={() => navigate(-1)} className="p-3 bg-white dark:bg-[#2C1A3F] hover:bg-gray-100 dark:hover:bg-[#3D2656] rounded-2xl shadow-sm border border-gray-100 dark:border-[#9B59B6]/20 transition-all active:scale-95 group">
-                            <ArrowLeft size={18} className="text-[#5D4E6D] dark:text-[#BB8FCE]" />
-                        </button>
-                        <div>
-                            <h1 className="text-2xl font-black text-[#2C1A3F] dark:text-white flex items-center gap-3">
-                                Live <span className="bg-[#9B59B6]/10 text-[#9B59B6] dark:text-[#BB8FCE] px-3 py-1 rounded-xl text-[10px] border border-[#9B59B6]/20 font-black uppercase tracking-widest">Standalone Hub</span>
-                            </h1>
-                            <p className="text-[#5D4E6D] dark:text-[#BB8FCE]/60 text-xs font-bold uppercase tracking-widest mt-0.5">NeuralHealer Secure Network</p>
+                <div className="flex items-center gap-3 md:gap-8 px-5 py-2.5 bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-full shadow-sm">
+                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-black text-success uppercase tracking-widest">
+                        <ShieldCheck size={14} /> <span className="hidden sm:inline">End-to-End</span> Secure
+                    </div>
+                    <div className="w-px h-4 bg-gray-200 dark:bg-white/10" />
+                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-black text-primary uppercase tracking-widest">
+                        <Activity size={14} /> HD Quality
+                    </div>
+                </div>
+            </header>
+
+            <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-8 md:py-16 relative z-10 flex flex-col lg:flex-row items-center justify-center lg:gap-20">
+
+                {/* Left Section: Luxury Preview Area */}
+                <div className="w-full lg:w-3/5 space-y-10 order-2 lg:order-1 mt-12 lg:mt-0">
+                    <div className="relative group">
+                        {/* Decorative Elements */}
+                        <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+
+                        <div className="relative aspect-[4/3] md:aspect-video bg-white dark:bg-white/5 rounded-[2.5rem] overflow-hidden border border-white dark:border-white/10 shadow-2xl transition-all duration-700 group-hover:shadow-[0_20px_50px_rgba(155,89,182,0.15)] ring-1 ring-black/[0.03] dark:ring-white/[0.05]">
+
+                            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                                <div className="absolute top-0 left-0 w-full h-1/4 bg-gradient-to-b from-black/40 to-transparent" />
+                                <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-black/40 to-transparent" />
+                            </div>
+
+                            {isVideoEnabled ? (
+                                <video
+                                    ref={videoPreviewRef}
+                                    autoPlay
+                                    playsInline
+                                    muted
+                                    className="w-full h-full object-cover scale-[1.01]"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-[#F8F9FF] dark:bg-black/20">
+                                    <div className="w-24 h-24 md:w-32 md:h-32 bg-white dark:bg-white/10 rounded-full flex items-center justify-center mb-6 shadow-xl border border-primary/5 relative">
+                                        <div className="absolute inset-0 bg-primary/5 rounded-full animate-ping opacity-20" />
+                                        <User size={60} className="text-primary/20" />
+                                    </div>
+                                    <p className="text-[11px] font-black text-primary/40 dark:text-primary/60 uppercase tracking-[0.3em] flex items-center gap-3">
+                                        <VideoOff size={16} /> Privacy Mode Active
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Meta Labels */}
+                            <div className="absolute top-6 left-6 md:top-8 md:left-8 z-10 flex items-center gap-3">
+                                <div className="px-4 py-2 bg-black/30 dark:bg-black/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/10 flex items-center gap-2.5 text-[10px] font-black text-white uppercase tracking-widest shadow-xl">
+                                    <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                                    Client Ready
+                                </div>
+                            </div>
+
+                            {/* Glass Controls Overlay */}
+                            <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8 z-10 space-y-6">
+                                <div className="flex items-end justify-between">
+                                    <div className="flex-1 max-w-[180px] md:max-w-xs space-y-3">
+                                        <div className="flex items-center justify-between px-1">
+                                            <span className="text-[10px] font-black text-white/90 uppercase tracking-widest flex items-center gap-2 drop-shadow-md">
+                                                <Activity size={12} className="text-primary" /> Audio Precision
+                                            </span>
+                                            <span className="text-[10px] font-mono text-white/70 drop-shadow-md">{micVolume}%</span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-white/10 dark:bg-white/5 rounded-full overflow-hidden backdrop-blur-md border border-white/10 dark:border-white/5 p-[1px]">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all duration-100 shadow-[0_0_15px_rgba(155,89,182,0.6)]"
+                                                style={{ width: `${isAudioEnabled ? micVolume : 0}%` }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 md:gap-4">
+                                        <button
+                                            onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+                                            className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl md:rounded-3xl backdrop-blur-2xl transition-all duration-500 active:scale-90 flex items-center justify-center border shadow-2xl ${isAudioEnabled
+                                                ? 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                                                : 'bg-error text-white border-error/50 hover:bg-error/80'
+                                                }`}
+                                        >
+                                            {isAudioEnabled ? <Mic size={20} /> : <MicOff size={20} />}
+                                        </button>
+                                        <button
+                                            onClick={() => setIsVideoEnabled(!isVideoEnabled)}
+                                            className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl md:rounded-3xl backdrop-blur-2xl transition-all duration-500 active:scale-90 flex items-center justify-center border shadow-2xl ${isVideoEnabled
+                                                ? 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                                                : 'bg-error text-white border-error/50 hover:bg-error/80'
+                                                }`}
+                                        >
+                                            {isVideoEnabled ? <Video size={20} /> : <VideoOff size={20} />}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="hidden md:flex items-center gap-8">
-                        <div className="flex items-center gap-2 text-[10px] font-black text-[#27AE60] uppercase tracking-widest">
-                            <ShieldCheck size={14} /> Encrypted Node
+
+                    {/* Quick Settings Bar - Luxury Horizontal */}
+                    <div className="flex flex-col md:flex-row items-stretch md:items-center gap-6 p-6 md:p-8 bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-white dark:border-white/10 rounded-[2.5rem] shadow-xl ring-1 ring-black/[0.02] dark:ring-white/[0.05]">
+                        <div className="flex items-center gap-4 border-b md:border-b-0 md:border-r border-gray-100 dark:border-white/10 pb-4 md:pb-0 md:pr-8">
+                            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
+                                <Settings size={22} />
+                            </div>
+                            <div>
+                                <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Hardware</h3>
+                                <p className="text-[11px] font-bold text-textSecondary dark:text-lightText/60 uppercase tracking-widest whitespace-nowrap">Source Selection</p>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] font-black text-[#9B59B6] dark:text-[#BB8FCE] uppercase tracking-widest">
-                            <Zap size={14} /> High Fidelity
+
+                        <div className="flex-1 relative">
+                            <select
+                                value={selectedMic}
+                                onChange={(e) => setSelectedMic(e.target.value)}
+                                className="w-full bg-white/60 dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-textPrimary dark:text-lightText focus:ring-4 focus:ring-primary/10 focus:border-primary/50 outline-none appearance-none cursor-pointer transition-all pr-12 shadow-inner"
+                            >
+                                {mics.map(m => <option key={m.deviceId} value={m.deviceId} className="dark:bg-backgroundDark">{m.label}</option>)}
+                            </select>
+                            <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-primary/40 pointer-events-none" size={18} />
                         </div>
                     </div>
                 </div>
 
-                <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                {/* Right Section: Hero Form & Headlines */}
+                <div className="w-full lg:w-2/5 space-y-12 order-1 lg:order-2 text-center lg:text-left">
 
-                    {/* Preview Section */}
-                    <div className="space-y-8">
-                        <div className="relative group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-[#9B59B6] to-[#8E44AD] rounded-[2.5rem] blur-2xl opacity-5 dark:opacity-20 group-hover:opacity-10 dark:group-hover:opacity-30 transition-opacity duration-700" />
-                            <div className="relative aspect-video bg-white dark:bg-[#2C1A3F] rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-[#9B59B6]/20 shadow-2xl transition-all duration-700">
-
-                                {isVideoEnabled ? (
-                                    <video
-                                        ref={videoPreviewRef}
-                                        autoPlay
-                                        playsInline
-                                        muted
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 dark:bg-[#1A1625]">
-                                        <div className="w-24 h-24 bg-[#9B59B6]/10 rounded-full flex items-center justify-center mb-4 border border-[#9B59B6]/10">
-                                            <User size={48} className="text-[#9B59B6] opacity-40" />
-                                        </div>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-[#5D4E6D] dark:text-[#BB8FCE]/40 items-center flex gap-2">
-                                            <VideoOff size={14} /> Camera Disabled
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Visual Overlays */}
-                                <div className="absolute top-6 left-6 px-4 py-2 bg-white/80 dark:bg-black/40 backdrop-blur-xl rounded-2xl border border-[#9B59B6]/20 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-[#2C1A3F] dark:text-white shadow-xl">
-                                    <Camera size={14} className="text-[#9B59B6]" /> Tech Check
-                                </div>
-
-                                {/* Volume Bar */}
-                                <div className="absolute bottom-6 left-6 right-6 space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-xl transition-all shadow-lg ${micVolume > 5 ? 'bg-[#27AE60]/10 text-[#27AE60] border border-[#27AE60]/20' : 'bg-black/20 text-white/40 border border-white/5'}`}>
-                                                {isAudioEnabled ? <Mic size={14} /> : <MicOff size={14} />}
-                                            </div>
-                                            <span className="text-[9px] font-black tracking-widest text-white uppercase drop-shadow-md">Sensitivity Input</span>
-                                        </div>
-                                        <div className="px-2 py-0.5 rounded-lg bg-black/40 text-white/60 text-[8px] font-mono border border-white/10 uppercase">{micVolume}% Gain</div>
-                                    </div>
-                                    <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden border border-white/5 backdrop-blur-md">
-                                        <div
-                                            className="h-full bg-gradient-to-r from-[#27AE60] via-[#9B59B6] to-[#8E44AD] transition-all duration-75 shadow-[0_0_10px_rgba(155,89,182,0.5)]"
-                                            style={{ width: `${isAudioEnabled ? micVolume : 0}%` }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Settings Hover Controls */}
-                                <div className="absolute top-6 right-6 flex items-center gap-2">
-                                    <button
-                                        onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-                                        className={`p-3 rounded-2xl backdrop-blur-xl transition-all active:scale-95 shadow-lg border ${isAudioEnabled
-                                                ? 'bg-white/80 dark:bg-white/10 text-[#2C1A3F] dark:text-white border-white/20'
-                                                : 'bg-[#E74C3C]/20 text-[#E74C3C] border-[#E74C3C]/20'
-                                            }`}
-                                    >
-                                        {isAudioEnabled ? <Mic size={18} /> : <MicOff size={18} />}
-                                    </button>
-                                    <button
-                                        onClick={() => setIsVideoEnabled(!isVideoEnabled)}
-                                        className={`p-3 rounded-2xl backdrop-blur-xl transition-all active:scale-95 shadow-lg border ${isVideoEnabled
-                                                ? 'bg-white/80 dark:bg-white/10 text-[#2C1A3F] dark:text-white border-white/20'
-                                                : 'bg-[#E74C3C]/20 text-[#E74C3C] border-[#E74C3C]/20'
-                                            }`}
-                                    >
-                                        {isVideoEnabled ? <Video size={18} /> : <VideoOff size={18} />}
-                                    </button>
-                                </div>
-                            </div>
+                    <div className="space-y-6 lg:space-y-8">
+                        <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-primary/5 border border-primary/10 rounded-2xl text-[10px] font-black text-primary uppercase tracking-[0.3em] shadow-sm animate-bounce duration-[3s]">
+                            <Heart size={14} fill="currentColor" /> Premium Wellness Path
                         </div>
 
-                        {/* Source Selector */}
-                        <div className="p-8 bg-white dark:bg-[#2C1A3F] border border-gray-100 dark:border-[#9B59B6]/10 rounded-[2rem] shadow-xl space-y-6">
-                            <div>
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#5D4E6D] dark:text-[#BB8FCE]/60 flex items-center gap-3 mb-4">
-                                    <Settings size={14} className="text-[#9B59B6]" /> Audio Hardware Selection
-                                </h3>
-                                <div className="relative">
-                                    <select
-                                        value={selectedMic}
-                                        onChange={(e) => setSelectedMic(e.target.value)}
-                                        className="w-full bg-gray-50 dark:bg-[#1A1625] border border-gray-100 dark:border-[#9B59B6]/20 rounded-2xl px-6 py-4 text-sm font-bold text-[#2C1A3F] dark:text-[#ECE8F5] focus:ring-2 focus:ring-[#9B59B6]/20 focus:border-[#9B59B6]/40 outline-none appearance-none cursor-pointer transition-all hover:border-[#9B59B6]/40"
-                                    >
-                                        {mics.map(m => <option key={m.deviceId} value={m.deviceId}>{m.label}</option>)}
-                                    </select>
-                                    <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#5D4E6D] dark:text-[#BB8FCE]/40 pointer-events-none" size={16} />
-                                </div>
-                            </div>
-                        </div>
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-textPrimary dark:text-lightText tracking-tight leading-[1.1]">
+                            Your Health, <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-secondary animate-gradient-x">Perfectly Connected.</span>
+                        </h2>
+
+                        <p className="text-sm md:text-base font-bold text-textSecondary/80 dark:text-lightText/60 leading-relaxed max-w-lg lg:max-w-none mx-auto lg:mx-0">
+                            Join your secure consultation with state-of-the-art WebRTC technology.
+                            Experience high-fidelity audio and video designed for professional medical care.
+                        </p>
                     </div>
 
-                    {/* Identity Section */}
-                    <div className="space-y-12 lg:pl-10">
-                        <div className="space-y-4">
-                            <h2 className="text-5xl font-black tracking-tighter text-[#2C1A3F] dark:text-white leading-[1.1]">
-                                Join the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9B59B6] to-[#8E44AD]">Secure Room</span>
-                            </h2>
-                            <p className="text-[#5D4E6D] dark:text-[#BB8FCE]/60 font-medium text-lg leading-relaxed max-w-sm">
-                                Standalone high-quality session. Professional identity verified.
-                            </p>
-                        </div>
-
+                    <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[3rem] p-8 md:p-10 shadow-2xl space-y-8 ring-1 ring-black/[0.03] dark:ring-white/[0.05]">
                         {error && (
-                            <div className="bg-[#E74C3C]/5 border border-[#E74C3C]/10 p-6 rounded-3xl flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
-                                <AlertCircle className="text-[#E74C3C] flex-shrink-0 mt-1" size={18} />
-                                <p className="text-[#E74C3C] text-sm font-bold leading-snug">{error}</p>
+                            <div className="bg-error/5 border border-error/10 p-5 rounded-2xl flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                                <AlertCircle className="text-error shrink-0" size={20} />
+                                <p className="text-error text-xs font-black leading-snug text-left">{error}</p>
                             </div>
                         )}
 
-                        <div className="space-y-8 max-w-sm">
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black text-[#9B59B6] uppercase tracking-[0.3em] flex items-center gap-2 pl-1">
-                                    <User size={12} /> Your Display Identity
-                                </label>
+                        <div className="space-y-4 text-left">
+                            <label className="text-[10px] font-black text-primary uppercase tracking-[0.3em] ml-2">Identity Confirmation</label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-6 flex items-center text-primary/30 group-focus-within:text-primary transition-colors">
+                                    <User size={20} />
+                                </div>
                                 <input
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="Professional Name"
-                                    className="w-full bg-white dark:bg-[#2C1A3F] border border-gray-100 dark:border-[#9B59B6]/20 rounded-3xl px-8 py-6 text-lg font-bold text-[#2C1A3F] dark:text-[#ECE8F5] placeholder-gray-300 dark:placeholder-white/5 focus:ring-4 focus:ring-[#9B59B6]/10 focus:border-[#9B59B6]/40 outline-none transition-all duration-500 shadow-xl shadow-gray-200/20 dark:shadow-none"
+                                    placeholder="What is your full name?"
+                                    className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-[2rem] pl-16 pr-8 py-6 text-base font-black text-textPrimary dark:text-lightText placeholder-gray-300 dark:placeholder-gray-600 focus:ring-4 focus:ring-primary/10 focus:border-primary/40 outline-none transition-all duration-500 shadow-inner group-hover:bg-white dark:group-hover:bg-white/10"
                                 />
                             </div>
+                        </div>
 
-                            <div className="pt-4">
-                                <button
-                                    onClick={handleStart}
-                                    disabled={loading || !name.trim()}
-                                    className="w-full group relative overflow-hidden bg-gradient-to-r from-[#9B59B6] to-[#8E44AD] hover:scale-[1.02] disabled:opacity-50 disabled:scale-100 rounded-3xl py-6 transition-all duration-500 active:scale-95 shadow-2xl shadow-[#9B59B6]/30 flex items-center justify-center gap-3 border border-[#BB8FCE]/20"
-                                >
-                                    <span className="relative z-10 text-lg font-black uppercase tracking-[0.2em] text-white">
-                                        {loading ? <Loader2 className="animate-spin" size={24} /> : (paramSessionId ? 'Secure Handshake' : 'Initialize Session')}
-                                    </span>
-                                </button>
-                                <div className="flex flex-col items-center mt-10 space-y-4">
-                                    <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#5D4E6D] dark:text-[#BB8FCE]/30">Nuralhealer Protocol v2.5.0</p>
-                                    <div className="h-px w-12 bg-gradient-to-r from-transparent via-[#9B59B6]/20 to-transparent" />
+                        <div className="space-y-6">
+                            <Button
+                                variant="primary"
+                                size="large"
+                                onClick={handleStart}
+                                disabled={loading || !name.trim()}
+                                className="w-full py-7 rounded-[2rem] shadow-2xl shadow-primary/20 text-base font-black uppercase tracking-[0.2em] group overflow-hidden relative"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                {loading ? (
+                                    <div className="flex items-center justify-center gap-4">
+                                        <Loader2 className="animate-spin" size={24} />
+                                        <span className="animate-pulse">Connecting...</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-center gap-4">
+                                        <span>{paramSessionId ? 'Enter Hub' : 'Launch Session'}</span>
+                                        <Maximize2 size={20} className="group-hover:scale-125 transition-transform" />
+                                    </div>
+                                )}
+                            </Button>
+
+                            <div className="flex items-center justify-center gap-6 opacity-60">
+                                <div className="flex items-center gap-2 text-[9px] font-black text-textSecondary dark:text-lightText/60 uppercase tracking-widest">
+                                    <Smartphone size={12} /> Mobile Optimized
+                                </div>
+                                <div className="w-1 h-1 bg-gray-300 dark:bg-white/10 rounded-full" />
+                                <div className="flex items-center gap-2 text-[9px] font-black text-textSecondary dark:text-lightText/60 uppercase tracking-widest">
+                                    <ShieldCheck size={12} /> Private E2EE
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
-            </div>
+            </main>
 
-            <footer className="py-8 border-t border-[#9B59B6]/5 bg-white/40 dark:bg-black/20 backdrop-blur-xl">
-                <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em]">End-To-End Medical Encryption</p>
-                    <div className="flex gap-8">
-                        <span className="text-[9px] font-black uppercase tracking-[0.3em] flex items-center gap-2"><ShieldCheck size={12} /> Privacy Shield</span>
-                        <span className="text-[9px] font-black uppercase tracking-[0.3em] flex items-center gap-2"><Zap size={12} /> Precision Engine</span>
+            {/* Luxury Footer */}
+            <footer className="w-full py-10 px-6 bg-white/30 dark:bg-black/20 backdrop-blur-xl border-t border-white/60 dark:border-white/10 relative z-20">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
+                    <div className="flex items-center gap-4 group">
+                        <div className="w-10 h-10 bg-primary text-white font-black rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">NH</div>
+                        <div>
+                            <p className="text-[10px] font-black text-textPrimary dark:text-lightText uppercase tracking-[0.25em]">Nuralhealer Telehealth</p>
+                            <p className="text-[9px] font-bold text-textSecondary dark:text-lightText/40 uppercase tracking-widest">Professional Consultation Hub</p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+                        {[
+                            { icon: <ShieldCheck size={16} />, label: "Privacy Shield" },
+                            { icon: <Activity size={16} />, label: "Live Diagnostics" },
+                            { icon: <Maximize2 size={16} />, label: "Full Mesh P2P" }
+                        ].map((item, i) => (
+                            <div key={i} className="flex items-center gap-3 text-[10px] font-black text-textSecondary dark:text-lightText/60 uppercase tracking-widest group cursor-default">
+                                <span className="text-primary/40 group-hover:scale-125 transition-transform">{item.icon}</span>
+                                <span className="group-hover:text-primary transition-colors">{item.label}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </footer>
+
+            {/* Scrollbar Styles */}
+            <style dangerouslySetInnerHTML={{
+                __html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(155, 89, 182, 0.2); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(155, 89, 182, 0.4); }
+        @keyframes gradient-x {
+          0%, 100% { background-size: 200% 200%; background-position: left center; }
+          50% { background-size: 200% 200%; background-position: right center; }
+        }
+        .animate-gradient-x { animation: gradient-x 8s ease infinite; }
+      `}} />
         </div>
     );
 }

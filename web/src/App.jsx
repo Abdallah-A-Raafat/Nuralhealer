@@ -21,12 +21,11 @@ import Assessments from './pages/patient/Assessments';
 import EngagementChat from './components/engagement/EngagementChat';
 import EngagementVerification from './pages/EngagementVerification';
 import OtpVerification from './pages/OtpVerification';
-import JitsiPage from './pages/livesession/JitsiPage';
 import NativeWebRtcPage from './pages/livesession/providers/native-webrtc/NativeWebRtcPage';
 
-function JitsiRedirect() {
+function NativeWebRtcRedirect() {
   const { sessionId } = useParams();
-  return <Navigate to={`/live-session/jitsi/${sessionId}`} replace />;
+  return <Navigate to={`/live-session/native/${sessionId}`} replace />;
 }
 
 function App() {
@@ -116,14 +115,12 @@ function App() {
                 }
               />
               {/* Live Session Routes — separate providers */}
-              <Route path="/live-session/jitsi" element={<JitsiPage />} />
-              <Route path="/live-session/jitsi/:sessionId" element={<JitsiPage />} />
               <Route path="/live-session/native" element={<NativeWebRtcPage />} />
               <Route path="/live-session/native/:sessionId" element={<NativeWebRtcPage />} />
 
               {/* Backward compatibility / Default */}
-              <Route path="/live-session" element={<Navigate to="/live-session/jitsi" replace />} />
-              <Route path="/live-session/:sessionId" element={<JitsiRedirect />} />
+              <Route path="/live-session" element={<Navigate to="/live-session/native" replace />} />
+              <Route path="/live-session/:sessionId" element={<NativeWebRtcRedirect />} />
 
               {/* Doctor Routes */}
               <Route

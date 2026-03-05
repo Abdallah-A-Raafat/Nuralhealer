@@ -10,19 +10,21 @@ import {
     Users,
     Activity,
     ShieldCheck,
-    ChevronUp,
     ChevronDown,
-    Heart,
-    Maximize2,
     Settings,
-    MoreHorizontal
+    Volume2,
+    UserCheck,
+    UserX
 } from 'lucide-react';
 import Participant from '../shared-webrtc/Participant';
-import Button from '../../../../components/common/Button';
+import logo from '../../../../assets/icon.png';
 
 /**
- * V2 Luxury Native WebRTC Session.
- * Perfectly Responsive & Premium Luxury Wellness Aesthetic.
+ * Native WebRTC Session — Perfect Negotiation Pattern.
+ * Fixes:
+ *  1. hasConnectedRef guard prevents React StrictMode from double-joining
+ *  2. Polite/impolite peer roles resolve simultaneous offer collisions
+ *  3. Speaker output device selector with setSinkId
  */
 export default function NativeWebRtcSession({
     session,
@@ -35,26 +37,33 @@ export default function NativeWebRtcSession({
     const [copied, setCopied] = useState(false);
     const [isMuted, setIsMuted] = useState(initialMuted);
     const [isVideoOff, setIsVideoOff] = useState(initialVideoOff);
-    const [connectedPeers, setConnectedPeers] = useState(0);
     const [connectionStatus, setConnectionStatus] = useState('Securing Connection...');
 
     // Device Management
     const [availableMics, setAvailableMics] = useState([]);
+    const [availableSpeakers, setAvailableSpeakers] = useState([]);
     const [currentMicId, setCurrentMicId] = useState(micDeviceId);
+    const [currentSpeakerId, setCurrentSpeakerId] = useState('');
     const [showMicSelector, setShowMicSelector] = useState(false);
+    const [showSpeakerSelector, setShowSpeakerSelector] = useState(false);
+    const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
 
-    // Maps peer ID -> MediaStream
-    const [remoteStreams, setRemoteStreams] = useState({});
-    // Maps peer ID -> { isMuted, isVideoOff }
-    const [participantStates, setParticipantStates] = useState({});
+    // Peer state
+    const [remoteStreams, setRemoteStreams] = useState({});       // peerId -> MediaStream
+    const [participantStates, setParticipantStates] = useState({}); // peerId -> {isMuted, isVideoOff}
+    const [connectedPeers, setConnectedPeers] = useState(0);
+    // Join approval
+    const [pendingRequests, setPendingRequests] = useState([]); // [{peerId}]
 
     const localStreamRef = useRef(null);
-
-    // WebRTC refs
     const wsRef = useRef(null);
-    const peerConnectionsRef = useRef({}); // peerId -> RTCPeerConnection
+    const peerConnectionsRef = useRef({});       // peerId -> RTCPeerConnection
+    const makingOfferRef = useRef({});           // peerId -> boolean (for Perfect Negotiation)
+    const hasConnectedRef = useRef(false);       // guard against StrictMode double-mount
 
     const shareLink = `${window.location.origin}/live-session/native/${session.sessionId}`;
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
 
     const handleCopy = () => {
         navigator.clipboard.writeText(shareLink).then(() => {
@@ -63,7 +72,6 @@ export default function NativeWebRtcSession({
         });
     };
 
-    // Broadcast own state
     const broadcastStatus = (muted, videoOff) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({
@@ -76,45 +84,86 @@ export default function NativeWebRtcSession({
         }
     };
 
-    // 1. Initialize local media
-    useEffect(() => {
-        const startLocalVideo = async () => {
+    // Polite peer = lexicographically smaller displayName — used for Perfect Negotiation
+    const isPolite = (remotePeerId) => displayName < remotePeerId;
+
+    const getOrCreatePC = (peerId) => {
+        if (peerConnectionsRef.current[peerId]) return peerConnectionsRef.current[peerId];
+
+        const pc = new RTCPeerConnection({
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        });
+
+        pc.onicecandidate = (event) => {
+            if (event.candidate && wsRef.current?.readyState === WebSocket.OPEN) {
+                wsRef.current.send(JSON.stringify({
+                    type: 'ice-candidate',
+                    roomId: session.sessionId,
+                    peerId: displayName,
+                    candidate: event.candidate
+                }));
+            }
+        };
+
+        pc.ontrack = (event) => {
+            setRemoteStreams(prev => ({ ...prev, [peerId]: event.streams[0] }));
+        };
+
+        pc.onconnectionstatechange = () => {
+            if (['connected', 'completed'].includes(pc.connectionState)) {
+                setConnectionStatus('Secure Connection Established');
+            } else if (pc.connectionState === 'failed') {
+                setConnectionStatus('Connection Failed — Retrying...');
+                pc.restartIce();
+            }
+        };
+
+        // Negotiate (Perfect Negotiation: only the side that triggers onnegotiationneeded creates the offer)
+        pc.onnegotiationneeded = async () => {
             try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const m = devices
-                    .filter(d => d.kind === 'audioinput')
-                    .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Microphone ${i + 1}` }));
-                setAvailableMics(m);
-
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: true,
-                    audio: currentMicId ? { deviceId: { exact: currentMicId } } : true
-                });
-
-                stream.getAudioTracks().forEach(t => t.enabled = !initialMuted);
-                stream.getVideoTracks().forEach(t => t.enabled = !initialVideoOff);
-
-                localStreamRef.current = stream;
-                connectWebSocket();
+                makingOfferRef.current[peerId] = true;
+                await pc.setLocalDescription();
+                wsRef.current?.send(JSON.stringify({
+                    type: 'offer',
+                    roomId: session.sessionId,
+                    peerId: displayName,
+                    sdp: pc.localDescription
+                }));
             } catch (err) {
-                console.error("Failed to get local media", err);
-                setConnectionStatus("Access Denied");
+                console.error('onnegotiationneeded error:', err);
+            } finally {
+                makingOfferRef.current[peerId] = false;
             }
         };
-        startLocalVideo();
 
-        const pcs = peerConnectionsRef.current;
-        return () => {
-            if (localStreamRef.current) {
-                localStreamRef.current.getTracks().forEach(t => t.stop());
-            }
-            if (wsRef.current) wsRef.current.close();
-            Object.values(pcs).forEach(pc => pc.close());
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [micDeviceId]);
+        // Add local tracks
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(track => {
+                pc.addTrack(track, localStreamRef.current);
+            });
+        }
 
-    // 2. WebSocket Signaling
+        peerConnectionsRef.current[peerId] = pc;
+        return pc;
+    };
+
+    const handlePeerLeave = (peerId) => {
+        const pc = peerConnectionsRef.current[peerId];
+        if (pc) { pc.close(); delete peerConnectionsRef.current[peerId]; }
+        delete makingOfferRef.current[peerId];
+        setRemoteStreams(prev => { const n = { ...prev }; delete n[peerId]; return n; });
+        setParticipantStates(prev => { const n = { ...prev }; delete n[peerId]; return n; });
+        setConnectedPeers(Object.keys(peerConnectionsRef.current).length);
+        if (Object.keys(peerConnectionsRef.current).length === 0) {
+            setConnectionStatus('Waiting for guest...');
+        }
+    };
+
+    // ── WebSocket Signaling ────────────────────────────────────────────────────
+
     const connectWebSocket = () => {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.hostname === 'localhost' ? 'localhost:8080' : window.location.host;
@@ -128,125 +177,218 @@ export default function NativeWebRtcSession({
                 type: 'join',
                 roomId: session.sessionId,
                 peerId: displayName,
-                isMuted,
-                isVideoOff
+                isMuted: initialMuted,
+                isVideoOff: initialVideoOff
             }));
         };
 
         ws.onmessage = async (event) => {
             const msg = JSON.parse(event.data);
             if (msg.roomId !== session.sessionId) return;
+            if (msg.peerId === displayName) return; // ignore own messages
 
             switch (msg.type) {
-                case 'join':
-                    if (msg.peerId !== displayName) {
-                        setParticipantStates(prev => ({ ...prev, [msg.peerId]: { isMuted: msg.isMuted, isVideoOff: msg.isVideoOff } }));
-                        await createOffer(msg.peerId);
-                        setConnectedPeers(prev => prev + 1);
-                        setConnectionStatus('Secure Connection established');
-                        broadcastStatus(isMuted, isVideoOff);
+
+                case 'join': {
+                    // A new peer joined — we (the existing peer) initiate the offer
+                    setParticipantStates(prev => ({
+                        ...prev,
+                        [msg.peerId]: { isMuted: msg.isMuted, isVideoOff: msg.isVideoOff }
+                    }));
+                    const pc = getOrCreatePC(msg.peerId);
+                    // Trigger onnegotiationneeded by setting local description implicitly
+                    // Only do this if we are NOT already negotiating
+                    if (pc.signalingState === 'stable') {
+                        try {
+                            makingOfferRef.current[msg.peerId] = true;
+                            await pc.setLocalDescription();
+                            ws.send(JSON.stringify({
+                                type: 'offer',
+                                roomId: session.sessionId,
+                                peerId: displayName,
+                                sdp: pc.localDescription
+                            }));
+                        } catch (err) {
+                            console.error('createOffer error:', err);
+                        } finally {
+                            makingOfferRef.current[msg.peerId] = false;
+                        }
+                    }
+                    setConnectedPeers(Object.keys(peerConnectionsRef.current).length);
+                    broadcastStatus(initialMuted, initialVideoOff);
+                    break;
+                }
+
+                case 'status-update': {
+                    setParticipantStates(prev => ({
+                        ...prev,
+                        [msg.peerId]: { isMuted: msg.isMuted, isVideoOff: msg.isVideoOff }
+                    }));
+                    break;
+                }
+
+                case 'offer': {
+                    const pc = getOrCreatePC(msg.peerId);
+                    const polite = isPolite(msg.peerId);
+                    const offerCollision = makingOfferRef.current[msg.peerId] || pc.signalingState !== 'stable';
+
+                    if (offerCollision && !polite) {
+                        // Impolite peer ignores colliding offers
+                        return;
+                    }
+
+                    try {
+                        await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+                        await pc.setLocalDescription();
+                        ws.send(JSON.stringify({
+                            type: 'answer',
+                            roomId: session.sessionId,
+                            peerId: displayName,
+                            sdp: pc.localDescription
+                        }));
+                        setConnectedPeers(Object.keys(peerConnectionsRef.current).length);
+                        setConnectionStatus('Secure Connection Established');
+                    } catch (err) {
+                        console.error('handleOffer error:', err);
                     }
                     break;
-                case 'status-update':
-                    if (msg.peerId !== displayName) {
-                        setParticipantStates(prev => ({ ...prev, [msg.peerId]: { isMuted: msg.isMuted, isVideoOff: msg.isVideoOff } }));
+                }
+
+                case 'answer': {
+                    const pc = peerConnectionsRef.current[msg.peerId];
+                    if (!pc) return;
+                    if (pc.signalingState !== 'have-local-offer') {
+                        // Ignore stale answers
+                        return;
+                    }
+                    try {
+                        await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+                        setConnectedPeers(Object.keys(peerConnectionsRef.current).length);
+                        setConnectionStatus('Secure Connection Established');
+                    } catch (err) {
+                        console.error('handleAnswer error:', err);
                     }
                     break;
-                case 'offer':
-                    if (msg.peerId !== displayName) {
-                        await handleOffer(msg.peerId, msg.sdp);
-                        setConnectedPeers(prev => prev + 1);
-                        setConnectionStatus('Secure Connection established');
+                }
+
+                case 'ice-candidate': {
+                    const pc = peerConnectionsRef.current[msg.peerId];
+                    if (!pc || !msg.candidate) return;
+                    try {
+                        await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
+                    } catch (err) {
+                        // Ignore ICE errors during negotiation rollbacks
+                        if (!err.message.includes('remote description')) {
+                            console.warn('ICE candidate error:', err);
+                        }
                     }
                     break;
-                case 'answer':
-                    if (msg.peerId !== displayName) await handleAnswer(msg.peerId, msg.sdp);
+                }
+
+                case 'join-request': {
+                    // A guest is requesting to join — add to pending list for host to approve
+                    setPendingRequests(prev => {
+                        if (prev.find(r => r.peerId === msg.peerId)) return prev;
+                        return [...prev, { peerId: msg.peerId }];
+                    });
                     break;
-                case 'ice-candidate':
-                    if (msg.peerId !== displayName) await handleIceCandidate(msg.peerId, msg.candidate);
-                    break;
+                }
+
                 case 'leave':
                     handlePeerLeave(msg.peerId);
+                    // Also remove from pending if they left before being approved
+                    setPendingRequests(prev => prev.filter(r => r.peerId !== msg.peerId));
                     break;
+
                 default:
                     break;
             }
         };
 
-        ws.onclose = () => setConnectionStatus("Session Ended");
-        ws.onerror = () => setConnectionStatus("Network Error");
+        ws.onclose = () => setConnectionStatus('Session Ended');
+        ws.onerror = () => setConnectionStatus('Network Error');
     };
 
-    // WebRTC Helpers
-    const createPeerConnection = (peerId) => {
-        const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-        pc.onicecandidate = (event) => {
-            if (event.candidate && wsRef.current?.readyState === WebSocket.OPEN) {
-                wsRef.current.send(JSON.stringify({ type: 'ice-candidate', roomId: session.sessionId, peerId: displayName, candidate: event.candidate }));
+    // ── Media Initialization ───────────────────────────────────────────────────
+
+    useEffect(() => {
+        // Guard: only run once even in React StrictMode
+        if (hasConnectedRef.current) return;
+        hasConnectedRef.current = true;
+
+        const init = async () => {
+            // Small delay to let the lobby's camera release
+            await new Promise(r => setTimeout(r, 200));
+
+            const audioConstraint = currentMicId ? { deviceId: { exact: currentMicId } } : true;
+            let stream = null;
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: audioConstraint });
+            } catch {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: audioConstraint });
+                    setIsVideoOff(true);
+                } catch {
+                    console.warn('No media available — joining as listener');
+                }
             }
+
+            if (stream) {
+                stream.getAudioTracks().forEach(t => t.enabled = !initialMuted);
+                stream.getVideoTracks().forEach(t => t.enabled = !initialVideoOff);
+                localStreamRef.current = stream;
+            }
+
+            // Enumerate devices after permission grant
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                setAvailableMics(devices
+                    .filter(d => d.kind === 'audioinput')
+                    .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Microphone ${i + 1}` }))
+                );
+                const speakers = devices.filter(d => d.kind === 'audiooutput');
+                setAvailableSpeakers(speakers.map((d, i) => ({
+                    deviceId: d.deviceId,
+                    label: d.label || `Speaker ${i + 1}`
+                })));
+                if (speakers.length > 0) setCurrentSpeakerId(speakers[0].deviceId);
+            } catch { /* ignore */ }
+
+            // Always connect signaling
+            connectWebSocket();
         };
-        pc.ontrack = (event) => { setRemoteStreams(prev => ({ ...prev, [peerId]: event.streams[0] })); };
-        if (localStreamRef.current) localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current));
-        peerConnectionsRef.current[peerId] = pc;
-        return pc;
-    };
 
-    const createOffer = async (peerId) => {
-        const pc = createPeerConnection(peerId);
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        wsRef.current.send(JSON.stringify({ type: 'offer', roomId: session.sessionId, peerId: displayName, sdp: offer }));
-    };
+        init();
 
-    const handleOffer = async (peerId, offerSdp) => {
-        const pc = createPeerConnection(peerId);
-        await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        wsRef.current.send(JSON.stringify({ type: 'answer', roomId: session.sessionId, peerId: displayName, sdp: answer }));
-    };
-
-    const handleAnswer = async (peerId, answerSdp) => {
-        const pc = peerConnectionsRef.current[peerId];
-        if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answerSdp));
-    };
-
-    const handleIceCandidate = async (peerId, candidate) => {
-        const pc = peerConnectionsRef.current[peerId];
-        if (pc) await pc.addIceCandidate(new RTCIceCandidate(candidate));
-    };
-
-    const handlePeerLeave = (peerId) => {
-        if (peerConnectionsRef.current[peerId]) {
-            peerConnectionsRef.current[peerId].close();
-            delete peerConnectionsRef.current[peerId];
-        }
-        setRemoteStreams(prev => { const n = { ...prev }; delete n[peerId]; return n; });
-        setParticipantStates(prev => { const n = { ...prev }; delete n[peerId]; return n; });
-        setConnectedPeers(prev => Math.max(0, prev - 1));
-        if (Object.keys(peerConnectionsRef.current).length === 0) setConnectionStatus("Waiting for guest...");
-    };
-
-    // Controls
-    const toggleMute = () => {
-        if (localStreamRef.current) {
-            const track = localStreamRef.current.getAudioTracks()[0];
-            if (track) {
-                track.enabled = !track.enabled;
-                setIsMuted(!track.enabled);
-                broadcastStatus(!track.enabled, isVideoOff);
+        const pcs = peerConnectionsRef.current;
+        return () => {
+            if (localStreamRef.current) {
+                localStreamRef.current.getTracks().forEach(t => t.stop());
             }
+            if (wsRef.current) wsRef.current.close();
+            Object.values(pcs).forEach(pc => pc.close());
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // ── Controls ───────────────────────────────────────────────────────────────
+
+    const toggleMute = () => {
+        const track = localStreamRef.current?.getAudioTracks()[0];
+        if (track) {
+            track.enabled = !track.enabled;
+            setIsMuted(!track.enabled);
+            broadcastStatus(!track.enabled, isVideoOff);
         }
     };
 
     const toggleVideo = () => {
-        if (localStreamRef.current) {
-            const track = localStreamRef.current.getVideoTracks()[0];
-            if (track) {
-                track.enabled = !track.enabled;
-                setIsVideoOff(!track.enabled);
-                broadcastStatus(isMuted, !track.enabled);
-            }
+        const track = localStreamRef.current?.getVideoTracks()[0];
+        if (track) {
+            track.enabled = !track.enabled;
+            setIsVideoOff(!track.enabled);
+            broadcastStatus(isMuted, !track.enabled);
         }
     };
 
@@ -255,83 +397,112 @@ export default function NativeWebRtcSession({
             if (deviceId === currentMicId) { setShowMicSelector(false); return; }
             const newStream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: deviceId } } });
             const newTrack = newStream.getAudioTracks()[0];
-            const oldTrack = localStreamRef.current.getAudioTracks()[0];
+            const oldTrack = localStreamRef.current?.getAudioTracks()[0];
             if (oldTrack) { localStreamRef.current.removeTrack(oldTrack); oldTrack.stop(); }
-            localStreamRef.current.addTrack(newTrack);
+            if (localStreamRef.current) localStreamRef.current.addTrack(newTrack);
+
             for (const pc of Object.values(peerConnectionsRef.current)) {
-                const senders = pc.getSenders();
-                const audioSender = senders.find(s => s.track && s.track.kind === 'audio');
-                if (audioSender) await audioSender.replaceTrack(newTrack);
-                else pc.addTrack(newTrack, localStreamRef.current);
+                const sender = pc.getSenders().find(s => s.track?.kind === 'audio');
+                if (sender) await sender.replaceTrack(newTrack);
+                else if (localStreamRef.current) pc.addTrack(newTrack, localStreamRef.current);
             }
+
             newTrack.enabled = !isMuted;
             setCurrentMicId(deviceId);
             setShowMicSelector(false);
         } catch (err) {
-            console.error("Mic switch failure:", err);
-            setConnectionStatus("Mic Switch Failed");
+            console.error('Mic switch error:', err);
         }
     };
+
+    const changeSpeaker = (deviceId) => {
+        setCurrentSpeakerId(deviceId);
+        setShowSpeakerSelector(false);
+    };
+
+    const approveRequest = (peerId) => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'join-approved',
+                roomId: session.sessionId,
+                peerId: displayName,
+                targetPeerId: peerId
+            }));
+        }
+        setPendingRequests(prev => prev.filter(r => r.peerId !== peerId));
+    };
+
+    const denyRequest = (peerId) => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'join-denied',
+                roomId: session.sessionId,
+                peerId: displayName,
+                targetPeerId: peerId
+            }));
+        }
+        setPendingRequests(prev => prev.filter(r => r.peerId !== peerId));
+    };
+
+    // ── Render ─────────────────────────────────────────────────────────────────
 
     return (
         <div className="relative flex flex-col h-screen bg-background dark:bg-backgroundDark text-textPrimary dark:text-lightText font-sans overflow-hidden transition-colors duration-500">
 
-            {/* Luxury Overlay Header - Responsive */}
-            <header className="relative z-40 w-full flex flex-col md:flex-row items-center justify-between px-6 py-4 md:px-12 md:py-6 bg-white/60 dark:bg-white/5 backdrop-blur-3xl border-b border-gray-100 dark:border-white/10 shadow-sm transition-all duration-700">
+            {/* Premium Header */}
+            <header className="relative z-40 w-full flex flex-col md:flex-row items-center justify-between px-6 py-4 md:px-12 md:py-6 bg-white/60 dark:bg-white/5 backdrop-blur-3xl border-b border-gray-100 dark:border-white/10 shadow-sm">
                 <div className="flex items-center gap-4 md:gap-6 mb-4 md:mb-0">
-                    <div className="group relative">
-                        <div className="absolute -inset-2 bg-primary/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="w-10 h-10 md:w-14 md:h-14 bg-white dark:bg-white/10 rounded-2xl md:rounded-3xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-primary shadow-xl group-hover:scale-105 transition-transform duration-500">
-                            <Heart size={20} fill="currentColor" className="md:w-6 md:h-6" />
-                        </div>
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-white dark:bg-white/10 rounded-2xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-primary shadow-xl">
+                        <img src={logo} alt="NeuralHealer" className="w-full h-full object-contain p-2" />
                     </div>
                     <div>
                         <div className="flex items-center gap-3">
                             <h2 className="text-[10px] md:text-sm font-black text-textPrimary dark:text-lightText uppercase tracking-[0.25em]">Private Consultation</h2>
                             <div className="bg-success/5 border border-success/10 px-2.5 py-1 rounded-lg text-[8px] md:text-[10px] font-black text-success uppercase tracking-widest hidden sm:block">Verified Secure</div>
                         </div>
-                        <div className="flex items-center gap-4 mt-2">
+                        <div className="flex items-center gap-4 mt-1.5">
                             <span className="flex items-center gap-2 text-primary text-[9px] md:text-[11px] font-black uppercase tracking-wider">
-                                <Activity size={14} className="animate-pulse" />
+                                <Activity size={12} className="animate-pulse" />
                                 {connectionStatus}
                             </span>
-                            <div className="w-1 h-1 bg-gray-200 rounded-full" />
-                            <span className="text-textSecondary text-[9px] md:text-[11px] font-black uppercase tracking-wider flex items-center gap-2">
-                                <Users size={14} /> {connectedPeers + 1} Connected
+                            <div className="w-1 h-1 bg-gray-200 dark:bg-white/20 rounded-full" />
+                            <span className="text-textSecondary dark:text-lightText/60 text-[9px] md:text-[11px] font-black uppercase tracking-wider flex items-center gap-2">
+                                <Users size={12} /> {connectedPeers + 1} Connected
                             </span>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-3 md:gap-6">
-                    <div className="hidden lg:flex items-center gap-4 bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-[1.5rem] px-5 py-3 shadow-inner group/invite">
-                        <ShieldCheck size={16} className="text-success group-hover:scale-110 transition-transform" />
+                    <div className="hidden lg:flex items-center gap-4 bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-[1.5rem] px-5 py-3 shadow-inner">
+                        <ShieldCheck size={16} className="text-success" />
                         <span className="text-[10px] font-black text-textSecondary dark:text-lightText/60 uppercase tracking-widest">Consultant Session</span>
                         <div className="w-px h-4 bg-gray-200 dark:bg-white/10 mx-2" />
                         <button
                             onClick={handleCopy}
-                            className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${copied ? 'text-success' : 'text-primary hover:opacity-70 dark:text-primary/80'}`}
+                            className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${copied ? 'text-success' : 'text-primary hover:opacity-70'}`}
                         >
                             {copied ? <Check size={14} /> : <Copy size={14} />}
                             {copied ? 'Link Ready' : 'Invite Client'}
                         </button>
                     </div>
-
-                    <button className="flex lg:hidden p-3 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-2xl shadow-sm hover:shadow-md transition-all active:scale-95 text-primary" onClick={handleCopy}>
-                        {copied ? <Check size={20} /> : <Copy size={20} />}
+                    <button className="flex lg:hidden p-3 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-2xl shadow-sm text-primary" onClick={handleCopy}>
+                        {copied ? <Check size={18} /> : <Copy size={18} />}
                     </button>
                 </div>
             </header>
 
-            {/* Grid Area - Perfectly Responsive Padding & Flow */}
-            <main className="flex-1 w-full bg-[#F8F9FF] dark:bg-black/10 relative overflow-hidden flex items-center justify-center p-6 md:p-12 lg:p-16">
-
-                {/* Background Textures */}
+            {/* Participant Grid */}
+            <main className="flex-1 w-full bg-[#F8F9FF] dark:bg-black/10 relative overflow-hidden flex items-center justify-center p-6 md:p-10 lg:p-14" style={{ paddingBottom: '7rem' }}>
                 <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-white to-transparent opacity-60 z-0" />
                 <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-primary/5 rounded-full blur-[100px] z-0" />
 
                 <div className="relative z-10 w-full h-full max-w-7xl mx-auto flex flex-col items-center justify-center">
-                    <div className={`grid gap-6 md:gap-10 lg:gap-16 w-full h-full p-2 transition-all duration-1000 ${connectedPeers === 0 ? 'max-w-2xl' : 'grid-cols-1 md:grid-cols-2'
+                    <div className={`grid gap-6 md:gap-8 w-full transition-all duration-700 ${connectedPeers === 0
+                        ? 'max-w-2xl grid-cols-1'
+                        : connectedPeers === 1
+                            ? 'grid-cols-1 md:grid-cols-2 max-w-5xl'
+                            : 'grid-cols-2 md:grid-cols-3 max-w-7xl'
                         }`}>
 
                         <Participant
@@ -350,121 +521,186 @@ export default function NativeWebRtcSession({
                                 isLocal={false}
                                 isMuted={participantStates[peerId]?.isMuted || false}
                                 isVideoOff={participantStates[peerId]?.isVideoOff || false}
+                                speakerDeviceId={currentSpeakerId}
+                                speakerMuted={isSpeakerMuted}
                             />
                         ))}
+                    </div>
 
-                        {connectedPeers === 0 && (
-                            <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center space-y-8 animate-in fade-in zoom-in duration-1000">
-                                <div className="relative">
-                                    <div className="absolute -inset-4 bg-primary/10 rounded-full blur-2xl animate-pulse" />
-                                    <div className="w-20 h-20 md:w-24 md:h-24 bg-white/60 backdrop-blur-2xl rounded-full flex items-center justify-center border border-white shadow-2xl relative z-10">
-                                        <Activity size={32} className="text-primary animate-pulse" />
-                                    </div>
-                                </div>
-                                <div className="text-center space-y-3">
-                                    <p className="text-textPrimary dark:text-lightText text-[11px] md:text-xs font-black uppercase tracking-[0.4em] drop-shadow-sm">
-                                        Private Encryption Active
-                                    </p>
-                                    <p className="text-textSecondary dark:text-lightText/40 text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">
-                                        Awaiting guest connection
-                                    </p>
+                    {connectedPeers === 0 && (
+                        <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-end pb-20 space-y-6 animate-in fade-in zoom-in duration-1000">
+                            <div className="relative">
+                                <div className="absolute -inset-4 bg-primary/10 rounded-full blur-2xl animate-pulse" />
+                                <div className="w-16 h-16 bg-white/60 backdrop-blur-2xl rounded-full flex items-center justify-center border border-white shadow-2xl relative z-10">
+                                    <Activity size={24} className="text-primary animate-pulse" />
                                 </div>
                             </div>
-                        )}
-                    </div>
+                            <div className="text-center space-y-2">
+                                <p className="text-textPrimary dark:text-lightText text-[11px] font-black uppercase tracking-[0.4em]">Awaiting Guest</p>
+                                <p className="text-textSecondary dark:text-lightText/40 text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">Share the invite link to start</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
 
-            {/* Premium Control Center - Luxury Floating Dock */}
-            <section className="absolute bottom-8 md:bottom-12 left-0 right-0 z-50 px-6">
-                <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 max-w-2xl mx-auto bg-white/80 dark:bg-white/5 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[3.5rem] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.1)] transition-all duration-500 hover:shadow-[0_40px_120px_rgba(155,89,182,0.1)] group/dock hover:-translate-y-2">
-
-                    <div className="flex items-center gap-6 md:gap-8">
-                        <div className="relative">
-                            <button
-                                onClick={toggleMute}
-                                className={`w-14 h-14 md:w-16 md:h-16 rounded-[2rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-2xl ${isMuted
-                                    ? 'bg-error text-white border-error/20 hover:bg-error/80'
-                                    : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20 hover:border-primary/20'
-                                    }`}
-                            >
-                                {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
-                            </button>
-
-                            {availableMics.length > 1 && (
-                                <button
-                                    onClick={() => setShowMicSelector(!showMicSelector)}
-                                    className="absolute -right-2 -top-2 w-8 h-8 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-full shadow-lg flex items-center justify-center text-primary transition-all hover:scale-110 hover:shadow-xl z-20"
-                                >
-                                    {showMicSelector ? <ChevronDown size={14} /> : <Settings size={14} className="animate-spin-slow" />}
-                                </button>
-                            )}
-
-                            {showMicSelector && (
-                                <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-72 bg-white/95 dark:bg-backgroundDark/95 backdrop-blur-3xl border border-gray-100 dark:border-white/10 rounded-[2.5rem] shadow-[0_30px_80px_rgba(0,0,0,0.15)] p-5 space-y-4 animate-in fade-in slide-in-from-bottom-6 duration-700 z-[100]">
-                                    <div className="flex items-center justify-between px-2">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60">Voice Sources</p>
-                                        <Settings size={12} className="text-primary/30" />
-                                    </div>
-                                    <div className="max-h-56 overflow-y-auto custom-scrollbar space-y-1.5 px-1">
-                                        {availableMics.map(mic => (
-                                            <button
-                                                key={mic.deviceId}
-                                                onClick={() => changeMicrophone(mic.deviceId)}
-                                                className={`w-full text-left px-5 py-4 rounded-2xl text-[11px] font-black transition-all duration-300 flex items-center justify-between group ${mic.deviceId === currentMicId
-                                                    ? 'bg-primary text-white shadow-xl scale-[1.02] ring-4 ring-primary/10'
-                                                    : 'hover:bg-primary/5 text-textPrimary dark:text-lightText hover:translate-x-1'
-                                                    }`}
-                                            >
-                                                <span className="truncate pr-4">{mic.label}</span>
-                                                {mic.deviceId === currentMicId && <Check size={16} strokeWidth={3} />}
-                                            </button>
-                                        ))}
-                                    </div>
+            {/* Join Request Approval Stack */}
+            {pendingRequests.length > 0 && (
+                <div className="absolute top-24 md:top-28 right-4 md:right-8 z-50 space-y-3 w-72 md:w-80">
+                    {pendingRequests.map(req => (
+                        <div
+                            key={req.peerId}
+                            className="bg-white/95 dark:bg-backgroundDark/95 backdrop-blur-3xl border border-primary/20 rounded-[2rem] p-5 shadow-[0_20px_60px_rgba(155,89,182,0.2)] animate-in slide-in-from-right-4 fade-in duration-500"
+                        >
+                            {/* Header */}
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 text-primary font-black text-base shrink-0">
+                                    {req.peerId.charAt(0).toUpperCase()}
                                 </div>
-                            )}
+                                <div className="min-w-0">
+                                    <p className="text-[11px] font-black text-primary uppercase tracking-widest truncate">{req.peerId}</p>
+                                    <p className="text-[9px] font-bold text-textSecondary dark:text-lightText/50 uppercase tracking-wider mt-0.5">Requesting to join</p>
+                                </div>
+                            </div>
+                            {/* Actions */}
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => approveRequest(req.peerId)}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest shadow-lg hover:bg-primary/80 hover:scale-[1.02] transition-all duration-300 active:scale-95"
+                                >
+                                    <UserCheck size={14} /> Admit
+                                </button>
+                                <button
+                                    onClick={() => denyRequest(req.peerId)}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-error/10 text-error border border-error/20 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest hover:bg-error hover:text-white transition-all duration-300 active:scale-95"
+                                >
+                                    <UserX size={14} /> Deny
+                                </button>
+                            </div>
                         </div>
+                    ))}
+                </div>
+            )}
 
+            {/* Floating Control Dock */}
+            <section className="absolute bottom-6 md:bottom-10 left-0 right-0 z-50 px-4 md:px-6">
+                <div className="flex flex-row items-center justify-center gap-3 md:gap-6 max-w-2xl mx-auto bg-white/85 dark:bg-white/8 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[3.5rem] p-4 md:p-5 shadow-[0_20px_80px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-transform duration-500">
+
+                    {/* Mic Button + Selector */}
+                    <div className="relative">
                         <button
-                            onClick={toggleVideo}
-                            className={`w-14 h-14 md:w-16 md:h-16 rounded-[2rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-2xl ${isVideoOff
-                                ? 'bg-error text-white border-error/20 hover:bg-error/80'
-                                : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20 hover:border-primary/20'
+                            onClick={toggleMute}
+                            className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isMuted
+                                ? 'bg-error text-white border-error/20'
+                                : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20'
                                 }`}
                         >
-                            {isVideoOff ? <VideoOff size={24} /> : <Video size={24} />}
+                            {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
                         </button>
+                        {availableMics.length > 1 && (
+                            <button
+                                onClick={() => { setShowMicSelector(!showMicSelector); setShowSpeakerSelector(false); }}
+                                className="absolute -right-1 -top-1 w-6 h-6 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-full shadow-lg flex items-center justify-center text-primary z-20 hover:scale-110 transition-transform"
+                            >
+                                <ChevronDown size={12} />
+                            </button>
+                        )}
+                        {showMicSelector && (
+                            <DeviceMenu
+                                title="Microphone"
+                                devices={availableMics}
+                                current={currentMicId}
+                                onSelect={changeMicrophone}
+                            />
+                        )}
                     </div>
 
-                    <div className="w-px h-10 bg-gray-100 dark:bg-white/10 mx-2 hidden md:block" />
-                    <div className="w-full h-px bg-gray-100 dark:bg-white/10 my-1 md:hidden" />
+                    {/* Video Button */}
+                    <button
+                        onClick={toggleVideo}
+                        className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isVideoOff
+                            ? 'bg-error text-white border-error/20'
+                            : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20'
+                            }`}
+                    >
+                        {isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
+                    </button>
 
+                    {/* Speaker Button + Selector */}
+                    {availableSpeakers.length > 0 && (
+                        <div className="relative">
+                            <button
+                                onClick={() => { setIsSpeakerMuted(prev => !prev); setShowMicSelector(false); }}
+                                className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isSpeakerMuted ? 'bg-error text-white border-error/20' : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20'}`}>
+                                <Volume2 size={20} />
+                            </button>
+                            <button
+                                onClick={() => { setShowSpeakerSelector(!showSpeakerSelector); setShowMicSelector(false); }}
+                                className="absolute -right-1 -top-1 w-6 h-6 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-full shadow-lg flex items-center justify-center text-primary z-20 hover:scale-110 transition-transform"
+                            >
+                                <ChevronDown size={12} />
+                            </button>
+                            {showSpeakerSelector && (
+                                <DeviceMenu
+                                    title="Speaker Output"
+                                    devices={availableSpeakers}
+                                    current={currentSpeakerId}
+                                    onSelect={changeSpeaker}
+                                />
+                            )}
+                        </div>
+                    )}
+
+                    <div className="w-px h-8 bg-gray-100 dark:bg-white/10 mx-1" />
+
+                    {/* End Call */}
                     <button
                         onClick={onLeave}
-                        className="w-full md:w-auto px-10 h-14 md:h-16 bg-error text-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl shadow-error/30 flex items-center justify-center gap-4 text-xs font-black uppercase tracking-[0.3em] transition-all duration-500 hover:bg-error/80 hover:scale-105 active:scale-95 active:rotate-2 group/leave overflow-hidden relative"
+                        className="px-6 md:px-10 h-12 md:h-14 bg-error text-white rounded-[2rem] shadow-2xl shadow-error/30 flex items-center justify-center gap-3 text-xs font-black uppercase tracking-[0.2em] transition-all duration-500 hover:bg-error/80 hover:scale-105 active:scale-95 overflow-hidden relative group"
                     >
-                        <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover/leave:translate-x-full transition-transform duration-1000" />
-                        <PhoneOff size={20} className="group-hover/leave:rotate-[135deg] transition-transform duration-500" />
-                        <span>End Call</span>
+                        <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                        <PhoneOff size={18} className="group-hover:rotate-[135deg] transition-transform duration-500" />
+                        <span className="hidden sm:inline">End Call</span>
                     </button>
                 </div>
             </section>
 
-            {/* Interactive Aesthetics Overlay */}
-            <div className="absolute pointer-events-none inset-0 border-[16px] md:border-[24px] border-white/40 z-30 transition-all duration-1000 group-hover:border-primary/5" />
+            {/* Border Overlay */}
+            <div className="absolute pointer-events-none inset-0 border-[12px] md:border-[20px] border-white/30 dark:border-white/5 z-30" />
 
             <style dangerouslySetInnerHTML={{
                 __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(155, 89, 182, 0.15); border-radius: 20px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(155, 89, 182, 0.4); }
-                @keyframes spin-slow {
-                   from { transform: rotate(0deg); }
-                   to { transform: rotate(360deg); }
-                }
-                .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-            `}} />
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(155, 89, 182, 0.2); border-radius: 20px; }
+            ` }} />
+        </div>
+    );
+}
+
+// ── Device Menu Component ──────────────────────────────────────────────────────
+function DeviceMenu({ title, devices, current, onSelect }) {
+    return (
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-72 bg-white/95 dark:bg-backgroundDark/95 backdrop-blur-3xl border border-gray-100 dark:border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] p-4 space-y-3 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-400">
+            <div className="flex items-center gap-2 px-2">
+                <Settings size={11} className="text-primary/40" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60">{title}</p>
+            </div>
+            <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                {devices.map(device => (
+                    <button
+                        key={device.deviceId}
+                        onClick={() => onSelect(device.deviceId)}
+                        className={`w-full text-left px-4 py-3 rounded-2xl text-[11px] font-black transition-all duration-300 flex items-center justify-between ${device.deviceId === current
+                            ? 'bg-primary text-white shadow-lg scale-[1.01]'
+                            : 'hover:bg-primary/5 text-textPrimary dark:text-lightText'
+                            }`}
+                    >
+                        <span className="truncate pr-3">{device.label}</span>
+                        {device.deviceId === current && <Check size={14} strokeWidth={3} />}
+                    </button>
+                ))}
+            </div>
         </div>
     );
 }

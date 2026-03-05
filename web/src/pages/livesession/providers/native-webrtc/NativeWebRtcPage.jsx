@@ -22,6 +22,7 @@ import liveSessionService from '../../liveSessionService';
 import userService from '../../../../services/userService';
 import Button from '../../../../components/common/Button';
 import NativeWebRtcSession from './NativeWebRtcSession';
+import WaitingRoom from './WaitingRoom';
 import useAudioAnalyzer from '../shared-webrtc/useAudioAnalyzer';
 
 /**
@@ -34,6 +35,7 @@ export default function NativeWebRtcPage() {
 
     // ── States ──────────────────────────────────────────────────────────────
     const [inCall, setInCall] = useState(false);
+    const [inWaitingRoom, setInWaitingRoom] = useState(false);
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -69,8 +71,13 @@ export default function NativeWebRtcPage() {
     useEffect(() => {
         const getDevices = async () => {
             try {
-                const initialStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-                initialStream.getTracks().forEach(t => t.stop());
+                // Try to get a stream just to trigger the permission prompt
+                // but don't fail the whole page if it's denied
+                const initialStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                    .catch(() => navigator.mediaDevices.getUserMedia({ audio: true }))
+                    .catch(() => null);
+
+                if (initialStream) initialStream.getTracks().forEach(t => t.stop());
 
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const audioInputs = devices
@@ -80,8 +87,7 @@ export default function NativeWebRtcPage() {
                 if (audioInputs.length > 0 && !selectedMic) setSelectedMic(audioInputs[0].deviceId);
 
             } catch (err) {
-                console.error("Device detection failure:", err);
-                setError("Camera and Microphone access are required for this session.");
+                console.warn("Device enumeration failed:", err);
             }
         };
         getDevices();
@@ -139,8 +145,20 @@ export default function NativeWebRtcPage() {
                 : await liveSessionService.create(name.trim(), 'native-webrtc');
 
             setSession(data);
-            if (previewStream) previewStream.getTracks().forEach(t => t.stop());
-            setInCall(true);
+
+            // Stop preview tracks and release camera hardware
+            if (previewStream) {
+                previewStream.getTracks().forEach(t => t.stop());
+                setPreviewStream(null);
+            }
+            await new Promise(r => setTimeout(r, 300));
+
+            // Guests wait for host approval; creators enter immediately
+            if (paramSessionId) {
+                setInWaitingRoom(true);
+            } else {
+                setInCall(true);
+            }
         } catch (e) {
             setError(e.response?.data?.error || 'Connection failed. Please check your network.');
         } finally { setLoading(false); }
@@ -152,6 +170,17 @@ export default function NativeWebRtcPage() {
     };
 
     // ── Render ────────────────────────────────────────────────────────────────
+    if (inWaitingRoom && session) {
+        return (
+            <WaitingRoom
+                session={session}
+                displayName={name.trim()}
+                onApproved={() => { setInWaitingRoom(false); setInCall(true); }}
+                onCancel={() => { setInWaitingRoom(false); navigate('/'); }}
+            />
+        );
+    }
+
     if (inCall && session) {
         return (
             <NativeWebRtcSession
@@ -353,6 +382,23 @@ export default function NativeWebRtcPage() {
                                     className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-[2rem] pl-16 pr-8 py-6 text-base font-black text-textPrimary dark:text-lightText placeholder-gray-300 dark:placeholder-gray-600 focus:ring-4 focus:ring-primary/10 focus:border-primary/40 outline-none transition-all duration-500 shadow-inner group-hover:bg-white dark:group-hover:bg-white/10"
                                 />
                             </div>
+                        </div>
+
+                        {/* Silent Mode Toggle */}
+                        <div className="flex items-center justify-between px-2">
+                            <div className="flex flex-col text-left">
+                                <span className="text-[11px] font-black text-textPrimary dark:text-lightText uppercase tracking-widest">Listen Only Mode</span>
+                                <span className="text-[9px] font-bold text-textSecondary dark:text-lightText/40 uppercase tracking-widest leading-none mt-1">Join as a silent participant</span>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setIsAudioEnabled(prev => !prev);
+                                    setIsVideoEnabled(false);
+                                }}
+                                className={`w-14 h-8 rounded-full relative transition-all duration-500 ${!isAudioEnabled && !isVideoEnabled ? 'bg-primary shadow-[0_0_20px_rgba(155,89,182,0.4)]' : 'bg-gray-200 dark:bg-white/10'}`}
+                            >
+                                <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-lg transition-all duration-500 ${!isAudioEnabled && !isVideoEnabled ? 'left-7' : 'left-1'}`} />
+                            </button>
                         </div>
 
                         <div className="space-y-6">

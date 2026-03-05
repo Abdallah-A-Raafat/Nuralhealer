@@ -24,25 +24,28 @@ export default function WaitingRoom({ session, displayName, onApproved, onCancel
         return () => clearInterval(t);
     }, []);
 
-    const hasConnectedRef = useRef(false);
-
-    // Connect WS and send join-request
+    // Connect WS and periodically send join-request
     useEffect(() => {
-        if (hasConnectedRef.current) return;
-        hasConnectedRef.current = true;
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.hostname === 'localhost' ? 'localhost:8080' : window.location.host;
         const ws = new WebSocket(`${protocol}//${host}/api/ws/webrtc`);
         wsRef.current = ws;
 
+        let pingInterval;
         ws.onopen = () => {
             setStatus('waiting');
-            ws.send(JSON.stringify({
-                type: 'join-request',
-                roomId: session.sessionId,
-                peerId: displayName,
-            }));
+            const sendRequest = () => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'join-request',
+                        roomId: session.sessionId,
+                        peerId: displayName,
+                    }));
+                }
+            };
+            sendRequest(); // Initial ping
+            pingInterval = setInterval(sendRequest, 2000); // Ping every 2 seconds
         };
 
         ws.onmessage = (event) => {
@@ -61,6 +64,7 @@ export default function WaitingRoom({ session, displayName, onApproved, onCancel
         ws.onerror = () => setStatus('waiting'); // keep waiting even on WS error
 
         return () => {
+            clearInterval(pingInterval);
             if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
                 ws.close();
             }

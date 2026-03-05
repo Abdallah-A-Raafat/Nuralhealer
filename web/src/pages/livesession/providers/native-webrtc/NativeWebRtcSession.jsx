@@ -59,7 +59,6 @@ export default function NativeWebRtcSession({
     const wsRef = useRef(null);
     const peerConnectionsRef = useRef({});       // peerId -> RTCPeerConnection
     const makingOfferRef = useRef({});           // peerId -> boolean (for Perfect Negotiation)
-    const hasConnectedRef = useRef(false);       // guard against StrictMode double-mount
 
     const shareLink = `${window.location.origin}/live-session/native/${session.sessionId}`;
 
@@ -312,26 +311,38 @@ export default function NativeWebRtcSession({
     // ── Media Initialization ───────────────────────────────────────────────────
 
     useEffect(() => {
-        // Guard: only run once even in React StrictMode
-        if (hasConnectedRef.current) return;
-        hasConnectedRef.current = true;
+        let isMounted = true;
+
+        const getMediaWithRetry = async (retries = 3) => {
+            const audioConstraint = currentMicId ? { deviceId: { exact: currentMicId } } : true;
+            try {
+                return await navigator.mediaDevices.getUserMedia({ video: true, audio: audioConstraint });
+            } catch (err) {
+                if (retries > 0 && err.name === 'NotReadableError') {
+                    // Camera locked by StrictMode unmount, wait and retry
+                    await new Promise(r => setTimeout(r, 500));
+                    return getMediaWithRetry(retries - 1);
+                }
+                try {
+                    const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: audioConstraint });
+                    setIsVideoOff(true);
+                    return fallbackStream;
+                } catch {
+                    console.warn('No media available — joining as listener');
+                    return null;
+                }
+            }
+        };
 
         const init = async () => {
             // Small delay to let the lobby's camera release
             await new Promise(r => setTimeout(r, 200));
+            if (!isMounted) return;
 
-            const audioConstraint = currentMicId ? { deviceId: { exact: currentMicId } } : true;
-            let stream = null;
-
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: audioConstraint });
-            } catch {
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: audioConstraint });
-                    setIsVideoOff(true);
-                } catch {
-                    console.warn('No media available — joining as listener');
-                }
+            const stream = await getMediaWithRetry();
+            if (!isMounted) {
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                return;
             }
 
             if (stream) {
@@ -355,14 +366,18 @@ export default function NativeWebRtcSession({
                 if (speakers.length > 0) setCurrentSpeakerId(speakers[0].deviceId);
             } catch { /* ignore */ }
 
-            // Always connect signaling
-            connectWebSocket();
+            // Small delay before connecting WebSocket to allow the backend
+            // time to process the leave event from the WaitingRoom (if applicable)
+            setTimeout(() => {
+                if (isMounted) connectWebSocket();
+            }, 500);
         };
 
         init();
 
         const pcs = peerConnectionsRef.current;
         return () => {
+            isMounted = false;
             if (localStreamRef.current) {
                 localStreamRef.current.getTracks().forEach(t => t.stop());
             }

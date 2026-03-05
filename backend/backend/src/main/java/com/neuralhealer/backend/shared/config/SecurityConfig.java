@@ -86,14 +86,21 @@ public class SecurityConfig {
 
                 // ── Filter order matters — do NOT change without reading both comments ──
                 //
-                // 1. GatewaySecretFilter runs FIRST.
-                //    Rejects any request that did not come through the Go gateway.
-                //    Placed before JwtAuthFilter so direct callers never reach
-                //    the JWT layer at all.
+                // Both filters anchor to UsernamePasswordAuthenticationFilter because
+                // Spring Security's addFilterBefore(filter, relativeClass) requires
+                // relativeClass to be a built-in filter with a registered order.
+                // Custom filters like JwtAuthFilter have no registered order and
+                // cannot be used as the anchor — doing so throws:
+                //   "The Filter class X does not have a registered order"
                 //
-                // 2. JwtAuthFilter runs SECOND.
+                // Execution order is determined by insertion sequence:
+                // 1. GatewaySecretFilter  — added first, runs first.
+                //    Rejects any request missing the X-Gateway-Secret header
+                //    so direct callers never reach the JWT layer at all.
+                //
+                // 2. JwtAuthFilter        — added second, runs second.
                 //    Full JWT validation + Spring Security context population.
-                .addFilterBefore(gatewaySecretFilter, JwtAuthFilter.class)
+                .addFilterBefore(gatewaySecretFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

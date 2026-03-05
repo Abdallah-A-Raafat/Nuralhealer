@@ -1,6 +1,8 @@
 version: '3.8'
 
 services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
     container_name: neuralhealer-db
@@ -18,5 +20,88 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── Spring Boot ──────────────────────────────────────────────────────────────
+  # Bound to 127.0.0.1 only — not reachable from outside the Docker network.
+  # All external traffic must flow through the Go gateway on :8443.
+  neuralhealer-app:
+    build: .
+    container_name: neuralhealer-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Activate the production profile — disables local-only overrides.
+      SPRING_PROFILES_ACTIVE: prod
+      # Database
+      DB_URL: jdbc:postgresql://postgres:5432/neuralhealer
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-aaa}
+      # Auth
+      JWT_SECRET: ${JWT_SECRET}
+      # Email
+      GMAIL_USERNAME: ${GMAIL_USERNAME:-}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
+      # AI service
+      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://localhost:5000}
+      AI_API_KEY: ${AI_API_KEY:-}
+      NGROK_SKIP_BROWSER_WARNING: ${NGROK_SKIP_BROWSER_WARNING:-false}
+      AI_SERVICE_TIMEOUT_SECONDS: ${AI_SERVICE_TIMEOUT_SECONDS:-90}
+      # Frontend / CORS
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      # File storage — write inside the named volume mounted below.
+      FILE_STORAGE_BASE_PATH: /app/storage
+      PROFILE_PICTURES_PATH: ${PROFILE_PICTURES_PATH:-doctors/profiles}
+      MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-5}
+      ALLOWED_IMAGE_FORMATS: ${ALLOWED_IMAGE_FORMATS:-jpg,jpeg,png,webp}
+      PROFILE_IMAGE_MIN_DIMENSION: ${PROFILE_IMAGE_MIN_DIMENSION:-512}
+      PROFILE_IMAGE_MAX_DIMENSION: ${PROFILE_IMAGE_MAX_DIMENSION:-2048}
+      THUMBNAIL_SIZE: ${THUMBNAIL_SIZE:-256}
+      IMAGE_COMPRESSION_QUALITY: ${IMAGE_COMPRESSION_QUALITY:-85}
+      # Go gateway shared secret — must match GATEWAY_SECRET in gateway service.
+      GATEWAY_SECRET: ${GATEWAY_SECRET}
+    ports:
+      # 127.0.0.1 binding: port 8080 is reachable only from the host loopback
+      # and from within the Docker bridge network (gateway container).
+      - "127.0.0.1:8080:8080"
+    volumes:
+      # Persist doctor profile pictures across container restarts.
+      - storage_data:/app/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 60s
+    restart: unless-stopped
+
+  # ── Go Gateway ───────────────────────────────────────────────────────────────
+  # The single public entry point. Handles rate limiting, IP blacklisting,
+  # and pre-validation before forwarding to Spring Boot.
+  # Gateway only starts once Spring Boot is healthy — safe ordering.
+  gateway:
+    build: ./gateway
+    container_name: neuralhealer-gateway
+    depends_on:
+      neuralhealer-app:
+        condition: service_healthy
+    environment:
+      # Forward to Spring Boot inside the Docker bridge network.
+      BACKEND_URL: http://neuralhealer-app:8080
+      # Must match jwt.secret in application.yml (same Base64 value).
+      JWT_SECRET: ${JWT_SECRET}
+      # Shared secret injected as X-Gateway-Secret on every proxied request.
+      GATEWAY_SECRET: ${GATEWAY_SECRET}
+      PORT: "8443"
+    ports:
+      - "8443:8443"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8443/api/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  storage_data:

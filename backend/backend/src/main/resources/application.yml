@@ -68,6 +68,12 @@ jwt:
   secret: ${JWT_SECRET:bmV1cmFsaGVhbGVyLXNlY3JldC1rZXktZm9yLWp3dC10b2tlbi1nZW5lcmF0aW9uLTI1Ni1iaXRz}
   expiration: 86400000
 
+# Go gateway shared secret.
+# Must match GATEWAY_SECRET env var used by the gateway container.
+# Leave empty to disable the check in local development (no gateway running).
+gateway:
+  secret: ${GATEWAY_SECRET:}
+
 neuralhealer:
   security:
     cookie:

@@ -1,5 +1,6 @@
 package com.neuralhealer.backend.shared.config;
 
+import com.neuralhealer.backend.shared.security.GatewaySecretFilter;
 import com.neuralhealer.backend.shared.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -40,6 +41,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final GatewaySecretFilter gatewaySecretFilter;
     private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
@@ -82,7 +84,16 @@ public class SecurityConfig {
                 // Set authentication provider
                 .authenticationProvider(authenticationProvider())
 
-                // Add JWT filter before username/password filter
+                // ── Filter order matters — do NOT change without reading both comments ──
+                //
+                // 1. GatewaySecretFilter runs FIRST.
+                //    Rejects any request that did not come through the Go gateway.
+                //    Placed before JwtAuthFilter so direct callers never reach
+                //    the JWT layer at all.
+                //
+                // 2. JwtAuthFilter runs SECOND.
+                //    Full JWT validation + Spring Security context population.
+                .addFilterBefore(gatewaySecretFilter, JwtAuthFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

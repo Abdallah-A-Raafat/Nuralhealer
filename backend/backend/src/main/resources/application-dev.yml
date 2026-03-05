@@ -8,6 +8,11 @@ spring:
       ddl-auto: update # Automatic updates for dev convenience
     show-sql: true
 
+# Disable the Go gateway secret check in local dev (no gateway running).
+# The empty value tells GatewaySecretFilter to pass all requests through.
+gateway:
+  secret: ""
+
 logging:
   level:
     "[com.neuralhealer.backend]": DEBUG

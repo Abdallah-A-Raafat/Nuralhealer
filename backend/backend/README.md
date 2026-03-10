@@ -1,6 +1,6 @@
 # NeuralHealer Backend
 
-**Version:** 2.0.0 | **Tier:** Production-Ready | **Last Updated:** February 2026
+**Version:** 2.0.0 | **Tier:** Production-Ready | **Last Updated:** March 2026
 
 ## 📋 Overview
 
@@ -225,12 +225,26 @@ GMAIL_APP_PASSWORD=16-char-app-password
 ### External Integrations
 - **Gmail SMTP** for email delivery
 - **AI Service** (External) for health assistant
-- **JWT** with HTTPOnly cookies for security
+- **JWT** with HTTPOnly cookies (`neuralhealer_token`) for security
+
+### Go API Gateway
+A lightweight Go reverse proxy sits in front of Spring Boot and is the **only public entry point** in production.
+
+| Component | Details |
+|-----------|--------|
+| **Language** | Go (standard library + `golang.org/x/time/rate`) |
+| **Public port** | `8443` |
+| **Backend (private)** | Spring Boot on `127.0.0.1:8080` (not reachable externally) |
+| **Middleware chain** | `Blacklist → RateLimit → JWT Validation → ReverseProxy` |
+| **IP Blacklisting** | Persistent ban list; automatic bans on repeated 429s |
+| **Rate limit tiers** | Auth endpoints: 10 r/s (burst 20) · AI endpoints: 5 r/s (burst 5) · Everything else: 50 r/s (burst 100) |
+| **JWT pre-validation** | Validates JWT signature before forwarding; rejects invalid tokens at the edge |
+| **Gateway secret** | `X-Gateway-Secret` header injected on every proxied request; Spring Boot rejects any request missing it |
 
 ### Development & Operations
-- **Docker & Docker Compose** for containerization
+- **Docker & Docker Compose** for containerization (3-service stack: PostgreSQL + Spring Boot + Go Gateway)
 - **Maven** for dependency management
-- **Liquibase** for database migrations (optional)
+- **Spring profiles** `dev` (auto-DDL, DEBUG logging, no gateway) and `prod` (Supabase-tuned pool, strict security)
 - **Actuator** for health monitoring
 
 ---
@@ -249,6 +263,9 @@ DB_PASSWORD=your_password
 # Security
 JWT_SECRET=your-base64-encoded-secret-min-32-chars
 JWT_EXPIRATION=86400000  # 24 hours in milliseconds
+
+# Go Gateway (must match between gateway and Spring Boot)
+GATEWAY_SECRET=your-strong-random-gateway-secret
 
 # Email
 GMAIL_USERNAME=your-email@gmail.com
@@ -310,17 +327,19 @@ cd neuralhealer-backend
 
 # 2. Configure environment
 cp .env.example .env
-# Edit .env with your values
+# Edit .env with your values (GATEWAY_SECRET can be any value or left empty for local dev)
 
-# 3. Start database
-docker-compose up -d neuralhealer-db
+# 3. Start database only
+docker-compose up -d postgres
 
-# 4. Build and run application
-./mvnw clean spring-boot:run
+# 4. Build and run application (dev profile — no gateway required)
+./mvnw clean spring-boot:run -Dspring-boot.run.profiles=dev
 
-# 5. Verify health
+# 5. Verify health (direct to Spring Boot in dev)
 curl http://localhost:8080/api/actuator/health
 ```
+
+> **Dev note:** With `application-dev.yml`, `GATEWAY_SECRET` is empty so the `GatewaySecretFilter` is disabled and Spring Boot is reachable directly on port 8080. In production all traffic flows through the Go gateway on port **8443**.
 
 ### Database Initialization
 First run automatically executes `schema.sql` to:
@@ -330,33 +349,45 @@ First run automatically executes `schema.sql` to:
 
 ### Testing the System
 ```bash
-# Test email system
+# Test email system (dev: port 8080 direct)
 curl -X POST http://localhost:8080/api/test/email/verification \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","code":"123456"}'
 
 # Test WebSocket connection
-# Use WebSocket client to connect to ws://localhost:8080/ws
+# Use WebSocket client to connect to ws://localhost:8080/ws (dev) or ws://localhost:8443/ws (prod via gateway)
 
-# Test AI integration
+# Test AI health
+curl http://localhost:8080/api/ai/health
+
+# Test AI REST endpoint (requires auth cookie)
 curl -X POST http://localhost:8080/api/ai/ask \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  --cookie "neuralhealer_token=YOUR_JWT" \
   -d '{"question":"What are symptoms of anxiety?"}'
+
+# Open Swagger UI
+open http://localhost:8080/api/swagger
 ```
 
 ---
 
 ## 🔌 API Reference
 
-**Base URL:** `http://localhost:8080/api`  
-**WebSocket:** `ws://localhost:8080/ws`  
-**SSE Stream:** `GET /api/notifications/stream`
+| Environment | Base URL | WebSocket |
+|-------------|----------|-----------|
+| **Dev** (direct) | `http://localhost:8080/api` | `ws://localhost:8080/ws` |
+| **Prod** (via gateway) | `http://localhost:8443/api` | `ws://localhost:8443/ws` |
+
+**SSE Stream:** `GET /api/notifications/stream`  
+**Swagger UI:** `GET /api/swagger`  
+**OpenAPI Docs:** `GET /api/docs`
 
 ### Authentication & Users
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| `POST` | `/auth/register` | Register new user | No |
-| `POST` | `/auth/login` | Login (sets HTTPOnly cookie) | No |
+| `POST` | `/auth/register` | Register new user (sets `neuralhealer_token` cookie) | No |
+| `POST` | `/auth/login` | Login (sets `neuralhealer_token` HTTPOnly cookie) | No |
 | `POST` | `/auth/logout` | Logout (clears cookie) | Yes |
 | `POST` | `/auth/verify-email` | Verify email with OTP code | No |
 | `POST` | `/auth/resend-otp` | Resend email OTP | No |
@@ -367,7 +398,7 @@ curl -X POST http://localhost:8080/api/ai/ask \
 ### Engagements (Doctor-Patient)
 | Method | Endpoint | Description | Role |
 |--------|----------|-------------|------|
-| `POST` | `/engagements/initiate` | Start new engagement | Doctor |
+| `POST` | `/engagements/initiate` | Start new engagement | Doctor or Patient |
 | `POST` | `/engagements/verify-start` | Activate with token | Patient |
 | `GET` | `/engagements/my-engagements` | List user's engagements | Any |
 | `GET` | `/engagements/{id}` | Get engagement details | Both |
@@ -383,12 +414,16 @@ curl -X POST http://localhost:8080/api/ai/ask \
 ### AI Chat System
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
+| `GET` | `/ai/health` | AI service health check | No |
+| `POST` | `/ai/ask` | Ask AI (REST, always new session) | Patient |
+| `POST` | `/ai/ask/{sessionId}` | Ask AI (REST, continue session) | Patient |
 | `GET` | `/chats` | List chat sessions | Patient |
-| `GET` | `/chats/with-doctors` | Sessions with doctor access | Patient |
+| `POST` | `/chats` | Manually create new session | Patient |
 | `GET` | `/chats/search?q={query}` | Search chat history | Patient |
-| `GET` | `/chats/{id}/messages` | Get session messages | Patient |
+| `GET` | `/chats/{sessionId}/messages` | Get session messages | Patient |
 | `PUT` | `/chats/{id}/title` | Rename session | Patient |
-| `GET` | `/doctors/patients/{id}/chats` | View patient chats | Doctor |
+| `GET` | `/doctors/patients/{patientId}/chats` | View patient chat sessions | Doctor |
+| `GET` | `/doctors/patients/{patientId}/chats/{sessionId}/messages` | View patient chat messages | Doctor |
 
 ### Notifications
 | Method | Endpoint | Description | Auth |
@@ -425,9 +460,10 @@ curl -X POST http://localhost:8080/api/ai/ask \
 ### Doctor Profile & Lobby
 | Method | Endpoint | Description | Role |
 |--------|----------|-------------|------|
-| `GET` | `/doctors/lobby` | Browse available doctors | Patient |
-| `GET` | `/doctors/search` | Search doctors by criteria | Patient |
-| `GET` | `/doctors/nearby` | Find doctors by location | Patient |
+| `GET` | `/doctors` | List all doctor profiles | Any |
+| `GET` | `/doctors/lobby` | Browse doctors with filters & pagination | Any |
+| `GET` | `/doctors/search?q={query}` | Search doctors by name/specialization | Any |
+| `GET` | `/doctors/nearby?lat=&lng=&radius=` | Find doctors by geolocation | Any |
 | `GET` | `/doctors/{doctorId}/profile` | View a doctor's public profile | Any |
 | `GET` | `/doctors/me/profile` | View own profile | Doctor |
 | `PUT` | `/doctors/me/profile` | Update own profile | Doctor |
@@ -451,18 +487,35 @@ curl -X POST http://localhost:8080/api/ai/ask \
 | `POST` | `/test/email/special-thanks` | Test special thanks email |
 | `GET` | `/actuator/health` | System health check |
 | `GET` | `/actuator/metrics` | Application metrics |
-
+### Diagnostics (Internal)
+| Method | Endpoint | Description |
+|--------|----------|---------|
+| `GET` | `/api/diagnostic/notifications/run-all-diagnostics` | Full notification channel diagnostics |
+| `GET` | `/api/diagnostic/notifications/check-channels-column` | Verify DB channels column |
+| `POST` | `/api/diagnostic/notifications/apply-fix` | Apply migration fix |
 ---
 
 ## 🌐 WebSocket/STOMP Protocol
 
 ### Connection Details
 ```javascript
+// Dev (direct to Spring Boot)
 const client = new StompJs.Client({
     brokerURL: "ws://localhost:8080/ws",
+    // Auth cookie (neuralhealer_token) is sent automatically by browser.
+    // For non-browser clients, pass the JWT in headers:
     connectHeaders: { 
         Authorization: "Bearer YOUR_JWT_TOKEN" 
     },
+    heartbeatIncoming: 10000,
+    heartbeatOutgoing: 10000,
+    reconnectDelay: 5000
+});
+
+// Prod (via Go gateway on port 8443)
+const client = new StompJs.Client({
+    brokerURL: "ws://localhost:8443/ws",
+    connectHeaders: { Authorization: "Bearer YOUR_JWT_TOKEN" },
     heartbeatIncoming: 10000,
     heartbeatOutgoing: 10000,
     reconnectDelay: 5000
@@ -532,69 +585,61 @@ GET /actuator/metrics
 
 ## 🐳 Docker Deployment
 
-### Full Stack with Docker Compose
-```yaml
-# docker-compose.yml
-version: '3.8'
+### Three-Service Stack
+The production `docker-compose.yml` runs three services with a strict dependency chain:
 
-services:
-  neuralhealer-db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: neuralhealer
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  neuralhealer-app:
-    build: .
-    depends_on:
-      neuralhealer-db:
-        condition: service_healthy
-    environment:
-      DB_URL: jdbc:postgresql://neuralhealer-db:5432/neuralhealer
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      GMAIL_USERNAME: ${GMAIL_USERNAME}
-      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
 ```
+PostgreSQL (healthy) → Spring Boot (healthy) → Go Gateway (public :8443)
+```
+
+| Service | Internal port | External port | Notes |
+|---------|--------------|---------------|-------|
+| `postgres` | 5432 | 5432 | DB only |
+| `neuralhealer-app` | 8080 | `127.0.0.1:8080` | Not publicly reachable |
+| `gateway` | 8443 | **8443** | Only public entry point |
 
 ### Running with Docker
 ```bash
-# Build and start
+# Build and start full stack (requires JWT_SECRET and GATEWAY_SECRET in .env)
 docker-compose up --build -d
 
-# View logs
+# View Spring Boot logs
 docker-compose logs -f neuralhealer-app
+
+# View gateway logs
+docker-compose logs -f gateway
+
+# Health check (via gateway)
+curl http://localhost:8443/api/actuator/health
 
 # Stop services
 docker-compose down
 
-# Stop and remove volumes
+# Stop and remove volumes (deletes DB and profile pictures)
 docker-compose down -v
 ```
 
+### Required `.env` for Docker
+```bash
+# Mandatory — no defaults
+JWT_SECRET=your-base64-encoded-secret
+GATEWAY_SECRET=your-strong-random-secret
+
+# Optional (have safe defaults)
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
+GMAIL_USERNAME=
+GMAIL_APP_PASSWORD=
+AI_SERVICE_URL=http://localhost:5000
+FRONTEND_URL=http://localhost:3000
+```
+
 ### Production Considerations
-- Use managed PostgreSQL (RDS, Cloud SQL)
-- Implement Redis for session clustering
-- Configure proper SSL/TLS termination
+- Use managed PostgreSQL (Supabase, RDS, Cloud SQL) — prod profile is already Supabase-tuned (pool size 4)
+- Set `GATEWAY_SECRET` to a strong, randomly generated value
+- Configure SSL/TLS termination in front of the gateway (e.g., Nginx, Caddy, or cloud load balancer)
+- Implement automated database backups
 - Set up monitoring with Prometheus/Grafana
-- Implement backup strategies
 
 ---
 
@@ -728,10 +773,10 @@ For licensing inquiries, contact: licensing@neuralhealer.com
 ## 🎯 Getting Started Summary
 
 ### For Developers
-1. **Setup Environment**: Java 21, Docker, Maven
+1. **Setup Environment**: Java 21, Docker, Maven, Go 1.22+ (for gateway)
 2. **Configure Variables**: Copy `.env.example` to `.env`
-3. **Start Services**: `docker-compose up -d`
-4. **Run Application**: `./mvnw spring-boot:run`
+3. **Start Database**: `docker-compose up -d postgres`
+4. **Run Application**: `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`
 5. **Explore APIs**: Visit `http://localhost:8080/api/swagger`
 
 ### For Integrators
@@ -742,10 +787,10 @@ For licensing inquiries, contact: licensing@neuralhealer.com
 5. **AI Chat**: Use STOMP destinations for real-time AI interaction
 
 ### For Deployment
-1. **Production DB**: Use managed PostgreSQL instance
-2. **Environment**: Set all required variables
-3. **Security**: Configure SSL, firewalls, monitoring
-4. **Scaling**: Consider Redis for WebSocket clustering
+1. **Production DB**: Use managed PostgreSQL (Supabase supported out of the box)
+2. **Environment**: Set `JWT_SECRET` and `GATEWAY_SECRET` — these are the only mandatory vars without defaults
+3. **Docker**: `docker-compose up --build -d` — all traffic enters on port **8443** via Go gateway
+4. **Security**: The gateway handles rate limiting and IP blacklisting; configure SSL in front of port 8443
 5. **Backups**: Implement automated database backups
 
 ---

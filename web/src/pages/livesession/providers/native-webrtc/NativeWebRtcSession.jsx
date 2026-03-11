@@ -165,8 +165,7 @@ export default function NativeWebRtcSession({
 
     const connectWebSocket = () => {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const host = window.location.hostname === 'localhost' ? 'localhost:8080' : window.location.host;
-        const wsUrl = `${protocol}//${host}/api/ws/webrtc`;
+        const wsUrl = `${protocol}//${window.location.host}/api/ws/webrtc`;
 
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;

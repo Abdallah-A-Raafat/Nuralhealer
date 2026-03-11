@@ -28,8 +28,7 @@ export default function WaitingRoom({ session, displayName, onApproved, onCancel
     useEffect(() => {
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const host = window.location.hostname === 'localhost' ? 'localhost:8080' : window.location.host;
-        const ws = new WebSocket(`${protocol}//${host}/api/ws/webrtc`);
+        const ws = new WebSocket(`${protocol}//${window.location.host}/api/ws/webrtc`);
         wsRef.current = ws;
 
         let pingInterval;

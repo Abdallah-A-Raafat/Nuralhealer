@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/authService';
+import aiChatService from '../services/aiChatService';
 import { handleApiError } from '../utils/errorHandler';
 
 /**
@@ -17,6 +18,10 @@ export const useAuth = () => {
    */
   const loginUser = async (credentials) => {
     try {
+      // Prevent reusing stale socket auth/session across account switches
+      aiChatService.disconnect();
+      aiChatService.clearSession();
+
       const userData = await authService.login(credentials);
       
       console.log('👤 [useAuth] Received user data:', userData);
@@ -66,6 +71,8 @@ export const useAuth = () => {
    */
   const logoutUser = async () => {
     try {
+      aiChatService.disconnect();
+      aiChatService.clearSession();
       await authService.logout();
     } catch (error) {
       console.error('Logout error:', error);

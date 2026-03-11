@@ -29,35 +29,23 @@ const ChatHistory = ({ onViewSession }) => {
   const fetchHistory = async () => {
     try {
       setIsLoading(true);
-      
-      // TODO: Uncomment when backend is ready
-      // const response = await chatService.getSessionHistory(currentPage, 10);
-      // setSessions(response.content || []);
-      // setTotalPages(response.totalPages || 0);
-      
-      // Mock data for now - remove when backend is ready
-      setSessions([
-        {
-          sessionId: '1',
-          startTime: new Date(Date.now() - 86400000).toISOString(),
-          endTime: new Date(Date.now() - 83400000).toISOString(),
-          messageCount: 15,
-          status: 'completed',
-          sessionType: 'text'
-        },
-        {
-          sessionId: '2',
-          startTime: new Date(Date.now() - 172800000).toISOString(),
-          endTime: new Date(Date.now() - 169800000).toISOString(),
-          messageCount: 22,
-          status: 'completed',
-          sessionType: 'sound'
-        }
-      ]);
-      
+      const response = await chatService.getSessionHistory(currentPage, 10);
+      // Backend returns { content, totalPages } or array
+      if (Array.isArray(response)) {
+        setSessions(response);
+        setTotalPages(1);
+      } else {
+        setSessions(response.content || []);
+        setTotalPages(response.totalPages || 1);
+      }
+      if ((Array.isArray(response) && response.length === 0) || (!Array.isArray(response) && (!response.content || response.content.length === 0))) {
+        showToast.info(t.chat?.noHistory || 'No previous sessions');
+      }
     } catch (error) {
       console.error('Error fetching chat history:', error);
       showToast.error(t.chat?.historyError || 'Failed to load chat history');
+      setSessions([]);
+      setTotalPages(1);
     } finally {
       setIsLoading(false);
     }

@@ -34,6 +34,8 @@ const DoctorPatients = () => {
   // Cancel engagement modal
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [engagementToCancel, setEngagementToCancel] = useState(null);
+  const [verificationTokens, setVerificationTokens] = useState({});
+  const [verifyingEngagementId, setVerifyingEngagementId] = useState(null);
 
   useEffect(() => {
     fetchEngagements();
@@ -173,6 +175,27 @@ const DoctorPatients = () => {
     }
   };
 
+  const handleVerifyPendingEngagement = async (engagementId) => {
+    const token = verificationTokens[engagementId]?.trim();
+    if (!token) {
+      showToast.warning('Please enter the verification token');
+      return;
+    }
+
+    try {
+      setVerifyingEngagementId(engagementId);
+      await engagementService.verifyEngagement(token);
+      showToast.success('Engagement verified successfully!');
+      setVerificationTokens((prev) => ({ ...prev, [engagementId]: '' }));
+      await fetchEngagements();
+    } catch (error) {
+      console.error('Failed to verify engagement:', error);
+      showToast.error(error.response?.data?.message || 'Failed to verify engagement');
+    } finally {
+      setVerifyingEngagementId(null);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: {
@@ -208,9 +231,18 @@ const DoctorPatients = () => {
     );
   };
 
-  const pendingEngagements = engagements.filter(e => e?.status === 'pending');
-  const activeEngagements = engagements.filter(e => e?.status === 'active');
-  const otherEngagements = engagements.filter(e => e?.status !== 'pending' && e?.status !== 'active');
+  const pendingEngagements = engagements.filter(e => e?.status?.toLowerCase() === 'pending');
+  const activeEngagements = engagements.filter(e => e?.status?.toLowerCase() === 'active');
+  const otherEngagements = engagements.filter(
+    e => e?.status?.toLowerCase() !== 'pending' && e?.status?.toLowerCase() !== 'active'
+  );
+
+  const pendingPatientInitiated = pendingEngagements.filter(
+    (engagement) => engagement?.initiatedBy?.toLowerCase() === 'patient'
+  );
+  const pendingDoctorInitiated = pendingEngagements.filter(
+    (engagement) => engagement?.initiatedBy?.toLowerCase() === 'doctor'
+  );
 
   // Add error check
   if (!Array.isArray(engagements)) {
@@ -250,14 +282,14 @@ const DoctorPatients = () => {
           </Button>
         </div>
 
-        {/* Pending Engagements */}
-        {pendingEngagements.length > 0 && (
+        {/* Pending Engagements requiring doctor verification (patient-initiated) */}
+        {pendingPatientInitiated.length > 0 && (
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-textPrimary mb-4">
               {t.engagement?.pendingRequests || 'Pending Requests'}
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {pendingEngagements.map(engagement => (
+              {pendingPatientInitiated.map(engagement => (
                 <div key={engagement.id} className="bg-white rounded-lg shadow p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -269,6 +301,68 @@ const DoctorPatients = () => {
                     {getStatusBadge(engagement.status)}
                   </div>
                   
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-textPrimary">
+                      Verification token from email
+                    </label>
+                    <input
+                      type="text"
+                      value={verificationTokens[engagement.id] || ''}
+                      onChange={(e) =>
+                        setVerificationTokens((prev) => ({
+                          ...prev,
+                          [engagement.id]: e.target.value.toUpperCase(),
+                        }))
+                      }
+                      placeholder="Enter token"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary font-mono"
+                    />
+                    <Button
+                      variant="primary"
+                      size="small"
+                      className="w-full"
+                      onClick={() => handleVerifyPendingEngagement(engagement.id)}
+                      disabled={verifyingEngagementId === engagement.id || !(verificationTokens[engagement.id] || '').trim()}
+                    >
+                      {verifyingEngagementId === engagement.id ? 'Verifying...' : 'Verify & Accept'}
+                    </Button>
+                    <p className="text-xs text-textSecondary">
+                      Use the token sent to your email when the patient requested engagement.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="small"
+                      className="w-full text-red-600 border-red-300 hover:bg-red-50"
+                      onClick={() => handleDeleteEngagement(engagement.id)}
+                    >
+                      {t.engagement?.deleteRequest || 'Decline Request'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pending Engagements initiated by doctor (waiting for patient) */}
+        {pendingDoctorInitiated.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-textPrimary mb-4">
+              {t.engagement?.awaitingPatientVerification || 'Awaiting Patient Verification'}
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {pendingDoctorInitiated.map(engagement => (
+                <div key={engagement.id} className="bg-white rounded-lg shadow p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="font-bold text-textPrimary">
+                        {engagement.patient?.firstName || 'Unknown'} {engagement.patient?.lastName || 'Patient'}
+                      </h3>
+                      <p className="text-sm text-textSecondary">{engagement.patient?.email || 'N/A'}</p>
+                    </div>
+                    {getStatusBadge(engagement.status?.toLowerCase())}
+                  </div>
+
                   <div className="space-y-2">
                     <Button
                       variant="outline"
@@ -286,6 +380,9 @@ const DoctorPatients = () => {
                     >
                       {t.engagement?.viewToken || 'View Token'}
                     </Button>
+                    <p className="text-xs text-textSecondary">
+                      Waiting for patient to verify with your token.
+                    </p>
                     <Button
                       variant="outline"
                       size="small"

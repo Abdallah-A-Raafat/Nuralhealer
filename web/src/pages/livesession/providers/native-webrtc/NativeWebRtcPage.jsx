@@ -153,9 +153,19 @@ export default function NativeWebRtcPage() {
             }
             await new Promise(r => setTimeout(r, 300));
 
-            // Guests wait for host approval; creators enter immediately
+            // If joining by link:
+            // - session creator should enter call directly
+            // - other participants should wait for host approval
             if (paramSessionId) {
-                setInWaitingRoom(true);
+                const currentName = (name || '').trim().toLowerCase();
+                const creatorName = (data?.createdBy || '').trim().toLowerCase();
+                const isCreator = currentName.length > 0 && creatorName.length > 0 && currentName === creatorName;
+
+                if (isCreator) {
+                    setInCall(true);
+                } else {
+                    setInWaitingRoom(true);
+                }
             } else {
                 setInCall(true);
             }

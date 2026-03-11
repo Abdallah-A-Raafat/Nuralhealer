@@ -114,6 +114,14 @@ const Profile = () => {
     }
   };
 
+  const pendingEngagements = engagementService.getPendingEngagements(engagements);
+  const pendingForPatientVerification = pendingEngagements.filter(
+    (engagement) => engagement.initiatedBy?.toLowerCase() === 'doctor'
+  );
+  const pendingForDoctorVerification = pendingEngagements.filter(
+    (engagement) => engagement.initiatedBy?.toLowerCase() === 'patient'
+  );
+
   const handleVerifyEngagement = async (engagementId) => {
     if (!verificationToken.trim()) {
       showToast.warning(t.engagement?.enterToken || 'Please enter verification token');
@@ -579,8 +587,8 @@ const Profile = () => {
         {/* Engagements Tab */}
         {activeTab === 'engagements' && (
           <div className="max-w-4xl mx-auto space-y-6">
-            {/* Pending Engagements */}
-            {engagementService.getPendingEngagements(engagements).length > 0 && (
+            {/* Pending Engagements - Patient needs to verify doctor-initiated requests */}
+            {pendingForPatientVerification.length > 0 && (
               <div className="bg-white rounded-lg shadow-md p-8">
                 <h2 className="text-2xl font-bold text-textPrimary mb-6 flex items-center gap-2">
                   <Clock className="w-6 h-6 text-yellow-600" />
@@ -588,7 +596,7 @@ const Profile = () => {
                 </h2>
                 
                 <div className="space-y-4">
-                  {engagementService.getPendingEngagements(engagements).map(engagement => (
+                  {pendingForPatientVerification.map(engagement => (
                     <div key={engagement.id} className="border border-yellow-200 bg-yellow-50 rounded-lg p-6">
                       <div className="flex justify-between items-start mb-4">
                         <div>
@@ -641,6 +649,51 @@ const Profile = () => {
                         <Shield className="w-4 h-4 mt-0.5 flex-shrink-0" />
                         <p>{t.engagement?.verificationHelp || 'Ask your doctor to provide the 6-digit verification code. This ensures secure connection between you and your healthcare provider.'}</p>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pending Engagements - Patient initiated, waiting for doctor verification */}
+            {pendingForDoctorVerification.length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <h2 className="text-2xl font-bold text-textPrimary mb-6 flex items-center gap-2">
+                  <Clock className="w-6 h-6 text-blue-600" />
+                  {t.engagement?.pendingDoctorVerification || 'Awaiting Doctor Verification'}
+                </h2>
+
+                <div className="space-y-4">
+                  {pendingForDoctorVerification.map(engagement => (
+                    <div key={engagement.id} className="border border-blue-200 bg-blue-50 rounded-lg p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-bold text-textPrimary text-lg">
+                            Dr. {engagement.doctor.firstName} {engagement.doctor.lastName}
+                          </h3>
+                          <p className="text-sm text-textSecondary">{engagement.doctor.email}</p>
+                          <p className="text-xs text-textSecondary mt-1">
+                            {t.engagement?.requestedOn || 'Requested on:'} {new Date(engagement.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <Clock className="w-3 h-3" />
+                          {t.engagement?.awaitingDoctor || 'Awaiting Doctor'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-2 text-xs text-blue-700 bg-white p-3 rounded mb-4">
+                        <Shield className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <p>{t.engagement?.doctorWillVerify || 'Your request was sent successfully. The doctor must verify it using the token sent to their email.'}</p>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        className="w-full text-red-600 border-red-300 hover:bg-red-50"
+                        onClick={() => handleRejectEngagement(engagement.id)}
+                      >
+                        {t.engagement?.cancelRequest || 'Cancel Request'}
+                      </Button>
                     </div>
                   ))}
                 </div>

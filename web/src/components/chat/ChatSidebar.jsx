@@ -25,7 +25,7 @@ const ChatSidebar = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [editingSessionId, setEditingSessionId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
-  const [showAuthoribzed, setShowAuthorized] = useState(false);
+  const [showAuthorized, setShowAuthorized] = useState(false);
   const [showAccessManagement, setShowAccessManagement] = useState(false);
   const [accessManagementSessionId, setAccessManagementSessionId] = useState(null);
   const [selectedDoctors, setSelectedDoctors] = useState(new Set());
@@ -171,9 +171,8 @@ const ChatSidebar = ({
         ) : (
           <div className="p-2 space-y-1">
             {filteredSessions.map((session) => (
-              <button
+              <div
                 key={session.id}
-                onClick={() => onSelectSession(session.id)}
                 className={`
                   w-full text-left p-3 rounded-lg transition-all duration-200
                   ${currentSession === session.id 
@@ -181,6 +180,10 @@ const ChatSidebar = ({
                     : 'hover:bg-gray-50 dark:hover:bg-[#2A2238] border-2 border-transparent'
                   }
                 `}
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectSession(session.id)}
+                onKeyPress={e => { if (e.key === 'Enter') onSelectSession(session.id); }}
               >
                 <div className="flex items-start justify-between gap-2 mb-1">
                   {editingSessionId === session.id ? (
@@ -396,7 +399,7 @@ const ChatSidebar = ({
                     )}
                   </div>
                 )}
-              </button>
+              </div>
             ))}
           </div>
         )}

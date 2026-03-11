@@ -60,10 +60,11 @@ const Doctors = () => {
     if (!selectedDoctor) return;
     
     try {
-      await engagementService.initiatePatientEngagement(selectedDoctor.id, 'FULL_ACCESS');
+      const doctorUserId = selectedDoctor.userId || selectedDoctor.id;
+      await engagementService.initiatePatientEngagement(doctorUserId, 'FULL_ACCESS');
       
       showToast.success(
-        t('engagementSentSuccess') || 'Engagement request sent successfully! The doctor will review and verify your request.',
+        t.patient?.doctors?.engagementSentSuccess || 'Engagement request sent successfully! The doctor will review and verify your request.',
         { duration: 5000 }
       );
       
@@ -73,7 +74,7 @@ const Doctors = () => {
     } catch (error) {
       console.error('Failed to send engagement request:', error);
       showToast.error(
-        t('engagementSentError') || error.response?.data?.message || 'Failed to send engagement request. Please try again.',
+        t.patient?.doctors?.engagementSentError || error.response?.data?.message || 'Failed to send engagement request. Please try again.',
         { duration: 5000 }
       );
     }

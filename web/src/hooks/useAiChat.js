@@ -207,7 +207,7 @@ export const useAiChat = () => {
   const createNewSession = useCallback(() => {
     setMessages([]);
     setCurrentSession(null);
-    aiChatService.clearSession();
+    aiChatService.requestNewSession();
     setError(null);
     console.log('🆕 New session created');
   }, []);

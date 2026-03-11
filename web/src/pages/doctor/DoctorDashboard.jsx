@@ -88,6 +88,12 @@ const DoctorDashboard = () => {
   };
 
   const pendingEngagements = engagements.filter(e => e.status === 'PENDING');
+  const pendingForDoctorVerification = pendingEngagements.filter(
+    (engagement) => engagement.initiatedBy?.toLowerCase() === 'patient'
+  );
+  const pendingForPatientVerification = pendingEngagements.filter(
+    (engagement) => engagement.initiatedBy?.toLowerCase() === 'doctor'
+  );
 
   const stats = [
     {
@@ -174,12 +180,12 @@ const DoctorDashboard = () => {
               <h2 className="text-xl font-bold text-textPrimary">
                 Pending Engagement Requests
                 <span className="ml-2 text-sm font-normal bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                  {pendingEngagements.length}
+                  {pendingForDoctorVerification.length}
                 </span>
               </h2>
             </div>
             <div className="space-y-4">
-              {pendingEngagements.map((engagement) => (
+              {pendingForDoctorVerification.map((engagement) => (
                 <div
                   key={engagement.id}
                   className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors"
@@ -233,6 +239,21 @@ const DoctorDashboard = () => {
                   </div>
                 </div>
               ))}
+
+              {pendingForDoctorVerification.length === 0 && (
+                <div className="text-sm text-textSecondary bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  No patient-initiated requests are waiting for your verification right now.
+                </div>
+              )}
+
+              {pendingForPatientVerification.length > 0 && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm font-medium text-textPrimary mb-1">Awaiting Patient Verification</p>
+                  <p className="text-sm text-textSecondary">
+                    {pendingForPatientVerification.length} request(s) were initiated by you and are waiting for patient verification.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         ) : null}

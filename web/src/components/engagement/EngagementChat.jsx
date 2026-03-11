@@ -6,8 +6,9 @@ import { useAuth } from '../../hooks/useAuth';
 import Button from '../common/Button';
 import engagementChatService from '../../services/engagementChatService';
 import engagementService from '../../services/engagementService';
+import liveSessionService from '../../pages/livesession/liveSessionService';
 import { showToast } from '../../utils/toast';
-import { Send, ArrowLeft, MoreVertical } from 'lucide-react';
+import { Send, ArrowLeft, Video } from 'lucide-react';
 
 /**
  * EngagementChat Component
@@ -34,6 +35,7 @@ const EngagementChat = () => {
   const [engagement, setEngagement] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [isStartingCall, setIsStartingCall] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
 
   const wsUrl = useMemo(() => {
@@ -41,6 +43,22 @@ const EngagementChat = () => {
     const baseHost = apiBase.replace(/\/api$/, '');
     return baseHost.replace(/^http/, 'ws') + '/ws';
   }, []);
+
+  const extractSessionIdFromText = (text) => {
+    const callLinkRegex = /\/live-session\/native\/([a-zA-Z0-9-]+)/;
+    const match = (text || '').match(callLinkRegex);
+    return match?.[1] || null;
+  };
+
+  const extractLatestSessionId = (items = []) => {
+    for (let i = items.length - 1; i >= 0; i--) {
+      const sessionId = extractSessionIdFromText(items[i]?.message || items[i]?.content || '');
+      if (sessionId) return sessionId;
+    }
+    return null;
+  };
+
+  const existingCallSessionId = useMemo(() => extractLatestSessionId(messages), [messages]);
 
   useEffect(() => {
     fetchEngagementAndMessages();
@@ -201,6 +219,83 @@ const EngagementChat = () => {
     };
   };
 
+  const getParticipantName = () => {
+    const firstName = user?.firstName || '';
+    const lastName = user?.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    return fullName || user?.name || user?.email || (role === 'DOCTOR' ? 'Doctor' : 'Patient');
+  };
+
+  const handleStartVideoCall = async () => {
+    if (!hasAccess || !engagementId) {
+      showToast.error('Video calls are only available for active engagements');
+      return;
+    }
+
+    try {
+      setIsStartingCall(true);
+
+      // Always refresh from backend first to avoid race conditions between users.
+      const latestMessages = await engagementChatService.getChatMessages(engagementId);
+      const latestSessionId = extractLatestSessionId(latestMessages || []);
+
+      if (latestSessionId) {
+        navigate(`/live-session/native/${latestSessionId}`);
+        return;
+      }
+
+      // Prevent creating separate rooms from both sides.
+      const normalizedRole = String(role || user?.role || '').toUpperCase();
+      if (normalizedRole !== 'DOCTOR') {
+        showToast.info('No active call yet. Please wait for the doctor to start the video call.');
+        return;
+      }
+
+      const session = await liveSessionService.create(getParticipantName(), 'native-webrtc');
+      const callLink = `${window.location.origin}/live-session/native/${session.sessionId}`;
+
+      try {
+        await engagementChatService.sendMessage(
+          engagementId,
+          `📹 Video call started. Join here: ${callLink}`
+        );
+      } catch (notifyError) {
+        console.warn('Failed to post video call link in chat:', notifyError);
+      }
+
+      navigate(`/live-session/native/${session.sessionId}`);
+    } catch (error) {
+      console.error('Error starting video call:', error);
+      showToast.error('Failed to start video call');
+    } finally {
+      setIsStartingCall(false);
+    }
+  };
+
+  const renderMessageContent = (content) => {
+    const text = content || '';
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={`${part}-${index}`}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline font-medium break-all"
+          >
+            {part}
+          </a>
+        );
+      }
+
+      return <span key={`text-${index}`}>{part}</span>;
+    });
+  };
+
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -278,6 +373,16 @@ const EngagementChat = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleStartVideoCall}
+              disabled={isStartingCall || !hasAccess}
+              className="flex items-center gap-2"
+            >
+              <Video className="w-4 h-4" />
+              {isStartingCall ? 'Starting...' : existingCallSessionId ? 'Join Video Call' : 'Video Call'}
+            </Button>
             <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-xs font-medium">
               Active
             </span>
@@ -326,8 +431,8 @@ const EngagementChat = () => {
                           {message.senderName}
                         </p>
                       )}
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {message.message}
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                        {renderMessageContent(message.message)}
                       </p>
                       <p
                         className={`text-[11px] mt-2 ${

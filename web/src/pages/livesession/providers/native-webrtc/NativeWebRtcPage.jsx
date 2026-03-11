@@ -5,6 +5,7 @@ import {
     Mic,
     MicOff,
     VideoOff,
+    Volume2,
     Loader2,
     AlertCircle,
     ArrowLeft,
@@ -44,6 +45,8 @@ export default function NativeWebRtcPage() {
     const [name, setName] = useState('');
     const [mics, setMics] = useState([]);
     const [selectedMic, setSelectedMic] = useState('');
+    const [speakers, setSpeakers] = useState([]);
+    const [selectedSpeaker, setSelectedSpeaker] = useState('');
     const [previewStream, setPreviewStream] = useState(null);
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -85,6 +88,12 @@ export default function NativeWebRtcPage() {
                     .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Microphone ${i + 1}` }));
                 setMics(audioInputs);
                 if (audioInputs.length > 0 && !selectedMic) setSelectedMic(audioInputs[0].deviceId);
+
+                const audioOutputs = devices
+                    .filter(d => d.kind === 'audiooutput')
+                    .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Speaker ${i + 1}` }));
+                setSpeakers(audioOutputs);
+                if (audioOutputs.length > 0) setSelectedSpeaker(prev => prev || audioOutputs[0].deviceId);
 
             } catch (err) {
                 console.warn("Device enumeration failed:", err);
@@ -183,9 +192,14 @@ export default function NativeWebRtcPage() {
         } finally { setLoading(false); }
     };
 
-    const handleLeave = () => {
+    const handleLeave = (hasOtherPeers) => {
         setInCall(false);
-        navigate('/');
+        if (hasOtherPeers) {
+            // Others are still in the session — go to hub so they aren't disrupted
+            navigate('/');
+        }
+        // If alone: inCall=false returns to the lobby on the same URL
+        // (paramSessionId is still set) so the user can rejoin immediately
     };
 
     // ── Render ────────────────────────────────────────────────────────────────
@@ -206,6 +220,7 @@ export default function NativeWebRtcPage() {
                 session={session}
                 displayName={name.trim()}
                 micDeviceId={selectedMic}
+                speakerDeviceId={selectedSpeaker}
                 initialMuted={!isAudioEnabled}
                 initialVideoOff={!isVideoEnabled}
                 onLeave={handleLeave}
@@ -347,15 +362,37 @@ export default function NativeWebRtcPage() {
                             </div>
                         </div>
 
-                        <div className="flex-1 relative">
-                            <select
-                                value={selectedMic}
-                                onChange={(e) => setSelectedMic(e.target.value)}
-                                className="w-full bg-white/60 dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-textPrimary dark:text-lightText focus:ring-4 focus:ring-primary/10 focus:border-primary/50 outline-none appearance-none cursor-pointer transition-all pr-12 shadow-inner"
-                            >
-                                {mics.map(m => <option key={m.deviceId} value={m.deviceId} className="dark:bg-backgroundDark">{m.label}</option>)}
-                            </select>
-                            <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-primary/40 pointer-events-none" size={18} />
+                        <div className="flex-1 flex flex-col gap-3">
+                            {/* Microphone */}
+                            <div>
+                                <p className="text-[9px] font-black text-primary/50 uppercase tracking-widest mb-1.5 ml-2 flex items-center gap-1.5"><Mic size={9} /> Microphone Input</p>
+                                <div className="relative">
+                                    <select
+                                        value={selectedMic}
+                                        onChange={(e) => setSelectedMic(e.target.value)}
+                                        className="w-full bg-white/60 dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-textPrimary dark:text-lightText focus:ring-4 focus:ring-primary/10 focus:border-primary/50 outline-none appearance-none cursor-pointer transition-all pr-12 shadow-inner"
+                                    >
+                                        {mics.map(m => <option key={m.deviceId} value={m.deviceId} className="dark:bg-backgroundDark">{m.label}</option>)}
+                                    </select>
+                                    <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-primary/40 pointer-events-none" size={16} />
+                                </div>
+                            </div>
+                            {/* Speaker Output */}
+                            {speakers.length > 0 && (
+                                <div>
+                                    <p className="text-[9px] font-black text-primary/50 uppercase tracking-widest mb-1.5 ml-2 flex items-center gap-1.5"><Volume2 size={9} /> Speaker Output</p>
+                                    <div className="relative">
+                                        <select
+                                            value={selectedSpeaker}
+                                            onChange={(e) => setSelectedSpeaker(e.target.value)}
+                                            className="w-full bg-white/60 dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-textPrimary dark:text-lightText focus:ring-4 focus:ring-primary/10 focus:border-primary/50 outline-none appearance-none cursor-pointer transition-all pr-12 shadow-inner"
+                                        >
+                                            {speakers.map(s => <option key={s.deviceId} value={s.deviceId} className="dark:bg-backgroundDark">{s.label}</option>)}
+                                        </select>
+                                        <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-primary/40 pointer-events-none" size={16} />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

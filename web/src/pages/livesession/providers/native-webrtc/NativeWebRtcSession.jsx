@@ -13,6 +13,7 @@ import {
     ChevronDown,
     Settings,
     Volume2,
+    VolumeX,
     UserCheck,
     UserX
 } from 'lucide-react';
@@ -30,6 +31,7 @@ export default function NativeWebRtcSession({
     session,
     displayName,
     micDeviceId,
+    speakerDeviceId = '',
     initialMuted = false,
     initialVideoOff = false,
     onLeave
@@ -43,7 +45,7 @@ export default function NativeWebRtcSession({
     const [availableMics, setAvailableMics] = useState([]);
     const [availableSpeakers, setAvailableSpeakers] = useState([]);
     const [currentMicId, setCurrentMicId] = useState(micDeviceId);
-    const [currentSpeakerId, setCurrentSpeakerId] = useState('');
+    const [currentSpeakerId, setCurrentSpeakerId] = useState(speakerDeviceId || '');
     const [showMicSelector, setShowMicSelector] = useState(false);
     const [showSpeakerSelector, setShowSpeakerSelector] = useState(false);
     const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
@@ -67,6 +69,8 @@ export default function NativeWebRtcSession({
     const isVideoOffRef = useRef(initialVideoOff); // current video state for closures
     const hasConnectedRef = useRef(false);       // StrictMode double-mount guard
     const isMountedRef = useRef(true);           // cleanup guard
+    const micBtnRef = useRef(null);              // anchor for mic device menu positioning
+    const spkBtnRef = useRef(null);              // anchor for speaker device menu positioning
 
     const shareLink = `${window.location.origin}/live-session/native/${session.sessionId}`;
 
@@ -381,6 +385,31 @@ export default function NativeWebRtcSession({
         };
     };
 
+    // ── Device Enumeration (eager — runs before media, updates again after permission) ──
+
+    const refreshDevices = async () => {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const mics = devices
+                .filter(d => d.kind === 'audioinput')
+                .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Microphone ${i + 1}` }));
+            if (mics.length > 0) setAvailableMics(mics);
+
+            const speakers = devices.filter(d => d.kind === 'audiooutput');
+            const spkList = speakers.map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Speaker ${i + 1}` }));
+            if (spkList.length > 0) {
+                setAvailableSpeakers(spkList);
+                setCurrentSpeakerId(prev => prev || spkList[0].deviceId);
+            }
+        } catch { /* permission denied — devices unavailable */ }
+    };
+
+    useEffect(() => {
+        // Enumerate immediately (before media) so chevrons appear right away.
+        // Labels will be blank before permission; we re-enumerate inside init() for full labels.
+        refreshDevices();
+    }, []);
+
     // ── Media Initialization ───────────────────────────────────────────────────
 
     useEffect(() => {
@@ -440,20 +469,8 @@ export default function NativeWebRtcSession({
                 }
             }
 
-            // Enumerate devices after permission grant
-            try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                setAvailableMics(devices
-                    .filter(d => d.kind === 'audioinput')
-                    .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Microphone ${i + 1}` }))
-                );
-                const speakers = devices.filter(d => d.kind === 'audiooutput');
-                setAvailableSpeakers(speakers.map((d, i) => ({
-                    deviceId: d.deviceId,
-                    label: d.label || `Speaker ${i + 1}`
-                })));
-                if (speakers.length > 0) setCurrentSpeakerId(speakers[0].deviceId);
-            } catch { /* ignore */ }
+            // Re-enumerate after getUserMedia — now labels are available (permission was granted)
+            await refreshDevices();
 
             // Connect WebSocket after media is ready, with a small extra
             // delay so the backend can process any prior leave event
@@ -494,25 +511,21 @@ export default function NativeWebRtcSession({
     // ── Controls ───────────────────────────────────────────────────────────────
 
     const toggleMute = () => {
+        const muted = !isMuted;
         const track = localStreamRef.current?.getAudioTracks()[0];
-        if (track) {
-            track.enabled = !track.enabled;
-            const muted = !track.enabled;
-            setIsMuted(muted);
-            isMutedRef.current = muted;
-            broadcastStatus(muted, isVideoOffRef.current);
-        }
+        if (track) track.enabled = !muted;
+        setIsMuted(muted);
+        isMutedRef.current = muted;
+        broadcastStatus(muted, isVideoOffRef.current);
     };
 
     const toggleVideo = () => {
+        const videoOff = !isVideoOff;
         const track = localStreamRef.current?.getVideoTracks()[0];
-        if (track) {
-            track.enabled = !track.enabled;
-            const videoOff = !track.enabled;
-            setIsVideoOff(videoOff);
-            isVideoOffRef.current = videoOff;
-            broadcastStatus(isMutedRef.current, videoOff);
-        }
+        if (track) track.enabled = !videoOff;
+        setIsVideoOff(videoOff);
+        isVideoOffRef.current = videoOff;
+        broadcastStatus(isMutedRef.current, videoOff);
     };
 
     const changeMicrophone = async (deviceId) => {
@@ -712,6 +725,7 @@ export default function NativeWebRtcSession({
                     {/* Mic Button + Selector */}
                     <div className="relative">
                         <button
+                            ref={micBtnRef}
                             onClick={toggleMute}
                             className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isMuted
                                 ? 'bg-error text-white border-error/20'
@@ -720,20 +734,19 @@ export default function NativeWebRtcSession({
                         >
                             {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
                         </button>
-                        {availableMics.length > 1 && (
-                            <button
-                                onClick={() => { setShowMicSelector(!showMicSelector); setShowSpeakerSelector(false); }}
-                                className="absolute -right-1 -top-1 w-6 h-6 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-full shadow-lg flex items-center justify-center text-primary z-20 hover:scale-110 transition-transform"
-                            >
-                                <ChevronDown size={12} />
-                            </button>
-                        )}
+                        <button
+                            onClick={() => { refreshDevices(); setShowMicSelector(!showMicSelector); setShowSpeakerSelector(false); }}
+                            className="absolute -right-1 -top-1 w-6 h-6 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-full shadow-lg flex items-center justify-center text-primary z-20 hover:scale-110 transition-transform"
+                        >
+                            <ChevronDown size={12} />
+                        </button>
                         {showMicSelector && (
                             <DeviceMenu
                                 title="Microphone"
                                 devices={availableMics}
                                 current={currentMicId}
                                 onSelect={changeMicrophone}
+                                anchorRef={micBtnRef}
                             />
                         )}
                     </div>
@@ -750,35 +763,35 @@ export default function NativeWebRtcSession({
                     </button>
 
                     {/* Speaker Button + Selector */}
-                    {availableSpeakers.length > 0 && (
-                        <div className="relative">
-                            <button
-                                onClick={() => { setIsSpeakerMuted(prev => !prev); setShowMicSelector(false); }}
-                                className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isSpeakerMuted ? 'bg-error text-white border-error/20' : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20'}`}>
-                                <Volume2 size={20} />
-                            </button>
-                            <button
-                                onClick={() => { setShowSpeakerSelector(!showSpeakerSelector); setShowMicSelector(false); }}
-                                className="absolute -right-1 -top-1 w-6 h-6 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-full shadow-lg flex items-center justify-center text-primary z-20 hover:scale-110 transition-transform"
-                            >
-                                <ChevronDown size={12} />
-                            </button>
-                            {showSpeakerSelector && (
-                                <DeviceMenu
-                                    title="Speaker Output"
-                                    devices={availableSpeakers}
-                                    current={currentSpeakerId}
-                                    onSelect={changeSpeaker}
-                                />
-                            )}
-                        </div>
-                    )}
+                    <div className="relative">
+                        <button
+                            ref={spkBtnRef}
+                            onClick={() => { setIsSpeakerMuted(prev => !prev); setShowSpeakerSelector(false); setShowMicSelector(false); }}
+                            className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isSpeakerMuted ? 'bg-error text-white border-error/20' : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20'}`}>
+                            {isSpeakerMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                        </button>
+                        <button
+                            onClick={() => { refreshDevices(); setShowSpeakerSelector(!showSpeakerSelector); setShowMicSelector(false); }}
+                            className="absolute -right-1 -top-1 w-6 h-6 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-full shadow-lg flex items-center justify-center text-primary z-20 hover:scale-110 transition-transform"
+                        >
+                            <ChevronDown size={12} />
+                        </button>
+                        {showSpeakerSelector && (
+                            <DeviceMenu
+                                title="Speaker Output"
+                                devices={availableSpeakers}
+                                current={currentSpeakerId}
+                                onSelect={changeSpeaker}
+                                anchorRef={spkBtnRef}
+                            />
+                        )}
+                    </div>
 
                     <div className="w-px h-8 bg-gray-100 dark:bg-white/10 mx-1" />
 
                     {/* End Call */}
                     <button
-                        onClick={onLeave}
+                        onClick={() => onLeave(connectedPeers > 0)}
                         className="px-6 md:px-10 h-12 md:h-14 bg-error text-white rounded-[2rem] shadow-2xl shadow-error/30 flex items-center justify-center gap-3 text-xs font-black uppercase tracking-[0.2em] transition-all duration-500 hover:bg-error/80 hover:scale-105 active:scale-95 overflow-hidden relative group"
                     >
                         <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
@@ -802,22 +815,45 @@ export default function NativeWebRtcSession({
 }
 
 // ── Device Menu Component ──────────────────────────────────────────────────────
-function DeviceMenu({ title, devices, current, onSelect }) {
+// Anchored to anchorRef so the menu floats directly above the button that opened it.
+// position:fixed escapes the backdrop-filter stacking context of the dock pill.
+function DeviceMenu({ title, devices, current, onSelect, anchorRef }) {
+    // Compute position from the anchor button's bounding rect.
+    // Clamp horizontally so the 17rem (272px) panel never overflows the viewport.
+    const pos = anchorRef?.current
+        ? (() => {
+              const r = anchorRef.current.getBoundingClientRect();
+              const halfW = 136; // half of 17rem ≈ 272px / 2
+              const rawLeft = r.left + r.width / 2;
+              const left = Math.max(halfW + 8, Math.min(rawLeft, window.innerWidth - halfW - 8));
+              return { bottom: window.innerHeight - r.top + 14, left };
+          })()
+        : null;
+
+    if (!pos) return null;
+
     return (
-        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-72 bg-white/95 dark:bg-backgroundDark/95 backdrop-blur-3xl border border-gray-100 dark:border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] p-4 space-y-3 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-400">
+        <div
+            className="bg-white/95 dark:bg-backgroundDark/95 backdrop-blur-3xl border border-gray-100 dark:border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.18)] p-4 space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300"
+            style={{ position: 'fixed', bottom: pos.bottom, left: pos.left, width: '17rem', transform: 'translateX(-50%)', zIndex: 9999 }}
+        >
             <div className="flex items-center gap-2 px-2">
                 <Settings size={11} className="text-primary/40" />
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60">{title}</p>
             </div>
             <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                {devices.length === 0 && (
+                    <p className="text-center text-[10px] font-bold text-textSecondary dark:text-lightText/40 py-4 uppercase tracking-widest">No devices found</p>
+                )}
                 {devices.map(device => (
                     <button
                         key={device.deviceId}
                         onClick={() => onSelect(device.deviceId)}
-                        className={`w-full text-left px-4 py-3 rounded-2xl text-[11px] font-black transition-all duration-300 flex items-center justify-between ${device.deviceId === current
-                            ? 'bg-primary text-white shadow-lg scale-[1.01]'
-                            : 'hover:bg-primary/5 text-textPrimary dark:text-lightText'
-                            }`}
+                        className={`w-full text-left px-4 py-3 rounded-2xl text-[11px] font-black transition-all duration-300 flex items-center justify-between ${
+                            device.deviceId === current
+                                ? 'bg-primary text-white shadow-lg scale-[1.01]'
+                                : 'hover:bg-primary/5 text-textPrimary dark:text-lightText'
+                        }`}
                     >
                         <span className="truncate pr-3">{device.label}</span>
                         {device.deviceId === current && <Check size={14} strokeWidth={3} />}

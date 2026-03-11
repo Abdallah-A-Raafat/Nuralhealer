@@ -51,6 +51,8 @@ export default function Participant({ stream, name, isLocal, isMuted, isVideoOff
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             const ctx = new AudioContext();
             audioCtxRef.current = ctx;
+            // Browsers suspend AudioContext until a user gesture; resume it explicitly.
+            if (ctx.state === 'suspended') ctx.resume().catch(() => {});
 
             const source = ctx.createMediaStreamSource(stream);
             const analyzer = ctx.createAnalyser();

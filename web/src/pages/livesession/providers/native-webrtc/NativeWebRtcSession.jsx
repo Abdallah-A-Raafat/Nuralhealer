@@ -683,7 +683,7 @@ export default function NativeWebRtcSession({
 
             {/* Join Request Approval Stack */}
             {pendingRequests.length > 0 && (
-                <div className="absolute top-14 md:top-20 right-2 md:right-8 z-50 space-y-2 md:space-y-3" style={{ width: 'min(18rem, calc(100vw - 1rem))' }}>
+                <div className="absolute top-14 md:top-20 right-2 md:right-8 z-[60] space-y-2 md:space-y-3" style={{ width: 'min(18rem, calc(100vw - 1rem))', pointerEvents: 'auto' }}>
                     {pendingRequests.map(req => (
                         <div
                             key={req.peerId}

@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-// Base API configuration - Backend runs on port 8080
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+// Always use the relative path - Vite proxy routes to the correct backend
+// based on VITE_BACKEND_MODE in .env.development (local | ngrok)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

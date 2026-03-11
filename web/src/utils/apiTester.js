@@ -3,7 +3,8 @@
  * Use these functions to test backend endpoints during integration
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// Relative path - Vite proxy routes to correct backend based on VITE_BACKEND_MODE
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 /**
  * Test any endpoint with detailed logging

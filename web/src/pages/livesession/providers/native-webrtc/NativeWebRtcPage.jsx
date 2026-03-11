@@ -95,7 +95,7 @@ export default function NativeWebRtcPage() {
 
     // Update Preview Stream
     useEffect(() => {
-        if (inCall) return;
+        if (inCall || inWaitingRoom) return;
 
         let isMounted = true;
         const startPreview = async () => {
@@ -123,9 +123,11 @@ export default function NativeWebRtcPage() {
         };
 
         startPreview();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedMic, inCall]);
+    }, [selectedMic, inCall, inWaitingRoom]);
 
     // Sync Toggles
     useEffect(() => {
@@ -146,12 +148,16 @@ export default function NativeWebRtcPage() {
 
             setSession(data);
 
-            // Stop preview tracks and release camera hardware
+            // Fully release preview camera hardware before transitioning
             if (previewStream) {
                 previewStream.getTracks().forEach(t => t.stop());
-                setPreviewStream(null);
             }
-            await new Promise(r => setTimeout(r, 300));
+            if (videoPreviewRef.current) {
+                videoPreviewRef.current.srcObject = null;
+            }
+            setPreviewStream(null);
+            // Wait for hardware to release before the session component grabs it
+            await new Promise(r => setTimeout(r, 500));
 
             // If joining by link:
             // - session creator should enter call directly
@@ -167,6 +173,9 @@ export default function NativeWebRtcPage() {
                     setInWaitingRoom(true);
                 }
             } else {
+                // Always put the session ID in the URL so the share link is valid,
+                // refreshing the page works, and routing is always consistent.
+                navigate(`/live-session/native/${data.sessionId}`, { replace: true });
                 setInCall(true);
             }
         } catch (e) {

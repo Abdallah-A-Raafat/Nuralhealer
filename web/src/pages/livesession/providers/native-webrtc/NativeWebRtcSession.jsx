@@ -52,6 +52,9 @@ export default function NativeWebRtcSession({
     const [remoteStreams, setRemoteStreams] = useState({});       // peerId -> MediaStream
     const [participantStates, setParticipantStates] = useState({}); // peerId -> {isMuted, isVideoOff}
     const [connectedPeers, setConnectedPeers] = useState(0);
+    // Render-trigger: a ref mutation alone won't re-render; this forces React to re-read
+    // localStreamRef.current for the local <Participant /> after async media acquisition
+    const [, forceLocalRender] = useState(0);
     // Join approval
     const [pendingRequests, setPendingRequests] = useState([]); // [{peerId}]
 
@@ -59,6 +62,11 @@ export default function NativeWebRtcSession({
     const wsRef = useRef(null);
     const peerConnectionsRef = useRef({});       // peerId -> RTCPeerConnection
     const makingOfferRef = useRef({});           // peerId -> boolean (for Perfect Negotiation)
+    const iceCandidateQueues = useRef({});       // peerId -> RTCIceCandidate[] (buffer until remoteDescription set)
+    const isMutedRef = useRef(initialMuted);     // current mute state for closures
+    const isVideoOffRef = useRef(initialVideoOff); // current video state for closures
+    const hasConnectedRef = useRef(false);       // StrictMode double-mount guard
+    const isMountedRef = useRef(true);           // cleanup guard
 
     const shareLink = `${window.location.origin}/live-session/native/${session.sessionId}`;
 
@@ -89,12 +97,21 @@ export default function NativeWebRtcSession({
     const getOrCreatePC = (peerId) => {
         if (peerConnectionsRef.current[peerId]) return peerConnectionsRef.current[peerId];
 
-        const pc = new RTCPeerConnection({
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ]
-        });
+        const iceServers = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+        ];
+        // Add TURN server if configured (required for symmetric NAT / corporate firewalls)
+        const turnUrl = import.meta.env.VITE_TURN_URL;
+        if (turnUrl) {
+            iceServers.push({
+                urls: turnUrl,
+                username: import.meta.env.VITE_TURN_USERNAME || '',
+                credential: import.meta.env.VITE_TURN_CREDENTIAL || ''
+            });
+        }
+
+        const pc = new RTCPeerConnection({ iceServers, iceCandidatePoolSize: 4 });
 
         pc.onicecandidate = (event) => {
             if (event.candidate && wsRef.current?.readyState === WebSocket.OPEN) {
@@ -112,9 +129,18 @@ export default function NativeWebRtcSession({
         };
 
         pc.onconnectionstatechange = () => {
-            if (['connected', 'completed'].includes(pc.connectionState)) {
+            const state = pc.connectionState;
+            if (['connected', 'completed'].includes(state)) {
                 setConnectionStatus('Secure Connection Established');
-            } else if (pc.connectionState === 'failed') {
+            } else if (state === 'disconnected') {
+                setConnectionStatus('Reconnecting...');
+                // Give it a moment — disconnected often self-heals via ICE restart
+                setTimeout(() => {
+                    if (pc.connectionState === 'disconnected') {
+                        pc.restartIce();
+                    }
+                }, 3000);
+            } else if (state === 'failed') {
                 setConnectionStatus('Connection Failed — Retrying...');
                 pc.restartIce();
             }
@@ -153,6 +179,7 @@ export default function NativeWebRtcSession({
         const pc = peerConnectionsRef.current[peerId];
         if (pc) { pc.close(); delete peerConnectionsRef.current[peerId]; }
         delete makingOfferRef.current[peerId];
+        delete iceCandidateQueues.current[peerId];
         setRemoteStreams(prev => { const n = { ...prev }; delete n[peerId]; return n; });
         setParticipantStates(prev => { const n = { ...prev }; delete n[peerId]; return n; });
         setConnectedPeers(Object.keys(peerConnectionsRef.current).length);
@@ -164,19 +191,30 @@ export default function NativeWebRtcSession({
     // ── WebSocket Signaling ────────────────────────────────────────────────────
 
     const connectWebSocket = () => {
+        if (!isMountedRef.current) return;
+
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/api/ws/webrtc`;
 
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
 
+        // Keepalive ping every 25 s — prevents proxy idle-timeout (Nginx=75s, ALB=60s)
+        // Without this, proxies silently RST the TCP connection; the client sees readyState=OPEN
+        // but messages go nowhere and ICE restarts are never delivered.
+        const pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'ping', roomId: session.sessionId }));
+            }
+        }, 25000);
+
         ws.onopen = () => {
             ws.send(JSON.stringify({
                 type: 'join',
                 roomId: session.sessionId,
                 peerId: displayName,
-                isMuted: initialMuted,
-                isVideoOff: initialVideoOff
+                isMuted: isMutedRef.current,       // use current state, not mount-time props
+                isVideoOff: isVideoOffRef.current  // (matters on WS reconnect after state changed)
             }));
         };
 
@@ -184,6 +222,16 @@ export default function NativeWebRtcSession({
             const msg = JSON.parse(event.data);
             if (msg.roomId !== session.sessionId) return;
             if (msg.peerId === displayName) return; // ignore own messages
+
+            // Helper: drain any ICE candidates that arrived before remoteDescription was set
+            const drainIceCandidates = async (peerId, pc) => {
+                const queue = iceCandidateQueues.current[peerId];
+                if (!queue || queue.length === 0) return;
+                for (const c of queue) {
+                    try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch { /* safe to ignore during drain */ }
+                }
+                iceCandidateQueues.current[peerId] = [];
+            };
 
             switch (msg.type) {
 
@@ -194,8 +242,6 @@ export default function NativeWebRtcSession({
                         [msg.peerId]: { isMuted: msg.isMuted, isVideoOff: msg.isVideoOff }
                     }));
                     const pc = getOrCreatePC(msg.peerId);
-                    // Trigger onnegotiationneeded by setting local description implicitly
-                    // Only do this if we are NOT already negotiating
                     if (pc.signalingState === 'stable') {
                         try {
                             makingOfferRef.current[msg.peerId] = true;
@@ -213,7 +259,8 @@ export default function NativeWebRtcSession({
                         }
                     }
                     setConnectedPeers(Object.keys(peerConnectionsRef.current).length);
-                    broadcastStatus(initialMuted, initialVideoOff);
+                    // Use refs for current mute/video state (not stale closure values)
+                    broadcastStatus(isMutedRef.current, isVideoOffRef.current);
                     break;
                 }
 
@@ -231,12 +278,12 @@ export default function NativeWebRtcSession({
                     const offerCollision = makingOfferRef.current[msg.peerId] || pc.signalingState !== 'stable';
 
                     if (offerCollision && !polite) {
-                        // Impolite peer ignores colliding offers
                         return;
                     }
 
                     try {
                         await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+                        await drainIceCandidates(msg.peerId, pc);
                         await pc.setLocalDescription();
                         ws.send(JSON.stringify({
                             type: 'answer',
@@ -256,11 +303,11 @@ export default function NativeWebRtcSession({
                     const pc = peerConnectionsRef.current[msg.peerId];
                     if (!pc) return;
                     if (pc.signalingState !== 'have-local-offer') {
-                        // Ignore stale answers
                         return;
                     }
                     try {
                         await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+                        await drainIceCandidates(msg.peerId, pc);
                         setConnectedPeers(Object.keys(peerConnectionsRef.current).length);
                         setConnectionStatus('Secure Connection Established');
                     } catch (err) {
@@ -271,12 +318,17 @@ export default function NativeWebRtcSession({
 
                 case 'ice-candidate': {
                     const pc = peerConnectionsRef.current[msg.peerId];
-                    if (!pc || !msg.candidate) return;
+                    if (!msg.candidate) return;
+                    // Buffer if PC doesn't exist yet or remoteDescription not set
+                    if (!pc || !pc.remoteDescription) {
+                        iceCandidateQueues.current[msg.peerId] = iceCandidateQueues.current[msg.peerId] || [];
+                        iceCandidateQueues.current[msg.peerId].push(msg.candidate);
+                        return;
+                    }
                     try {
                         await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
                     } catch (err) {
-                        // Ignore ICE errors during negotiation rollbacks
-                        if (!err.message.includes('remote description')) {
+                        if (!err.message?.includes('remote description')) {
                             console.warn('ICE candidate error:', err);
                         }
                     }
@@ -284,7 +336,6 @@ export default function NativeWebRtcSession({
                 }
 
                 case 'join-request': {
-                    // A guest is requesting to join — add to pending list for host to approve
                     setPendingRequests(prev => {
                         if (prev.find(r => r.peerId === msg.peerId)) return prev;
                         return [...prev, { peerId: msg.peerId }];
@@ -294,7 +345,6 @@ export default function NativeWebRtcSession({
 
                 case 'leave':
                     handlePeerLeave(msg.peerId);
-                    // Also remove from pending if they left before being approved
                     setPendingRequests(prev => prev.filter(r => r.peerId !== msg.peerId));
                     break;
 
@@ -303,23 +353,50 @@ export default function NativeWebRtcSession({
             }
         };
 
-        ws.onclose = () => setConnectionStatus('Session Ended');
-        ws.onerror = () => setConnectionStatus('Network Error');
+        ws.onclose = (event) => {
+            clearInterval(pingInterval);
+            if (!isMountedRef.current) return;
+            console.warn('WebSocket closed, code:', event.code);
+            setConnectionStatus('Reconnecting...');
+
+            // Clean up all existing PeerConnections before reconnecting —
+            // stale PCs with old ICE state cause ghost connections
+            for (const [peerId, pc] of Object.entries(peerConnectionsRef.current)) {
+                pc.close();
+                delete peerConnectionsRef.current[peerId];
+                delete makingOfferRef.current[peerId];
+                delete iceCandidateQueues.current[peerId];
+            }
+            setRemoteStreams({});
+            setParticipantStates({});
+            setConnectedPeers(0);
+
+            setTimeout(() => {
+                if (isMountedRef.current) connectWebSocket();
+            }, 2000);
+        };
+        ws.onerror = (err) => {
+            console.warn('WebSocket error:', err);
+            // onclose will fire after this — reconnect is handled there
+        };
     };
 
     // ── Media Initialization ───────────────────────────────────────────────────
 
     useEffect(() => {
-        let isMounted = true;
+        // StrictMode double-mount guard
+        if (hasConnectedRef.current) return;
+        hasConnectedRef.current = true;
+        isMountedRef.current = true;
 
-        const getMediaWithRetry = async (retries = 3) => {
+        const getMediaWithRetry = async (retries = 5) => {
             const audioConstraint = currentMicId ? { deviceId: { exact: currentMicId } } : true;
             try {
                 return await navigator.mediaDevices.getUserMedia({ video: true, audio: audioConstraint });
             } catch (err) {
-                if (retries > 0 && err.name === 'NotReadableError') {
-                    // Camera locked by StrictMode unmount, wait and retry
-                    await new Promise(r => setTimeout(r, 500));
+                if (retries > 0 && (err.name === 'NotReadableError' || err.name === 'AbortError')) {
+                    // Camera still locked by lobby preview — wait longer and retry
+                    await new Promise(r => setTimeout(r, 800));
                     return getMediaWithRetry(retries - 1);
                 }
                 try {
@@ -334,12 +411,12 @@ export default function NativeWebRtcSession({
         };
 
         const init = async () => {
-            // Small delay to let the lobby's camera release
-            await new Promise(r => setTimeout(r, 200));
-            if (!isMounted) return;
+            // Wait for the lobby's camera to fully release
+            await new Promise(r => setTimeout(r, 600));
+            if (!isMountedRef.current) return;
 
             const stream = await getMediaWithRetry();
-            if (!isMounted) {
+            if (!isMountedRef.current) {
                 if (stream) stream.getTracks().forEach(t => t.stop());
                 return;
             }
@@ -348,6 +425,19 @@ export default function NativeWebRtcSession({
                 stream.getAudioTracks().forEach(t => t.enabled = !initialMuted);
                 stream.getVideoTracks().forEach(t => t.enabled = !initialVideoOff);
                 localStreamRef.current = stream;
+                forceLocalRender(n => n + 1); // notify React so Participant re-reads the ref
+
+                // If peer connections were created before media was ready,
+                // add tracks to them now
+                for (const pc of Object.values(peerConnectionsRef.current)) {
+                    const existingSenders = pc.getSenders();
+                    stream.getTracks().forEach(track => {
+                        const alreadyAdded = existingSenders.some(s => s.track?.id === track.id);
+                        if (!alreadyAdded) {
+                            pc.addTrack(track, stream);
+                        }
+                    });
+                }
             }
 
             // Enumerate devices after permission grant
@@ -365,23 +455,38 @@ export default function NativeWebRtcSession({
                 if (speakers.length > 0) setCurrentSpeakerId(speakers[0].deviceId);
             } catch { /* ignore */ }
 
-            // Small delay before connecting WebSocket to allow the backend
-            // time to process the leave event from the WaitingRoom (if applicable)
+            // Connect WebSocket after media is ready, with a small extra
+            // delay so the backend can process any prior leave event
             setTimeout(() => {
-                if (isMounted) connectWebSocket();
-            }, 500);
+                if (isMountedRef.current) connectWebSocket();
+            }, 300);
         };
 
         init();
 
         const pcs = peerConnectionsRef.current;
         return () => {
-            isMounted = false;
+            isMountedRef.current = false;
             if (localStreamRef.current) {
                 localStreamRef.current.getTracks().forEach(t => t.stop());
+                localStreamRef.current = null;
             }
-            if (wsRef.current) wsRef.current.close();
+            if (wsRef.current) {
+                // Send leave message before closing
+                try {
+                    if (wsRef.current.readyState === WebSocket.OPEN) {
+                        wsRef.current.send(JSON.stringify({
+                            type: 'leave',
+                            roomId: session.sessionId,
+                            peerId: displayName
+                        }));
+                    }
+                } catch { /* ignore */ }
+                wsRef.current.close();
+                wsRef.current = null;
+            }
             Object.values(pcs).forEach(pc => pc.close());
+            peerConnectionsRef.current = {};
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -392,8 +497,10 @@ export default function NativeWebRtcSession({
         const track = localStreamRef.current?.getAudioTracks()[0];
         if (track) {
             track.enabled = !track.enabled;
-            setIsMuted(!track.enabled);
-            broadcastStatus(!track.enabled, isVideoOff);
+            const muted = !track.enabled;
+            setIsMuted(muted);
+            isMutedRef.current = muted;
+            broadcastStatus(muted, isVideoOffRef.current);
         }
     };
 
@@ -401,8 +508,10 @@ export default function NativeWebRtcSession({
         const track = localStreamRef.current?.getVideoTracks()[0];
         if (track) {
             track.enabled = !track.enabled;
-            setIsVideoOff(!track.enabled);
-            broadcastStatus(isMuted, !track.enabled);
+            const videoOff = !track.enabled;
+            setIsVideoOff(videoOff);
+            isVideoOffRef.current = videoOff;
+            broadcastStatus(isMutedRef.current, videoOff);
         }
     };
 

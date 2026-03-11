@@ -239,7 +239,7 @@ export default function NativeWebRtcPage() {
             </div>
 
             {/* Header Overlay */}
-            <header className="relative z-50 w-full px-6 py-6 md:px-12 flex items-center justify-between">
+            <header className="relative z-50 w-full px-4 py-3 md:px-12 md:py-6 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate(-1)}
@@ -264,15 +264,15 @@ export default function NativeWebRtcPage() {
                 </div>
             </header>
 
-            <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-8 md:py-16 relative z-10 flex flex-col lg:flex-row items-center justify-center lg:gap-20">
+            <main className="flex-1 w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-10 lg:py-16 relative z-10 flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-16">
 
                 {/* Left Section: Luxury Preview Area */}
-                <div className="w-full lg:w-3/5 space-y-10 order-2 lg:order-1 mt-12 lg:mt-0">
+                <div className="w-full lg:w-3/5 space-y-4 md:space-y-8 order-2 lg:order-1 mt-4 lg:mt-0">
                     <div className="relative group">
                         {/* Decorative Elements */}
                         <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
 
-                        <div className="relative aspect-[4/3] md:aspect-video bg-white dark:bg-white/5 rounded-[2.5rem] overflow-hidden border border-white dark:border-white/10 shadow-2xl transition-all duration-700 group-hover:shadow-[0_20px_50px_rgba(155,89,182,0.15)] ring-1 ring-black/[0.03] dark:ring-white/[0.05]">
+                        <div className="relative aspect-video bg-white dark:bg-white/5 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-white dark:border-white/10 shadow-2xl transition-all duration-700 group-hover:shadow-[0_20px_50px_rgba(155,89,182,0.15)] ring-1 ring-black/[0.03] dark:ring-white/[0.05]">
 
                             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                                 <div className="absolute top-0 left-0 w-full h-1/4 bg-gradient-to-b from-black/40 to-transparent" />
@@ -351,7 +351,7 @@ export default function NativeWebRtcPage() {
                     </div>
 
                     {/* Quick Settings Bar - Luxury Horizontal */}
-                    <div className="flex flex-col md:flex-row items-stretch md:items-center gap-6 p-6 md:p-8 bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-white dark:border-white/10 rounded-[2.5rem] shadow-xl ring-1 ring-black/[0.02] dark:ring-white/[0.05]">
+                    <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-6 p-4 md:p-8 bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-white dark:border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-xl ring-1 ring-black/[0.02] dark:ring-white/[0.05]">
                         <div className="flex items-center gap-4 border-b md:border-b-0 md:border-r border-gray-100 dark:border-white/10 pb-4 md:pb-0 md:pr-8">
                             <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
                                 <Settings size={22} />
@@ -398,25 +398,25 @@ export default function NativeWebRtcPage() {
                 </div>
 
                 {/* Right Section: Hero Form & Headlines */}
-                <div className="w-full lg:w-2/5 space-y-12 order-1 lg:order-2 text-center lg:text-left">
+                <div className="w-full lg:w-2/5 space-y-5 md:space-y-10 order-1 lg:order-2 text-center lg:text-left">
 
-                    <div className="space-y-6 lg:space-y-8">
-                        <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-primary/5 border border-primary/10 rounded-2xl text-[10px] font-black text-primary uppercase tracking-[0.3em] shadow-sm animate-bounce duration-[3s]">
+                    <div className="space-y-3 md:space-y-6">
+                        <div className="hidden sm:inline-flex items-center gap-3 px-5 py-2.5 bg-primary/5 border border-primary/10 rounded-2xl text-[10px] font-black text-primary uppercase tracking-[0.3em] shadow-sm animate-bounce duration-[3s]">
                             <Heart size={14} fill="currentColor" /> Premium Wellness Path
                         </div>
 
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-textPrimary dark:text-lightText tracking-tight leading-[1.1]">
+                        <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-textPrimary dark:text-lightText tracking-tight leading-[1.1]">
                             Your Health, <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-secondary animate-gradient-x">Perfectly Connected.</span>
                         </h2>
 
-                        <p className="text-sm md:text-base font-bold text-textSecondary/80 dark:text-lightText/60 leading-relaxed max-w-lg lg:max-w-none mx-auto lg:mx-0">
+                        <p className="hidden sm:block text-sm md:text-base font-bold text-textSecondary/80 dark:text-lightText/60 leading-relaxed max-w-lg lg:max-w-none mx-auto lg:mx-0">
                             Join your secure consultation with state-of-the-art WebRTC technology.
                             Experience high-fidelity audio and video designed for professional medical care.
                         </p>
                     </div>
 
-                    <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[3rem] p-8 md:p-10 shadow-2xl space-y-8 ring-1 ring-black/[0.03] dark:ring-white/[0.05]">
+                    <div className="bg-white/80 dark:bg-white/5 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[2rem] md:rounded-[3rem] p-5 md:p-10 shadow-2xl space-y-5 md:space-y-8 ring-1 ring-black/[0.03] dark:ring-white/[0.05]">
                         {error && (
                             <div className="bg-error/5 border border-error/10 p-5 rounded-2xl flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
                                 <AlertCircle className="text-error shrink-0" size={20} />
@@ -435,7 +435,7 @@ export default function NativeWebRtcPage() {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="What is your full name?"
-                                    className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-[2rem] pl-16 pr-8 py-6 text-base font-black text-textPrimary dark:text-lightText placeholder-gray-300 dark:placeholder-gray-600 focus:ring-4 focus:ring-primary/10 focus:border-primary/40 outline-none transition-all duration-500 shadow-inner group-hover:bg-white dark:group-hover:bg-white/10"
+                                    className="w-full bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-[2rem] pl-16 pr-8 py-4 md:py-6 text-sm md:text-base font-black text-textPrimary dark:text-lightText placeholder-gray-300 dark:placeholder-gray-600 focus:ring-4 focus:ring-primary/10 focus:border-primary/40 outline-none transition-all duration-500 shadow-inner group-hover:bg-white dark:group-hover:bg-white/10"
                                 />
                             </div>
                         </div>
@@ -457,13 +457,13 @@ export default function NativeWebRtcPage() {
                             </button>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-4 md:space-y-6">
                             <Button
                                 variant="primary"
                                 size="large"
                                 onClick={handleStart}
                                 disabled={loading || !name.trim()}
-                                className="w-full py-7 rounded-[2rem] shadow-2xl shadow-primary/20 text-base font-black uppercase tracking-[0.2em] group overflow-hidden relative"
+                                className="w-full py-5 md:py-7 rounded-[1.75rem] md:rounded-[2rem] shadow-2xl shadow-primary/20 text-sm md:text-base font-black uppercase tracking-[0.15em] md:tracking-[0.2em] group overflow-hidden relative"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                                 {loading ? (
@@ -493,8 +493,8 @@ export default function NativeWebRtcPage() {
                 </div>
             </main>
 
-            {/* Luxury Footer */}
-            <footer className="w-full py-10 px-6 bg-white/30 dark:bg-black/20 backdrop-blur-xl border-t border-white/60 dark:border-white/10 relative z-20">
+            {/* Luxury Footer — hidden on mobile to save scroll */}
+            <footer className="hidden md:block w-full py-10 px-6 bg-white/30 dark:bg-black/20 backdrop-blur-xl border-t border-white/60 dark:border-white/10 relative z-20">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
                     <div className="flex items-center gap-4 group">
                         <div className="w-10 h-10 bg-primary text-white font-black rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">NH</div>

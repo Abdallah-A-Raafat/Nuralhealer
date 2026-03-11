@@ -585,31 +585,32 @@ export default function NativeWebRtcSession({
     return (
         <div className="relative flex flex-col h-screen bg-background dark:bg-backgroundDark text-textPrimary dark:text-lightText font-sans overflow-hidden transition-colors duration-500">
 
-            {/* Premium Header */}
-            <header className="relative z-40 w-full flex flex-col md:flex-row items-center justify-between px-6 py-4 md:px-12 md:py-6 bg-white/60 dark:bg-white/5 backdrop-blur-3xl border-b border-gray-100 dark:border-white/10 shadow-sm">
-                <div className="flex items-center gap-4 md:gap-6 mb-4 md:mb-0">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-white dark:bg-white/10 rounded-2xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-primary shadow-xl">
-                        <img src={logo} alt="NeuralHealer" className="w-full h-full object-contain p-2" />
+            {/* Premium Header — always single row, compact on mobile */}
+            <header className="relative z-40 w-full flex flex-row items-center justify-between px-3 py-2 md:px-8 md:py-3 bg-white/60 dark:bg-white/5 backdrop-blur-3xl border-b border-gray-100 dark:border-white/10 shadow-sm shrink-0">
+                <div className="flex items-center gap-2 md:gap-4 min-w-0">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-white dark:bg-white/10 rounded-xl md:rounded-2xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-primary shadow-xl shrink-0">
+                        <img src={logo} alt="NeuralHealer" className="w-full h-full object-contain p-1.5" />
                     </div>
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h2 className="text-[10px] md:text-sm font-black text-textPrimary dark:text-lightText uppercase tracking-[0.25em]">Private Consultation</h2>
-                            <div className="bg-success/5 border border-success/10 px-2.5 py-1 rounded-lg text-[8px] md:text-[10px] font-black text-success uppercase tracking-widest hidden sm:block">Verified Secure</div>
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-[9px] md:text-xs font-black text-textPrimary dark:text-lightText uppercase tracking-[0.2em] truncate">Private Consultation</h2>
+                            <div className="hidden sm:block bg-success/5 border border-success/10 px-2 py-0.5 rounded-lg text-[8px] font-black text-success uppercase tracking-widest shrink-0">Secure</div>
                         </div>
-                        <div className="flex items-center gap-4 mt-1.5">
-                            <span className="flex items-center gap-2 text-primary text-[9px] md:text-[11px] font-black uppercase tracking-wider">
-                                <Activity size={12} className="animate-pulse" />
-                                {connectionStatus}
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <span className="flex items-center gap-1 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-wide">
+                                <Activity size={8} className="animate-pulse shrink-0" />
+                                <span className="hidden sm:inline">{connectionStatus}</span>
+                                <span className="sm:hidden">Live</span>
                             </span>
-                            <div className="w-1 h-1 bg-gray-200 dark:bg-white/20 rounded-full" />
-                            <span className="text-textSecondary dark:text-lightText/60 text-[9px] md:text-[11px] font-black uppercase tracking-wider flex items-center gap-2">
-                                <Users size={12} /> {connectedPeers + 1} Connected
+                            <div className="w-1 h-1 bg-gray-200 dark:bg-white/20 rounded-full shrink-0" />
+                            <span className="text-textSecondary dark:text-lightText/60 text-[8px] md:text-[10px] font-black uppercase tracking-wide flex items-center gap-1 shrink-0">
+                                <Users size={8} /> {connectedPeers + 1}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 md:gap-6">
+                <div className="flex items-center gap-2 md:gap-4 shrink-0 ml-2">
                     <div className="hidden lg:flex items-center gap-4 bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-[1.5rem] px-5 py-3 shadow-inner">
                         <ShieldCheck size={16} className="text-success" />
                         <span className="text-[10px] font-black text-textSecondary dark:text-lightText/60 uppercase tracking-widest">Consultant Session</span>
@@ -622,19 +623,19 @@ export default function NativeWebRtcSession({
                             {copied ? 'Link Ready' : 'Invite Client'}
                         </button>
                     </div>
-                    <button className="flex lg:hidden p-3 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-2xl shadow-sm text-primary" onClick={handleCopy}>
-                        {copied ? <Check size={18} /> : <Copy size={18} />}
+                    <button className="lg:hidden p-2 md:p-2.5 bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-xl md:rounded-2xl shadow-sm text-primary" onClick={handleCopy}>
+                        {copied ? <Check size={15} /> : <Copy size={15} />}
                     </button>
                 </div>
             </header>
 
             {/* Participant Grid */}
-            <main className="flex-1 w-full bg-[#F8F9FF] dark:bg-black/10 relative overflow-hidden flex items-center justify-center p-6 md:p-10 lg:p-14" style={{ paddingBottom: '7rem' }}>
+            <main className="flex-1 w-full bg-[#F8F9FF] dark:bg-black/10 relative overflow-hidden flex items-center justify-center p-3 md:p-8 lg:p-14" style={{ paddingBottom: 'max(6rem, calc(5.5rem + env(safe-area-inset-bottom)))' }}>
                 <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-white to-transparent opacity-60 z-0" />
                 <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-primary/5 rounded-full blur-[100px] z-0" />
 
                 <div className="relative z-10 w-full h-full max-w-7xl mx-auto flex flex-col items-center justify-center">
-                    <div className={`grid gap-6 md:gap-8 w-full transition-all duration-700 ${connectedPeers === 0
+                    <div className={`grid gap-3 md:gap-8 w-full transition-all duration-700 ${connectedPeers === 0
                         ? 'max-w-2xl grid-cols-1'
                         : connectedPeers === 1
                             ? 'grid-cols-1 md:grid-cols-2 max-w-5xl'
@@ -682,7 +683,7 @@ export default function NativeWebRtcSession({
 
             {/* Join Request Approval Stack */}
             {pendingRequests.length > 0 && (
-                <div className="absolute top-24 md:top-28 right-4 md:right-8 z-50 space-y-3 w-72 md:w-80">
+                <div className="absolute top-14 md:top-20 right-2 md:right-8 z-50 space-y-2 md:space-y-3" style={{ width: 'min(18rem, calc(100vw - 1rem))' }}>
                     {pendingRequests.map(req => (
                         <div
                             key={req.peerId}
@@ -719,15 +720,15 @@ export default function NativeWebRtcSession({
             )}
 
             {/* Floating Control Dock */}
-            <section className="absolute bottom-6 md:bottom-10 left-0 right-0 z-50 px-4 md:px-6">
-                <div className="flex flex-row items-center justify-center gap-3 md:gap-6 max-w-2xl mx-auto bg-white/85 dark:bg-white/8 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[3.5rem] p-4 md:p-5 shadow-[0_20px_80px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-transform duration-500">
+            <section className="absolute bottom-3 md:bottom-8 left-0 right-0 z-50 px-3 md:px-6" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+                <div className="flex flex-row items-center justify-center gap-2 md:gap-5 max-w-2xl mx-auto bg-white/90 dark:bg-white/8 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[3rem] p-3 md:p-5 shadow-[0_20px_80px_rgba(0,0,0,0.12)]">
 
                     {/* Mic Button + Selector */}
                     <div className="relative">
                         <button
                             ref={micBtnRef}
                             onClick={toggleMute}
-                            className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isMuted
+                            className={`w-11 h-11 md:w-14 md:h-14 rounded-[1.5rem] md:rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isMuted
                                 ? 'bg-error text-white border-error/20'
                                 : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20'
                                 }`}
@@ -754,7 +755,7 @@ export default function NativeWebRtcSession({
                     {/* Video Button */}
                     <button
                         onClick={toggleVideo}
-                        className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isVideoOff
+                        className={`w-11 h-11 md:w-14 md:h-14 rounded-[1.5rem] md:rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isVideoOff
                             ? 'bg-error text-white border-error/20'
                             : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20'
                             }`}
@@ -767,7 +768,7 @@ export default function NativeWebRtcSession({
                         <button
                             ref={spkBtnRef}
                             onClick={() => { setIsSpeakerMuted(prev => !prev); setShowSpeakerSelector(false); setShowMicSelector(false); }}
-                            className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isSpeakerMuted ? 'bg-error text-white border-error/20' : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20'}`}>
+                            className={`w-11 h-11 md:w-14 md:h-14 rounded-[1.5rem] md:rounded-[1.75rem] flex items-center justify-center transition-all duration-500 active:scale-90 border-2 shadow-xl ${isSpeakerMuted ? 'bg-error text-white border-error/20' : 'bg-white dark:bg-white/10 text-primary border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/20'}`}>
                             {isSpeakerMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                         </button>
                         <button
@@ -792,7 +793,7 @@ export default function NativeWebRtcSession({
                     {/* End Call */}
                     <button
                         onClick={() => onLeave(connectedPeers > 0)}
-                        className="px-6 md:px-10 h-12 md:h-14 bg-error text-white rounded-[2rem] shadow-2xl shadow-error/30 flex items-center justify-center gap-3 text-xs font-black uppercase tracking-[0.2em] transition-all duration-500 hover:bg-error/80 hover:scale-105 active:scale-95 overflow-hidden relative group"
+                        className="px-4 md:px-10 h-11 md:h-14 bg-error text-white rounded-[1.75rem] md:rounded-[2rem] shadow-2xl shadow-error/30 flex items-center justify-center gap-2 md:gap-3 text-[10px] md:text-xs font-black uppercase tracking-[0.15em] md:tracking-[0.2em] transition-all duration-500 hover:bg-error/80 hover:scale-105 active:scale-95 overflow-hidden relative group"
                     >
                         <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                         <PhoneOff size={18} className="group-hover:rotate-[135deg] transition-transform duration-500" />
@@ -801,8 +802,8 @@ export default function NativeWebRtcSession({
                 </div>
             </section>
 
-            {/* Border Overlay */}
-            <div className="absolute pointer-events-none inset-0 border-[12px] md:border-[20px] border-white/30 dark:border-white/5 z-30" />
+            {/* Border Overlay — hidden on mobile to reclaim screen space */}
+            <div className="hidden md:block absolute pointer-events-none inset-0 border-[20px] border-white/30 dark:border-white/5 z-30" />
 
             <style dangerouslySetInnerHTML={{
                 __html: `

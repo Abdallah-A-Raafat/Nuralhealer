@@ -6,13 +6,13 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
-  const backendMode = env.VITE_BACKEND_MODE || 'local'
-  const proxyTarget =
-    backendMode === 'ngrok'
-      ? env.VITE_NGROK_BACKEND
-      : env.VITE_LOCAL_BACKEND || 'http://localhost:8080'
+  // Derive proxy target from VITE_API_BASE_URL — strip the /api suffix.
+  // Works for both local (http://localhost:8080/api) and ngrok (https://xxx.ngrok-free.dev/api)
+  const apiBaseUrl = env.VITE_API_BASE_URL || 'http://localhost:8080/api'
+  const proxyTarget = apiBaseUrl.replace(/\/api$/, '')
+  const isHttps = proxyTarget.startsWith('https')
 
-  console.log(`[Vite] Backend mode: ${backendMode} → ${proxyTarget}`)
+  console.log(`[Vite] Proxying /api → ${proxyTarget}`)
 
   return {
     plugins: [react(), tailwindcss()],
@@ -21,11 +21,9 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: proxyTarget,
           changeOrigin: true,
-          secure: backendMode === 'ngrok',
-          ws: true, // proxies WebSocket (/api/ws) as well
-          headers: backendMode === 'ngrok'
-            ? { 'ngrok-skip-browser-warning': 'true' }
-            : {},
+          secure: isHttps,
+          ws: true,
+          headers: isHttps ? { 'ngrok-skip-browser-warning': 'true' } : {},
         },
       },
     },

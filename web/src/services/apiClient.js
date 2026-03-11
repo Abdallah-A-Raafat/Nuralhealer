@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-// Always use the relative path - Vite proxy routes to the correct backend
-// based on VITE_BACKEND_MODE in .env.development (local | ngrok)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+// Always use relative path — Vite proxy forwards to the correct backend.
+// CORS is avoided entirely: the browser only ever talks to localhost:5173.
+const API_BASE_URL = '/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

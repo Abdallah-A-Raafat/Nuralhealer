@@ -44,7 +44,7 @@ const Navbar = () => {
   const navigation = isLoggedIn && accountType === 'doctor' ? doctorNav : patientNav;
 
   return (
-    <nav className={`shadow-md border-b transition-all duration-300 ${
+    <nav className={`fixed top-0 left-0 w-full z-50 shadow-md border-b transition-all duration-300 ${
       isDarkMode 
         ? 'bg-[#241D30] border-[#3F3651]' 
         : 'bg-[#FFFFFF] border-purple-200'

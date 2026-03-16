@@ -10,14 +10,15 @@ import { showToast } from '../../utils/toast';
 
 const Chat = () => {
   const [selectedSession, setSelectedSession] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const { t } = useLanguage();
 
   if (selectedSession === 'text') {
-    return <TextSession onBack={() => setSelectedSession(null)} />;
+    return <TextSession onBack={() => setSelectedSession(null)} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />;
   }
 
   if (selectedSession === 'sound') {
-    return <SoundSession onBack={() => setSelectedSession(null)} />;
+    return <SoundSession onBack={() => setSelectedSession(null)} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />;
   }
 
   return (
@@ -143,7 +144,7 @@ const Chat = () => {
 };
 
 // Text Session Component
-const TextSession = ({ onBack }) => {
+const TextSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
   const { 
     messages, 
     isConnected, 
@@ -171,6 +172,18 @@ const TextSession = ({ onBack }) => {
   const [authorizedError, setAuthorizedError] = useState('');
   const [engagements, setEngagements] = useState([]);
   const [loadingEngagements, setLoadingEngagements] = useState(false);
+
+  // Prevent page-level scrollbar while in text session
+  useEffect(() => {
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.documentElement.style.overflow = prevHtmlOverflow || '';
+      document.body.style.overflow = prevBodyOverflow || '';
+    };
+  }, []);
 
   useEffect(() => {
     const loadAuthorized = async () => {
@@ -275,9 +288,9 @@ const TextSession = ({ onBack }) => {
   }, [messages, isAiTyping]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+    <div className={`min-h-screen bg-background flex flex-col overflow-hidden ${sidebarOpen ? 'lg:pl-80' : 'lg:pl-0'}`}>
+      <div className={`fixed top-16 left-0 w-full ${sidebarOpen ? 'lg:left-80 lg:w-[calc(100%-20rem)]' : 'lg:left-0 lg:w-full'} z-40 bg-white shadow-sm border-b border-gray-200`}>
+        <div className="px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
               <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -336,139 +349,198 @@ const TextSession = ({ onBack }) => {
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <div className="w-80 hidden lg:block">
-          <ChatSidebar
-            sessions={sessions}
-            currentSession={currentSession}
-            isLoading={isLoadingHistory}
-            onSelectSession={handleSelectSession}
-            onNewChat={handleNewChat}
-            onRenameSession={handleRenameSession}
-            authorizedDoctors={authorizedDoctors}
-            authorizedLoading={loadingAuthorized}
-            authorizedError={authorizedError}
-            engagements={engagements}
-            engagementsLoading={loadingEngagements}
-            onUpdateChatAccess={handleUpdateChatAccess}
-          />
+        {/* Sidebar (collapsible, animated) */}
+        <div className={`fixed top-16 left-0 h-[calc(100vh-4rem)] z-40 w-80 transform transition-transform duration-300 bg-white dark:bg-[#1F172B] border-r border-gray-200 dark:border-[#3F3651] shadow-lg lg:block ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="relative h-full">
+            <ChatSidebar
+              sessions={sessions}
+              currentSession={currentSession}
+              isLoading={isLoadingHistory}
+              onSelectSession={handleSelectSession}
+              onNewChat={handleNewChat}
+              onRenameSession={handleRenameSession}
+              authorizedDoctors={authorizedDoctors}
+              authorizedLoading={loadingAuthorized}
+              authorizedError={authorizedError}
+              engagements={engagements}
+              engagementsLoading={loadingEngagements}
+              onUpdateChatAccess={handleUpdateChatAccess}
+              onCloseSidebar={() => setSidebarOpen(false)}
+            />
+          </div>
         </div>
 
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col px-4 py-8 max-w-4xl mx-auto w-full">{error && (
-          <div className="mb-4 bg-red-50 border-l-4 border-red-400 rounded-lg p-4">
-            <p className="text-sm text-red-800 flex items-center gap-2" dir="rtl">
-              <span>⚠️</span>
-              <span>{error}</span>
-            </p>
-          </div>
+        {/* Open toggle when sidebar is closed */}
+        {!sidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open sidebar"
+            className="fixed left-0 top-1/2 z-60 -translate-y-1/2 bg-white dark:bg-[#1F172B] border border-gray-200 dark:border-[#3F3651] rounded-r-lg p-2 shadow-md lg:block"
+          >
+            <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         )}
 
-        <div className="bg-white rounded-lg shadow-md flex-1 overflow-hidden flex flex-col mb-6 border border-gray-200">
-          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <h3 className="text-sm font-semibold text-textPrimary flex items-center gap-2">
-              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              {t.chat.textSession}
-              {isLoadingMessages && (
-                <div className="ml-2 flex items-center gap-1 text-xs text-gray-500">
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-600"></div>
-                  <span>Loading...</span>
-                </div>
-              )}
-            </h3>
-          </div>
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white">{messages.length === 0 && !isLoadingMessages && (
-              <div className="flex justify-start animate-fade-in">
-                <div className="max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg bg-gray-100 text-textPrimary rounded-bl-none">
-                  <p className="text-sm leading-relaxed" dir="rtl">{t.chat.welcomeMessage}</p>
-                </div>
-              </div>
-            )}
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
-              >
-                <div
-                  className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg ${
-                    message.type === 'user'
-                      ? 'bg-primary text-white rounded-br-none'
-                      : message.type === 'error'
-                      ? 'bg-red-100 text-red-800 rounded-bl-none'
-                      : 'bg-gray-100 text-textPrimary rounded-bl-none'
-                  }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed" dir="rtl">{message.content}</p>
-                  {message.sources && message.sources.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-300/50">
-                      <p className="text-xs font-semibold mb-2" dir="rtl">المصادر:</p>
-                      <ul className="text-xs space-y-1" dir="rtl">
-                        {message.sources.map((source, idx) => (
-                          <li key={idx} className="truncate flex items-center gap-1">
-                            <span>📄</span>
-                            <span>{source}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  <p className={`text-xs mt-2 ${message.type === 'user' ? 'text-white/70' : 'text-textSecondary'}`}>
-                    {message.timestamp ? new Date(message.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : ''}
-                  </p>
-                </div>
-              </div>
-            ))}
-            {isAiTyping && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 text-textPrimary px-4 py-3 rounded-lg rounded-bl-none">
-                  <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+        {/* Floating toggle removed - left-edge open toggle and inside-sidebar close remain */}
+
+        {/* Main Chat Area */}
+        <div className={`flex-1 flex flex-col px-4 py-8 w-full ${sidebarOpen ? 'lg:ml-80' : 'lg:ml-0'}`}>
+          {error && (
+            <div className="mb-4 bg-red-50 border-l-4 border-red-400 rounded-lg p-4">
+              <p className="text-sm text-red-800 flex items-center gap-2" dir="rtl">
+                <span>⚠️</span>
+                <span>{error}</span>
+              </p>
+            </div>
+          )}
+
+        <div
+          className={`fixed z-30 bg-white border border-gray-200 shadow-md rounded-lg ${sidebarOpen ? 'lg:left-80 lg:w-[calc(100%-20rem)] left-0 w-full' : 'lg:left-0 lg:w-full left-0 w-full'}`}
+          style={{ top: 'calc(4rem + 4rem)', bottom: '4.5rem', right: 0 }}
+        >
+          <style>{`
+            @keyframes rocketFly {
+              0% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; filter: blur(0px); }
+              20% { transform: translateX(14px) translateY(-6px) rotate(6deg) scale(1.04); opacity: 0.98; filter: blur(0.4px); }
+              45% { transform: translateX(42px) translateY(-18px) rotate(14deg) scale(1.08); opacity: 0.82; filter: blur(1px); }
+              70% { transform: translateX(26px) translateY(-8px) rotate(8deg) scale(1.03); opacity: 0.95; filter: blur(0.6px); }
+              100% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; filter: blur(0px); }
+            }
+
+            .send-button { position: relative; overflow: visible; }
+            .send-button [data-role="send-arrow"] { transition: transform 120ms ease-out, opacity 120ms; will-change: transform, opacity; }
+            .send-button:hover [data-role="send-arrow"] { animation: rocketFly 820ms cubic-bezier(.22,.9,.32,1); }
+            .send-button:active [data-role="send-arrow"] { transform: translateX(2px) scale(0.98); }
+
+            /* Rocket trail */
+            .send-button::after {
+              content: '';
+              position: absolute;
+              right: 10px;
+              top: 50%;
+              transform: translateY(-50%);
+              width: 8px;
+              height: 8px;
+              background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.2));
+              border-radius: 50%;
+              opacity: 0;
+              filter: blur(6px);
+              pointer-events: none;
+            }
+            .send-button:hover::after { animation: trail 820ms cubic-bezier(.22,.9,.32,1); }
+            @keyframes trail {
+              0% { opacity: 0; transform: translateX(0) translateY(-50%) scale(0.6); }
+              30% { opacity: 0.8; transform: translateX(18px) translateY(-58%) scale(0.9); }
+              55% { opacity: 0.6; transform: translateX(36px) translateY(-68%) scale(1); }
+              85% { opacity: 0.2; transform: translateX(22px) translateY(-54%) scale(0.8); }
+              100% { opacity: 0; transform: translateX(0) translateY(-50%) scale(0.6); }
+            }
+          `}</style>
+          <div className="h-full flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white pb-32">
+              {messages.length === 0 && !isLoadingMessages && (
+                <div className="flex justify-start animate-fade-in">
+                  <div className="max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg bg-gray-100 text-textPrimary rounded-bl-none">
+                    <p className="text-base leading-relaxed" dir="rtl">{t.chat.welcomeMessage}</p>
                   </div>
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+              )}
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
+                >
+                  <div
+                    className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg ${
+                      message.type === 'user'
+                        ? 'bg-primary text-white rounded-br-none'
+                        : message.type === 'error'
+                        ? 'bg-red-100 text-red-800 rounded-bl-none'
+                        : 'bg-gray-100 text-textPrimary rounded-bl-none'
+                    }`}
+                  >
+                    <p className="text-base whitespace-pre-wrap leading-relaxed" dir="rtl">{message.content}</p>
+                    {message.sources && message.sources.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-300/50">
+                        <p className="text-xs font-semibold mb-2" dir="rtl">المصادر:</p>
+                        <ul className="text-xs space-y-1" dir="rtl">
+                          {message.sources.map((source, idx) => (
+                            <li key={idx} className="truncate flex items-center gap-1">
+                              <span>📄</span>
+                              <span>{source}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <p className={`text-xs mt-2 ${message.type === 'user' ? 'text-white/70' : 'text-textSecondary'}`}>
+                      {message.timestamp ? new Date(message.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : ''}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {isAiTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 text-textPrimary px-4 py-3 rounded-lg rounded-bl-none">
+                    <div className="flex gap-2">
+                      <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-textSecondary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder={t.chat.typeYourMessage}
-              dir="rtl"
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={!isConnected || isAiTyping}
-              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2"
-            >
-              {isAiTyping ? (
-                <>
-                  <span>{t.chat.aiIsTyping}</span>
-                  <div className="flex gap-1">
-                    <div className="w-1 h-1 bg-white rounded-full animate-bounce"></div>
-                    <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <span>{t.chat.send}</span>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                </>
-              )}
-            </button>
+        {/* Fixed input bar */}
+        <div className={`fixed bottom-0 left-0 w-full ${sidebarOpen ? 'lg:left-80 lg:w-[calc(100%-20rem)]' : 'lg:left-0 lg:w-full'} bg-white border-t border-gray-200 shadow-md p-4 z-50`}>
+          <div className="w-full px-4">
+            <div className="flex gap-2">
+              <textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  // Send on Enter, allow newline with Shift+Enter
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder={t.chat.typeYourMessage}
+                dir="rtl"
+                rows={2}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm resize-none"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!isConnected || isAiTyping}
+                aria-label={t.chat.send}
+                className="bg-gradient-to-r from-primary to-purple-600 text-white px-3 py-2 rounded-md shadow-md transform transition duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-xl focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2 send-button"
+              >
+                {isAiTyping ? (
+                  <>
+                    <span>{t.chat.aiIsTyping}</span>
+                    <div className="flex gap-1">
+                      <div className="w-1 h-1 bg-white rounded-full animate-bounce"></div>
+                      <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm">{t.chat.send}</span>
+                    <svg className="w-4 h-4 transform transition-transform duration-200" data-role="send-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
         </div>
@@ -510,7 +582,7 @@ const TextSession = ({ onBack }) => {
 };
 
 // Sound Session Component
-const SoundSession = ({ onBack }) => {
+const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
   const { t } = useLanguage();
   const messagesEndRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -582,12 +654,39 @@ const SoundSession = ({ onBack }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [sessionMessages]);
 
+  // Prevent page-level scrollbar while in sound session
+  useEffect(() => {
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.documentElement.style.overflow = prevHtmlOverflow || '';
+      document.body.style.overflow = prevBodyOverflow || '';
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+    <div className={`min-h-screen bg-background flex flex-col overflow-hidden ${sidebarOpen ? 'lg:pl-80' : 'lg:pl-0'}`}>
+      <div className={`fixed top-16 left-0 w-full ${sidebarOpen ? 'lg:left-80 lg:w-[calc(100%-20rem)]' : 'lg:left-0 lg:w-full'} z-40 bg-white shadow-sm border-b border-gray-200`}>
+        <div className="px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-textPrimary">{t.chat.soundSession}</h1>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle sidebar"
+              className="text-textSecondary hover:text-textPrimary transition-colors p-2 hover:bg-gray-100 rounded-lg"
+            >
+              {sidebarOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
             <button
               onClick={() => setShowEndSessionModal(true)}
               className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
@@ -609,9 +708,9 @@ const SoundSession = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
+      <div className="flex-1 container mx-auto px-4 pt-8 pb-32 max-w-2xl mt-20 flex flex-col">
         {/* Conversation Display */}
-        <div className="bg-white rounded-lg shadow-md h-72 overflow-y-auto p-6 space-y-4 mb-6">
+        <div className="bg-white rounded-lg shadow-md overflow-y-auto p-6 space-y-4 mb-6 flex-1">
           {sessionMessages.map((message) => (
             <div
               key={message.id}
@@ -624,55 +723,61 @@ const SoundSession = ({ onBack }) => {
                     : 'bg-gray-100 text-textPrimary rounded-bl-none'
                 }`}
               >
-                <p className="text-sm" dir="rtl">{message.content}</p>
+                <p className="text-base" dir="rtl">{message.content}</p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Recording Controls */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="text-center mb-6">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
-              isRecording ? 'bg-red-100' : 'bg-gray-100'
-            }`}>
-              <svg className={`w-10 h-10 ${isRecording ? 'text-red-600' : 'text-textSecondary'}`} fill="currentColor" viewBox="0 0 20 20">
-                <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4z" />
-                <path d="M5.5 9.643a.75.75 0 00-1.5 0V12a5 5 0 0010 0v-2.357a.75.75 0 00-1.5 0V12a3.5 3.5 0 01-7 0V9.643z" />
-              </svg>
+        {/* Fixed recording controls */}
+        <div className={`fixed bottom-0 left-0 w-full ${sidebarOpen ? 'lg:left-80 lg:w-[calc(100%-20rem)]' : 'lg:left-0 lg:w-full'} bg-white border-t border-gray-200 shadow-md p-4 z-50`}>
+          <div className="max-w-2xl mx-auto px-4">
+            <div className="text-center mb-2">
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-2 ${
+                isRecording ? 'bg-red-100' : 'bg-gray-100'
+              }`}>
+                <svg className={`w-10 h-10 ${isRecording ? 'text-red-600' : 'text-textSecondary'}`} fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4z" />
+                  <path d="M5.5 9.643a.75.75 0 00-1.5 0V12a5 5 0 0010 0v-2.357a.75.75 0 00-1.5 0V12a3.5 3.5 0 01-7 0V9.643z" />
+                </svg>
+              </div>
+              <p className={`text-sm font-medium ${isRecording ? 'text-red-600' : 'text-textSecondary'}`}>
+                {isRecording ? t.chat.recording : transcript ? t.chat.readyToSend : t.chat.clickToSpeak}
+              </p>
             </div>
-            <p className={`text-sm font-medium ${isRecording ? 'text-red-600' : 'text-textSecondary'}`}>
-              {isRecording ? t.chat.recording : transcript ? t.chat.readyToSend : t.chat.clickToSpeak}
-            </p>
-          </div>
 
-          {transcript && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <p className="text-sm text-blue-900 font-medium mb-2">{t.chat.yourMessage}:</p>
-              <p className="text-sm text-blue-800" dir="rtl">{transcript}</p>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={handleStartRecording}
-              disabled={isRecording}
-              className="flex-1 bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary/90 transition-colors disabled:opacity-50 font-medium"
-            >
-              {isRecording ? t.chat.recording : t.chat.startRecording}
-            </button>
             {transcript && (
-              <button
-                onClick={handleSubmitTranscript}
-                className="flex-1 bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
-              >
-                {t.chat.send}
-              </button>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+                <p className="text-sm text-blue-900 font-medium mb-2">{t.chat.yourMessage}:</p>
+                <p className="text-sm text-blue-800" dir="rtl">{transcript}</p>
+              </div>
             )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleStartRecording}
+                disabled={isRecording}
+                className="flex-1 bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary/90 transition-colors disabled:opacity-50 font-medium"
+              >
+                {isRecording ? t.chat.recording : t.chat.startRecording}
+              </button>
+              {transcript && (
+                <button
+                  onClick={handleSubmitTranscript}
+                  aria-label={t.chat.send}
+                  className="flex-1 bg-gradient-to-r from-primary to-purple-600 text-white px-6 py-3 rounded-lg shadow-md transform transition duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-xl focus:outline-none disabled:opacity-50 font-medium flex items-center justify-center gap-2 send-button"
+                >
+                    <span className="text-sm">{t.chat.send}</span>
+                    <svg className="w-4 h-4 transform transition-transform duration-200" data-role="send-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4 mb-24">
           <p className="text-xs text-amber-800">
             <strong>{t.chat.note}:</strong> {t.chat.voiceRecognitionNote}
           </p>

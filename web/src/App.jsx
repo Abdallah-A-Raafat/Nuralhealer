@@ -60,7 +60,8 @@ function App() {
           <NotificationToast />
           <div className="min-h-screen bg-background dark:bg-[#1A1625] transition-colors duration-300">
             <Navbar />
-            <Routes>
+            <div style={{ paddingTop: '64px' }}>
+              <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<AboutContact />} />
               <Route path="/login" element={<Login />} />
@@ -155,7 +156,8 @@ function App() {
                   </DoctorProtectedRoute>
                 }
               />
-            </Routes>
+              </Routes>
+            </div>
           </div>
         </Router>
       </LanguageProvider>

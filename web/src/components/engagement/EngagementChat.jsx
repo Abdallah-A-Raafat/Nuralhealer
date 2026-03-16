@@ -29,6 +29,7 @@ const EngagementChat = () => {
   const { user, role } = useAuth();
   const messagesEndRef = useRef(null);
   const stompRef = useRef(null);
+  const typingStopTimeoutRef = useRef(null);
   
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -37,11 +38,11 @@ const EngagementChat = () => {
   const [isSending, setIsSending] = useState(false);
   const [isStartingCall, setIsStartingCall] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
+  const [isPeerTyping, setIsPeerTyping] = useState(false);
+  const currentUserId = user?.userId || user?.id || null;
 
   const wsUrl = useMemo(() => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
-    const baseHost = apiBase.replace(/\/api$/, '');
-    return baseHost.replace(/^http/, 'ws') + '/ws';
+    return import.meta.env.VITE_WS_URL || 'ws://localhost:8080/api/ws';
   }, []);
 
   const extractSessionIdFromText = (text) => {
@@ -76,15 +77,40 @@ const EngagementChat = () => {
         client.subscribe(`/topic/engagement/${engagementId}`, (frame) => {
           try {
             const payload = JSON.parse(frame.body);
+            const eventType = payload?.type;
+
+            if (eventType === 'TYPING_INDICATOR') {
+              const senderId = payload?.senderId ? String(payload.senderId) : null;
+              const isMine = currentUserId && senderId && String(currentUserId) === senderId;
+
+              if (!isMine) {
+                const isTyping = payload?.metadata === true || payload?.content === 'typing...';
+                setIsPeerTyping(isTyping);
+              }
+              return;
+            }
+
             const msg = payload?.metadata || payload;
             const mapped = mapIncomingMessage(msg);
             if (mapped) {
-              setMessages((prev) => [...prev, mapped]);
+              setIsPeerTyping(false);
+              setMessages((prev) => {
+                if (mapped.id && prev.some((item) => String(item.id) === String(mapped.id))) {
+                  return prev;
+                }
+                return [...prev, mapped];
+              });
             }
           } catch (err) {
             console.error('Failed to parse incoming message', err);
           }
         });
+      },
+      onWebSocketError: (error) => {
+        console.error('Engagement chat WebSocket error:', error);
+      },
+      onStompError: (frame) => {
+        console.error('Engagement chat STOMP error:', frame?.headers?.message || frame);
       },
       debug: () => {}
     });
@@ -93,15 +119,37 @@ const EngagementChat = () => {
     stompRef.current = client;
 
     return () => {
+      if (typingStopTimeoutRef.current) {
+        clearTimeout(typingStopTimeoutRef.current);
+        typingStopTimeoutRef.current = null;
+      }
+
+      if (client.connected) {
+        client.publish({
+          destination: `/app/engagement/${engagementId}/typing`,
+          body: JSON.stringify({ isTyping: false })
+        });
+      }
+
       client.deactivate();
       stompRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasAccess, engagementId, wsUrl]);
+  }, [hasAccess, engagementId, wsUrl, currentUserId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (!hasAccess || !engagementId) return;
+
+    const interval = setInterval(() => {
+      fetchMessages(false);
+    }, 2500);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAccess, engagementId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -167,28 +215,60 @@ const EngagementChat = () => {
     
     try {
       setIsSending(true);
-      
+
       if (stompRef.current?.connected) {
         stompRef.current.publish({
-          destination: `/app/engagement/${engagementId}/message`,
-          body: JSON.stringify({ content: newMessage.trim() })
+          destination: `/app/engagement/${engagementId}/typing`,
+          body: JSON.stringify({ isTyping: false })
         });
-        setNewMessage('');
-      } else {
-        const sentMessage = await engagementChatService.sendMessage(
-          engagementId,
-          newMessage.trim()
-        );
-        const mapped = mapIncomingMessage(sentMessage);
-        setMessages(prev => [...prev, mapped]);
-        setNewMessage('');
       }
+
+      await engagementChatService.sendMessage(
+        engagementId,
+        newMessage.trim()
+      );
+
+      setNewMessage('');
+      await fetchMessages(false);
       
     } catch (error) {
       console.error('Error sending message:', error);
       showToast.error('Failed to send message');
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleInputChange = (value) => {
+    setNewMessage(value);
+
+    if (!stompRef.current?.connected || !hasAccess) {
+      return;
+    }
+
+    if (value.trim()) {
+      stompRef.current.publish({
+        destination: `/app/engagement/${engagementId}/typing`,
+        body: JSON.stringify({ isTyping: true })
+      });
+
+      if (typingStopTimeoutRef.current) {
+        clearTimeout(typingStopTimeoutRef.current);
+      }
+
+      typingStopTimeoutRef.current = setTimeout(() => {
+        if (stompRef.current?.connected) {
+          stompRef.current.publish({
+            destination: `/app/engagement/${engagementId}/typing`,
+            body: JSON.stringify({ isTyping: false })
+          });
+        }
+      }, 1200);
+    } else {
+      stompRef.current.publish({
+        destination: `/app/engagement/${engagementId}/typing`,
+        body: JSON.stringify({ isTyping: false })
+      });
     }
   };
 
@@ -448,6 +528,20 @@ const EngagementChat = () => {
             })
           )}
           <div ref={messagesEndRef} />
+          {isPeerTyping && (
+            <div className="flex justify-start">
+              <div className="max-w-[70%] rounded-2xl px-4 py-2 shadow-sm bg-white dark:bg-[#241D30] text-textSecondary dark:text-gray-300 border border-gray-200 dark:border-[#3F3651] rounded-bl-sm">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="italic">Typing</span>
+                  <div className="flex items-center gap-1" aria-label="typing-indicator">
+                    <span className="inline-block text-lg leading-none text-gray-500 dark:text-gray-400 animate-pulse" style={{ animationDelay: '0ms' }}>•</span>
+                    <span className="inline-block text-lg leading-none text-gray-500 dark:text-gray-400 animate-pulse" style={{ animationDelay: '180ms' }}>•</span>
+                    <span className="inline-block text-lg leading-none text-gray-500 dark:text-gray-400 animate-pulse" style={{ animationDelay: '360ms' }}>•</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -458,7 +552,7 @@ const EngagementChat = () => {
             <input
               type="text"
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => handleInputChange(e.target.value)}
               placeholder="Type your message..."
               className="flex-1 px-4 py-3 border border-gray-300 dark:border-[#3F3651] rounded-lg bg-white dark:bg-[#1A1625] text-textPrimary dark:text-white placeholder-textSecondary dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
               disabled={isSending}

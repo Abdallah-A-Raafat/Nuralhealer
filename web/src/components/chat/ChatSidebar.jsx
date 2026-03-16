@@ -14,6 +14,7 @@ const ChatSidebar = ({
   onSelectSession,
   onNewChat,
   onRenameSession,
+  onCloseSidebar,
   authorizedDoctors = [],
   authorizedLoading = false,
   authorizedError = '',
@@ -131,13 +132,22 @@ const ChatSidebar = ({
               {t.chat?.chatHistory || 'Chat History'}
             </h2>
           </div>
-          <button
-            onClick={onNewChat}
-            className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-            title={t.chat?.newChat || 'New Chat'}
-          >
-            <Plus className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onNewChat}
+              className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              title={t.chat?.newChat || 'New Chat'}
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onCloseSidebar && onCloseSidebar(); }}
+              className="p-2 text-textSecondary hover:bg-gray-100 rounded-lg transition-colors"
+              title={t.chat?.closeSidebar || 'Close'}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Search */}

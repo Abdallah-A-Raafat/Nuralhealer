@@ -16,6 +16,7 @@ const Doctors = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [locating, setLocating] = useState(false);
+  const [sendingEngagementRequest, setSendingEngagementRequest] = useState(false);
   const [nearestDoctor, setNearestDoctor] = useState(null);
   const [locationError, setLocationError] = useState('');
 
@@ -57,9 +58,11 @@ const Doctors = () => {
   };
 
   const handleConfirmEngagement = async () => {
-    if (!selectedDoctor) return;
+    if (!selectedDoctor || sendingEngagementRequest) return;
     
     try {
+      setSendingEngagementRequest(true);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
       const doctorUserId = selectedDoctor.userId || selectedDoctor.id;
       await engagementService.initiatePatientEngagement(doctorUserId, 'FULL_ACCESS');
       
@@ -77,6 +80,8 @@ const Doctors = () => {
         t.patient?.doctors?.engagementSentError || error.response?.data?.message || 'Failed to send engagement request. Please try again.',
         { duration: 5000 }
       );
+    } finally {
+      setSendingEngagementRequest(false);
     }
   };
 
@@ -111,6 +116,26 @@ const Doctors = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {sendingEngagementRequest && (
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-primary/20 w-full max-w-md p-6 text-center">
+            <div className="relative w-16 h-16 mx-auto mb-4">
+              <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin" />
+              <div className="absolute -inset-2 rounded-full border border-primary/30 animate-ping" />
+            </div>
+            <h3 className="text-lg font-bold text-textPrimary">Sending engagement request</h3>
+            <p className="text-sm text-textSecondary mt-2">
+              Please wait while we notify the doctor and create your request.
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-1 text-primary">
+              <span className="w-2 h-2 rounded-full bg-current animate-bounce" />
+              <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '120ms' }} />
+              <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '240ms' }} />
+            </div>
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="max-w-3xl mx-auto text-center mb-12">
@@ -444,9 +469,13 @@ const Doctors = () => {
         {/* Engagement Request Modal */}
         <Modal
           isOpen={isEngagementModalOpen}
-          onClose={() => setIsEngagementModalOpen(false)}
+          onClose={() => {
+            if (sendingEngagementRequest) return;
+            setIsEngagementModalOpen(false);
+          }}
           title={t.patient.doctors.sendEngagementRequest || 'Send Engagement Request'}
           size="medium"
+          showCloseButton={!sendingEngagementRequest}
         >
           {selectedDoctor && (
             <div className="space-y-4">
@@ -499,13 +528,25 @@ const Doctors = () => {
                   variant="primary"
                   className="flex-1"
                   onClick={handleConfirmEngagement}
+                  disabled={sendingEngagementRequest}
                 >
-                  {t.patient.doctors.sendRequest || 'Send Request'}
+                  {sendingEngagementRequest ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4" />
+                        <path d="M22 12a10 10 0 00-10-10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                      </svg>
+                      Sending Request...
+                    </span>
+                  ) : (
+                    t.patient.doctors.sendRequest || 'Send Request'
+                  )}
                 </Button>
                 <Button
                   variant="outline"
                   className="flex-1"
                   onClick={() => setIsEngagementModalOpen(false)}
+                  disabled={sendingEngagementRequest}
                 >
                   {t.common.cancel}
                 </Button>

@@ -16,6 +16,7 @@ const DoctorPatients = () => {
   const [searchResult, setSearchResult] = useState(null);
   const [searchError, setSearchError] = useState('');
   const [searching, setSearching] = useState(false);
+  const [sendingEngagementRequest, setSendingEngagementRequest] = useState(false);
   const [selectedAccessLevel, setSelectedAccessLevel] = useState('FULL_ACCESS');
   
   // Token display states
@@ -81,9 +82,11 @@ const DoctorPatients = () => {
   };
 
   const handleSendEngagementRequest = async () => {
-    if (!searchResult) return;
+    if (!searchResult || sendingEngagementRequest) return;
 
     try {
+      setSendingEngagementRequest(true);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
       const response = await engagementService.initiateEngagement(
         searchResult.id,
         selectedAccessLevel
@@ -101,10 +104,12 @@ const DoctorPatients = () => {
       setSearchEmail('');
       setSearchResult(null);
       setSelectedAccessLevel('FULL_ACCESS');
-      fetchEngagements();
+      await fetchEngagements();
     } catch (error) {
       console.error('Failed to send engagement request:', error);
       setSearchError(error.response?.data?.message || t.engagement?.requestError || 'Failed to send request');
+    } finally {
+      setSendingEngagementRequest(false);
     }
   };
 
@@ -260,6 +265,26 @@ const DoctorPatients = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {sendingEngagementRequest && (
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-primary/20 w-full max-w-md p-6 text-center">
+            <div className="relative w-16 h-16 mx-auto mb-4">
+              <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin" />
+              <div className="absolute -inset-2 rounded-full border border-primary/30 animate-ping" />
+            </div>
+            <h3 className="text-lg font-bold text-textPrimary">Sending engagement request</h3>
+            <p className="text-sm text-textSecondary mt-2">
+              Please wait while we generate the verification code and notify the patient.
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-1 text-primary">
+              <span className="w-2 h-2 rounded-full bg-current animate-bounce" />
+              <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '120ms' }} />
+              <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '240ms' }} />
+            </div>
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -479,6 +504,7 @@ const DoctorPatients = () => {
         <Modal
           isOpen={isSearchModalOpen}
           onClose={() => {
+            if (sendingEngagementRequest) return;
             setIsSearchModalOpen(false);
             setSearchEmail('');
             setSearchResult(null);
@@ -486,6 +512,7 @@ const DoctorPatients = () => {
           }}
           title={t.engagement?.searchPatient || 'Search Patient'}
           size="medium"
+          showCloseButton={!sendingEngagementRequest}
         >
           <form onSubmit={handleSearchPatient} className="space-y-4">
             <div>
@@ -504,7 +531,7 @@ const DoctorPatients = () => {
                 <Button
                   type="submit"
                   variant="primary"
-                  disabled={searching}
+                  disabled={searching || sendingEngagementRequest}
                 >
                   {searching ? t.common?.loading : t.engagement?.search || 'Search'}
                 </Button>
@@ -536,6 +563,7 @@ const DoctorPatients = () => {
                   <select
                     value={selectedAccessLevel}
                     onChange={(e) => setSelectedAccessLevel(e.target.value)}
+                    disabled={sendingEngagementRequest}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="FULL_ACCESS">{t.engagement?.fullAccess || 'Full Access'}</option>
@@ -548,13 +576,45 @@ const DoctorPatients = () => {
                     {selectedAccessLevel === 'NO_ACCESS' && (t.engagement?.noAccessDesc || 'No access to medical records')}
                   </p>
                 </div>
+
+                {sendingEngagementRequest && (
+                  <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                    <div className="flex items-center gap-3">
+                      <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+                      <div>
+                        <p className="text-sm font-semibold text-primary flex items-center gap-1">
+                          Sending engagement request
+                          <span className="inline-flex items-center">
+                            <span className="inline-block animate-bounce">.</span>
+                            <span className="inline-block animate-bounce" style={{ animationDelay: '120ms' }}>.</span>
+                            <span className="inline-block animate-bounce" style={{ animationDelay: '240ms' }}>.</span>
+                          </span>
+                        </p>
+                        <p className="text-xs text-textSecondary mt-1">
+                          Please wait while we contact the server and create the verification token.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-primary/15">
+                      <div className="h-full w-2/5 rounded-full bg-primary animate-pulse" />
+                    </div>
+                  </div>
+                )}
                 
                 <Button
                   variant="primary"
                   className="w-full"
                   onClick={handleSendEngagementRequest}
+                  disabled={sendingEngagementRequest}
                 >
-                  {t.engagement?.sendRequest || 'Send Engagement Request'}
+                  {sendingEngagementRequest ? (
+                    <span className="flex items-center gap-2">
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Sending Request...
+                    </span>
+                  ) : (
+                    t.engagement?.sendRequest || 'Send Engagement Request'
+                  )}
                 </Button>
               </div>
             )}

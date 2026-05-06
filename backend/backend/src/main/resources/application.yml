@@ -121,7 +121,7 @@ ai:
     api-key: ${AI_API_KEY:}
     ngrok-skip-browser-warning: ${NGROK_SKIP_BROWSER_WARNING:false}
     health-endpoint: /health
-    ask-endpoint: /query
+    ask-endpoint: /chat
     timeout-seconds: ${AI_SERVICE_TIMEOUT_SECONDS:90}
 
 # File Storage Configuration

@@ -681,18 +681,41 @@
       ]
     },
     {
-      "name": "6. AI Health Suite",
+      "name": "6. AI Chatbot Suite",
       "item": [
         {
-          "name": "AI Core (Patient)",
+          "name": "AI Core (REST API)",
           "item": [
             {
-              "name": "Ask AI (REST Fallback)",
+              "name": "Health Check",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/ai/health",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ai",
+                    "health"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Ask AI (New Session)",
               "request": {
                 "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\"question\": \"I feel sad\", \"country\": \"egypt\"}",
+                  "raw": "{\n  \"question\": \"What is anxiety?\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -712,17 +735,61 @@
               }
             },
             {
-              "name": "Get AI Health Status",
+              "name": "Ask AI (Existing Session)",
               "request": {
-                "method": "GET",
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"question\": \"How do I manage it?\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": {
-                  "raw": "{{base_url}}/ai/health",
+                  "raw": "{{base_url}}/ai/ask/{{session_id}}",
                   "host": [
                     "{{base_url}}"
                   ],
                   "path": [
                     "ai",
-                    "health"
+                    "ask",
+                    "{{session_id}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Ask AI (Voice Input)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "/path/to/audio.mp3"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/ai/voice/{{session_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ai",
+                    "voice",
+                    "{{session_id}}"
                   ]
                 }
               }
@@ -733,9 +800,10 @@
           "name": "Patient AI History",
           "item": [
             {
-              "name": "Get My AI Sessions",
+              "name": "Get All Sessions",
               "request": {
                 "method": "GET",
+                "header": [],
                 "url": {
                   "raw": "{{base_url}}/chats",
                   "host": [
@@ -748,9 +816,27 @@
               }
             },
             {
+              "name": "Get Sessions with Doctors",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/chats/with-doctors",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "chats",
+                    "with-doctors"
+                  ]
+                }
+              }
+            },
+            {
               "name": "Get Session Messages",
               "request": {
                 "method": "GET",
+                "header": [],
                 "url": {
                   "raw": "{{base_url}}/chats/{{session_id}}/messages",
                   "host": [
@@ -765,9 +851,10 @@
               }
             },
             {
-              "name": "Search AI Conversations",
+              "name": "Search Sessions",
               "request": {
                 "method": "GET",
+                "header": [],
                 "url": {
                   "raw": "{{base_url}}/chats/search?q=anxiety",
                   "host": [
@@ -785,6 +872,55 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "Rename Session",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Anxiety Management Tips\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/chats/{{session_id}}/title",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "chats",
+                    "{{session_id}}",
+                    "title"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Authorized Doctors",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/chats/authorized-doctors",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "chats",
+                    "authorized-doctors"
+                  ]
+                }
+              }
             }
           ]
         },
@@ -792,9 +928,10 @@
           "name": "Doctor Access (Patient AI History)",
           "item": [
             {
-              "name": "Get Patient Sessions",
+              "name": "View Patient Sessions",
               "request": {
                 "method": "GET",
+                "header": [],
                 "url": {
                   "raw": "{{base_url}}/doctors/patients/{{patient_id}}/chats",
                   "host": [
@@ -810,9 +947,10 @@
               }
             },
             {
-              "name": "Get Patient Session Messages",
+              "name": "View Session Messages",
               "request": {
                 "method": "GET",
+                "header": [],
                 "url": {
                   "raw": "{{base_url}}/doctors/patients/{{patient_id}}/chats/{{session_id}}/messages",
                   "host": [

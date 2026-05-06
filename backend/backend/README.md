@@ -341,6 +341,7 @@ curl -X POST http://localhost:8080/api/test/email/verification \
 # Test AI integration
 curl -X POST http://localhost:8080/api/ai/ask \
   -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
   -d '{"question":"What are symptoms of anxiety?"}'
 ```
 
@@ -380,7 +381,27 @@ curl -X POST http://localhost:8080/api/ai/ask \
 | `POST` | `/engagements/{id}/messages` | Send engagement message | Both |
 | `GET` | `/engagements/{id}/messages` | Get engagement messages | Both |
 
-### AI Chat System
+### AI Chatbot API
+| Method | Endpoint | Description | Auth | Request Body |
+|--------|----------|-------------|------|--------------|
+| `GET` | `/ai/health` | Check AI service health | No | N/A |
+| `POST` | `/ai/ask` | Start new AI chat session | Patient | `{"question":"..."}` |
+| `POST` | `/ai/ask/{sessionId}` | Continue AI chat in existing session | Patient | `{"question":"..."}` |
+| `POST` | `/ai/voice/{sessionId}` | Send voice input to AI | Patient | multipart/form-data with `file` |
+
+**AI Response Format:**
+```json
+{
+  "response": "AI answer text",
+  "intent": "detected_intent",
+  "confidence": 0.95,
+  "user_text": "user input or voice transcription",
+  "updated_history": [["user","q"],["assistant","a"]],
+  "audio_base64": "optional synthesized audio"
+}
+```
+
+### AI Chat History System
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/chats` | List chat sessions | Patient |
@@ -480,20 +501,24 @@ const client = new StompJs.Client({
 | **Send** | `/app/engagement/{id}/typing` | Typing indicators |
 
 ### Message Formats
-**AI Question:**
+**AI Question (WebSocket):**
 ```json
 {
-  "question": "What are common stress symptoms?"
+  "user_input": "What are common stress symptoms?",
+  "conversation_history": [["user","previous q"],["assistant","previous a"]]
 }
 ```
 
-**AI Response:**
+**AI Response (WebSocket):**
 ```json
 {
   "type": "AI_RESPONSE",
-  "senderName": "AI Assistant",
-  "content": "Common symptoms include...",
-  "sentAt": "2026-02-07T10:30:00Z"
+  "response": "Common symptoms include...",
+  "intent": "symptom_inquiry",
+  "confidence": 0.92,
+  "user_text": "What are common stress symptoms?",
+  "updated_history": [["user","q"],["assistant","a"]],
+  "audio_base64": "optional audio"
 }
 ```
 

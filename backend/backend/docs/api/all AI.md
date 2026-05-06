@@ -383,8 +383,19 @@ client.activate();
 ```json
 {
   "sessionId": "uuid",
-  "answer": "Generated AI answer...",
-  "sources": ["source 1", "source 2"]
+  "answer": "Generated AI answer..."
+}
+```
+
+**AiChatResponse (Internal)**
+```json
+{
+  "answer": "Generated AI answer",
+  "updatedHistory": [["user", "..."], ["assistant", "..."]],
+  "intent": "medical_advice",
+  "confidence": 0.95,
+  "userText": "[Voice transcription if from voice endpoint]",
+  "audioBase64": "[Optional synthesized audio]"
 }
 ```
 
@@ -413,16 +424,23 @@ SELECT EXISTS (
 ## 📱 Simple UX Guide
 
 ### **For Patients:**
-1. **Chat** - Just chat normally, everything saves automatically
+1. **Chat** - Type questions or use voice input
 2. **View history** - Click "AI History" in menu
 3. **Search** - Type in search box
 4. **Rename** - Click pencil icon, type new name
+5. **Continue chats** - Re-open old chats to continue with full context
 
 ### **For Doctors:**
 1. **Open patient** - Go to patient profile
 2. **See button?** - If you're currently treating them
 3. **Click** - View their AI conversations
 4. **Read** - Understand their concerns better
+
+## 🎤 Voice Input
+- **Format:** MP3 audio file
+- **Endpoint:** `POST /api/ai/voice/{sessionId}`
+- **Transcription:** Automatically saved to chat history
+- **Response:** AI answers based on voice transcription
 
 ---
 

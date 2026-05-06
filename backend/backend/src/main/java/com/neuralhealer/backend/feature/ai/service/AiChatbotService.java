@@ -1,6 +1,5 @@
 package com.neuralhealer.backend.feature.ai.service;
 
-import com.neuralhealer.backend.feature.ai.dto.AiChatRequest;
 import com.neuralhealer.backend.feature.ai.dto.AiChatResponse;
 import com.neuralhealer.backend.feature.ai.dto.AiHealthResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +34,7 @@ public class AiChatbotService {
             RestTemplate aiRestTemplate,
             @Value("${ai.chatbot.base-url}") String baseUrl,
             @Value("${ai.chatbot.health-endpoint:/health}") String healthEndpoint,
-            @Value("${ai.chatbot.ask-endpoint:/ask}") String askEndpoint,
+            @Value("${ai.chatbot.ask-endpoint:/chat}") String askEndpoint,
             @Value("${ai.chatbot.api-key:}") String apiKey,
             @Value("${ai.chatbot.ngrok-skip-browser-warning:false}") String ngrokSkipHeader) {
         this.aiRestTemplate = aiRestTemplate;
@@ -94,7 +93,7 @@ public class AiChatbotService {
      * @return AI response with answer and sources
      * @throws RestClientException if AI is unavailable or request fails
      */
-    public AiChatResponse askQuestion(String question) {
+    public AiChatResponse askQuestion(String question, java.util.List<java.util.List<String>> conversationHistory) {
         try {
             String url = baseUrl + askEndpoint;
             log.debug("Sending question to AI: {} (length: {} chars)",
@@ -111,8 +110,9 @@ public class AiChatbotService {
                 headers.set("ngrok-skip-browser-warning", "true");
             }
 
-            AiChatRequest requestBody = new AiChatRequest(question, "egypt");
-            HttpEntity<AiChatRequest> entity = new HttpEntity<>(requestBody, headers);
+            com.neuralhealer.backend.feature.ai.dto.AiChatEngineRequest requestBody = 
+                new com.neuralhealer.backend.feature.ai.dto.AiChatEngineRequest(question, conversationHistory);
+            HttpEntity<com.neuralhealer.backend.feature.ai.dto.AiChatEngineRequest> entity = new HttpEntity<>(requestBody, headers);
 
             // Send POST request
             ResponseEntity<AiChatResponse> response = aiRestTemplate.exchange(
@@ -132,6 +132,49 @@ public class AiChatbotService {
 
         } catch (RestClientException e) {
             log.error("Error calling AI API: {}", e.getMessage(), e);
+            throw new RestClientException("AI request failed: " + e.getMessage(), e);
+        }
+    }
+
+    public AiChatResponse askVoice(org.springframework.web.multipart.MultipartFile file, java.util.List<java.util.List<String>> conversationHistory) {
+        try {
+            String url = baseUrl + "/voice";
+            log.debug("Sending voice to AI: file size={} bytes", file.getSize());
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            if (apiKey != null && !apiKey.isEmpty()) {
+                headers.set("x-api-key", apiKey);
+            }
+            if ("true".equalsIgnoreCase(ngrokSkipHeader)) {
+                headers.set("ngrok-skip-browser-warning", "true");
+            }
+
+            org.springframework.util.LinkedMultiValueMap<String, Object> body = new org.springframework.util.LinkedMultiValueMap<>();
+            body.add("file", file.getResource());
+            try {
+                String historyJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(conversationHistory);
+                body.add("conversation_history", historyJson);
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                log.error("Failed to serialize history", e);
+            }
+
+            HttpEntity<org.springframework.util.LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<AiChatResponse> response = aiRestTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    AiChatResponse.class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return response.getBody();
+            } else {
+                throw new RestClientException("AI returned non-successful status: " + response.getStatusCode());
+            }
+
+        } catch (RestClientException e) {
+            log.error("Error calling AI voice API: {}", e.getMessage(), e);
             throw new RestClientException("AI request failed: " + e.getMessage(), e);
         }
     }

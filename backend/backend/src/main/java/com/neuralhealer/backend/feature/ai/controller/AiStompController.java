@@ -63,6 +63,8 @@ public class AiStompController {
 
         // 1. Resolve/Create Persistent Chat Session & Save User Message
         UUID chatSessionId = null;
+        java.util.List<java.util.List<String>> history = new java.util.ArrayList<>();
+        
         if (userId != null
                 && authentication.getPrincipal() instanceof com.neuralhealer.backend.shared.entity.User user) {
             UUID patientId = user.getPatientProfile() != null ? user.getPatientProfile().getId() : null;
@@ -89,7 +91,18 @@ public class AiStompController {
                     chatSessionId = chatStorageService.getOrCreateSession(patientId);
                 }
 
-                chatStorageService.saveMessage(chatSessionId, "patient", request.question());
+                // Get History BEFORE saving current message
+                java.util.List<com.neuralhealer.backend.feature.ai.entity.AiChatMessage> previousMessages = chatStorageService.getSessionMessages(chatSessionId);
+                if (previousMessages != null) {
+                    for (com.neuralhealer.backend.feature.ai.entity.AiChatMessage msg : previousMessages) {
+                        java.util.List<String> turn = new java.util.ArrayList<>();
+                        turn.add("patient".equalsIgnoreCase(msg.getSenderType().name()) ? "user" : "assistant");
+                        turn.add(msg.getContent());
+                        history.add(turn);
+                    }
+                }
+
+                chatStorageService.saveMessage(chatSessionId, "PATIENT", request.question());
             } else {
                 log.warn("User {} has no patient profile - skipping message persistence", userId);
             }
@@ -101,7 +114,7 @@ public class AiStompController {
 
         try {
             // 2. Call AI Service
-            AiChatResponse response = aiChatbotService.askQuestion(request.question());
+            AiChatResponse response = aiChatbotService.askQuestion(request.question(), history);
 
             // Clean response (Remove Arabic prefixes)
             String cleanAnswer = response.answer();
@@ -117,7 +130,7 @@ public class AiStompController {
 
             // 5. Save AI Response
             if (chatSessionId != null) {
-                chatStorageService.saveMessage(chatSessionId, "ai", cleanAnswer);
+                chatStorageService.saveMessage(chatSessionId, "AI", cleanAnswer);
             }
 
             // 6. Trigger persistent notification if user is logged in

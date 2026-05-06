@@ -1,13 +1,15 @@
 # AI Chat & Subscription (STOMP API)
 
 ---
-**Last Updated:** 2026-01-21
-**Version:** 0.5.0
+**Last Updated:** 2026-05-06
+**Version:** 0.6.0
 **Status:** Production-Ready
 **Changes:** 
-- Consolidated AI API details and Subscription logic into a single document
-- Migrated from Raw WebSocket (`/ai-ws`) to STOMP (`/ws`)
-- Implemented STOMP heartbeats (10s) for session robustness
+- Updated external AI service endpoints to `/chat` and `/voice` (FastAPI contract)
+- Expanded `AiChatResponse` DTO to capture intent, confidence, updated history, and audio
+- Added voice input support with transcription persistence
+- Conversation history now passed to AI service for context-aware responses
+- Environment configuration moved to `.env` file (away from hardcoded YAML)
 ---
 
 This document defines the core logic, architecture, and API protocols for the NeuralHealer AI Chatbot system, leveraging the standard **STOMP Broker** for structured communication.
@@ -121,7 +123,7 @@ In environments where WebSockets are blocked or unstable, the standard REST API 
 }
 ```
 
-### 4.2 Ask Question
+### 4.2 Ask Question (New Session)
 **POST** `/api/ai/ask`
 **Payload:**
 ```json
@@ -132,8 +134,38 @@ In environments where WebSockets are blocked or unstable, the standard REST API 
 **Response:**
 ```json
 {
-  "answer": "Anxiety is your body's natural response to stress...",
-  "sources": ["Mayo Clinic", "NIMH"]
+  "sessionId": "uuid-here",
+  "answer": "Anxiety is your body's natural response to stress..."
+}
+```
+
+### 4.3 Ask Question (Existing Session)
+**POST** `/api/ai/ask/{sessionId}`
+**Payload:**
+```json
+{
+  "question": "How do I manage it?"
+}
+```
+**Response:**
+```json
+{
+  "sessionId": "uuid-here",
+  "answer": "Here are practical techniques..."
+}
+```
+
+### 4.4 Ask Via Voice
+**POST** `/api/ai/voice/{sessionId}`
+**Content-Type:** `multipart/form-data`
+**Form Fields:**
+- `file` (required): MP3/audio file
+
+**Response:**
+```json
+{
+  "sessionId": "uuid-here",
+  "answer": "Based on your speech: ..."
 }
 ```
 

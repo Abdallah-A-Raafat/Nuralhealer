@@ -1,11 +1,14 @@
 # API Reference - NeuralHealer
 
 ---
-**Last Updated:** 2026-01-21
-**Version:** 0.5.0
+**Last Updated:** 2026-05-06
+**Version:** 0.6.0
 **Changes:** 
-- Unified Real-Time Plane: Separated STOMP (/ws) and Raw (/notifications)
-- AI Integration: Updated to use STOMP destinations
+- AI Endpoints: Added `/voice/{sessionId}` for voice input support
+- Response Format: All AI responses now include intent, confidence, and updated history
+- Configuration: AI service URL and settings moved to `.env` environment variables
+- Conversation History: Passed to AI service for context-aware responses
+- Persistence: Full message persistence with async fire-and-forget saving
 ---
 
 Base URL: `http://localhost:8080/api`
@@ -95,11 +98,36 @@ NeuralHealer provides personality assessments based on IPIP standards.
 
 ## 🤖 6. AI Chatbot
 
-AI integration is now unified under the STOMP broker for production readiness.
+AI integration supports both STOMP (real-time) and REST (fallback) protocols.
 
-- **STOMP Destination**: `/app/ai/ask`
-- **STOMP Queue**: `/user/queue/ai`
-- **Documentation**: See [AI_SUBSCRIPTION.md](api/AI_SUBSCRIPTION.md) for payload and subscription details.
+### STOMP (Real-Time)
+- **Connection**: `ws://localhost:8080/ws`
+- **Destination**: `/app/ai/ask`
+- **Queue**: `/user/queue/ai`
+
+### REST API
+| Method | Endpoint | Description | Auth | Response |
+| :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/ai/health` | Check AI service health | No | Health status |
+| `POST` | `/ai/ask` | Ask AI (new session) | Yes | Session + Answer |
+| `POST` | `/ai/ask/{sessionId}` | Ask AI (existing session) | Yes | Session + Answer |
+| `POST` | `/ai/voice/{sessionId}` | Voice input (MP3) | Yes | Transcription + Answer |
+
+**Response Format:**
+```json
+{
+  "sessionId": "uuid",
+  "answer": "AI response text",
+  "updatedHistory": [["user", "..."], ["assistant", "..."]],
+  "intent": "medical_advice",
+  "confidence": 0.95,
+  "userText": "transcribed voice text (voice only)",
+  "audioBase64": "optional synthesized audio"
+}
+```
+
+> [!TIP]
+> **Detailed AI Documentation**: See [ai-chatbot.md](api/ai-chatbot.md) and [all AI.md](api/all%20AI.md) for full payload examples and subscription details.
 
 ---
 

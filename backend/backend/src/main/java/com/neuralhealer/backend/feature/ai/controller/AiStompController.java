@@ -61,7 +61,7 @@ public class AiStompController {
             return;
         }
 
-        // 1. Resolve/Create Persistent Chat Session & Save User Message
+        // 1. Resolve/Create Persistent Chat Session
         UUID chatSessionId = null;
         java.util.List<java.util.List<String>> history = new java.util.ArrayList<>();
         
@@ -91,16 +91,8 @@ public class AiStompController {
                     chatSessionId = chatStorageService.getOrCreateSession(patientId);
                 }
 
-                // Get History BEFORE saving current message
-                java.util.List<com.neuralhealer.backend.feature.ai.entity.AiChatMessage> previousMessages = chatStorageService.getSessionMessages(chatSessionId);
-                if (previousMessages != null) {
-                    for (com.neuralhealer.backend.feature.ai.entity.AiChatMessage msg : previousMessages) {
-                        java.util.List<String> turn = new java.util.ArrayList<>();
-                        turn.add("patient".equalsIgnoreCase(msg.getSenderType().name()) ? "user" : "assistant");
-                        turn.add(msg.getContent());
-                        history.add(turn);
-                    }
-                }
+                // Get stored conversation history (from last response)
+                history = chatStorageService.getSessionHistory(chatSessionId);
 
                 chatStorageService.saveMessage(chatSessionId, "PATIENT", request.question());
             } else {
@@ -115,6 +107,11 @@ public class AiStompController {
         try {
             // 2. Call AI Service
             AiChatResponse response = aiChatbotService.askQuestion(request.question(), history);
+
+            // Store updated history for next turn
+            if (chatSessionId != null) {
+                chatStorageService.updateSessionHistory(chatSessionId, response.updatedHistory());
+            }
 
             // Clean response (Remove Arabic prefixes)
             String cleanAnswer = response.answer();

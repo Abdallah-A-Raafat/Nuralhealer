@@ -13,7 +13,6 @@ import com.neuralhealer.backend.feature.doctor.dto.AuthorizedDoctorResponse;
 import com.neuralhealer.backend.feature.patient.dto.SessionWithDoctorsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +53,48 @@ public class ChatStorageService {
         return sessionRepository.save(newSession).getId();
     }
 
-    @Async
+    /**
+     * Get stored conversation history for a session.
+     * Returns the last updatedHistory from AI response.
+     */
+    public List<List<String>> getSessionHistory(UUID sessionId) {
+        return sessionRepository.findById(sessionId).map(session -> {
+            if (session.getConversationHistoryJson() == null || session.getConversationHistoryJson().isBlank()) {
+                return new java.util.ArrayList<List<String>>();
+            }
+            try {
+                @SuppressWarnings("unchecked")
+                java.util.List<List<String>> result = (java.util.List<List<String>>) new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                        session.getConversationHistoryJson(),
+                        new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.List<String>>>() {});
+                return result;
+            } catch (Exception e) {
+                log.error("Failed to deserialize conversation history for session {}", sessionId, e);
+                return new java.util.ArrayList<List<String>>();
+            }
+        }).orElse(new java.util.ArrayList<List<String>>());
+    }
+
+    /**
+     * Store conversation history from AI response.
+     * Call this after each AI response to save updatedHistory.
+     */
+    @Transactional
+    public void updateSessionHistory(UUID sessionId, List<List<String>> history) {
+        if (history == null) return;
+        
+        sessionRepository.findById(sessionId).ifPresent(session -> {
+            try {
+                String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(history);
+                session.setConversationHistoryJson(json);
+                sessionRepository.save(session);
+                log.debug("Updated session {} history with {} turns", sessionId, history.size());
+            } catch (Exception e) {
+                log.error("Failed to update history for session {}", sessionId, e);
+            }
+        });
+    }
+
     public void saveMessage(UUID sessionId, String sender, String content) {
         long start = System.currentTimeMillis();
         try {

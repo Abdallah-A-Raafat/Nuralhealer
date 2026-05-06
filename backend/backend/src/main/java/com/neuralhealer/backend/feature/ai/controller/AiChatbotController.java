@@ -110,17 +110,8 @@ public class AiChatbotController {
         try {
             log.debug("REST AI request received for session: {}", sessionId);
 
-            // 1. Get History BEFORE saving current message
-            java.util.List<java.util.List<String>> history = new java.util.ArrayList<>();
-            java.util.List<com.neuralhealer.backend.feature.ai.entity.AiChatMessage> previousMessages = chatStorageService.getSessionMessages(sessionId);
-            if (previousMessages != null) {
-                for (com.neuralhealer.backend.feature.ai.entity.AiChatMessage msg : previousMessages) {
-                    java.util.List<String> turn = new java.util.ArrayList<>();
-                    turn.add("patient".equalsIgnoreCase(msg.getSenderType().name()) ? "user" : "assistant");
-                    turn.add(msg.getContent());
-                    history.add(turn);
-                }
-            }
+            // 1. Get stored conversation history (from last response)
+            java.util.List<java.util.List<String>> history = chatStorageService.getSessionHistory(sessionId);
 
             // 2. Save User message
             chatStorageService.saveMessage(sessionId, "PATIENT", request.question());
@@ -128,10 +119,13 @@ public class AiChatbotController {
             // 3. Get AI Response
             AiChatResponse aiResponse = aiChatbotService.askQuestion(request.question(), history);
 
-            // 3. Save AI Response (Async)
+            // 4. Store updated history from response for next turn
+            chatStorageService.updateSessionHistory(sessionId, aiResponse.updatedHistory());
+
+            // 5. Save AI Response
             chatStorageService.saveMessage(sessionId, "AI", aiResponse.answer());
 
-            // 4. Wrap in session-aware response
+            // 6. Wrap in session-aware response
             AiSessionChatResponse response = new AiSessionChatResponse(
                     sessionId,
                     aiResponse.answer());
@@ -160,26 +154,20 @@ public class AiChatbotController {
         try {
             log.debug("REST AI Voice request received for session: {}", sessionId);
 
-            // 1. Get History BEFORE saving current message (since we don't have text yet for user, history ends at last msg)
-            java.util.List<java.util.List<String>> history = new java.util.ArrayList<>();
-            java.util.List<com.neuralhealer.backend.feature.ai.entity.AiChatMessage> previousMessages = chatStorageService.getSessionMessages(sessionId);
-            if (previousMessages != null) {
-                for (com.neuralhealer.backend.feature.ai.entity.AiChatMessage msg : previousMessages) {
-                    java.util.List<String> turn = new java.util.ArrayList<>();
-                    turn.add("patient".equalsIgnoreCase(msg.getSenderType().name()) ? "user" : "assistant");
-                    turn.add(msg.getContent());
-                    history.add(turn);
-                }
-            }
+            // 1. Get stored conversation history (from last response)
+            java.util.List<java.util.List<String>> history = chatStorageService.getSessionHistory(sessionId);
 
             // 2. Get AI Response via Voice
             AiChatResponse aiResponse = aiChatbotService.askVoice(file, history);
+
+            // 3. Store updated history from response for next turn
+            chatStorageService.updateSessionHistory(sessionId, aiResponse.updatedHistory());
 
             if (aiResponse.userText() != null && !aiResponse.userText().isBlank()) {
                 chatStorageService.saveMessage(sessionId, "PATIENT", aiResponse.userText());
             }
 
-            // 3. Save AI Response
+            // 4. Save AI Response
             chatStorageService.saveMessage(sessionId, "AI", aiResponse.answer());
 
             AiSessionChatResponse response = new AiSessionChatResponse(

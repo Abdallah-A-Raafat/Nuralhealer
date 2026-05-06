@@ -49,4 +49,7 @@ public class AiChatSession {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Column(name = "conversation_history", columnDefinition = "TEXT")
+    private String conversationHistoryJson;
 }

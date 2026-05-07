@@ -69,7 +69,7 @@ const PatientsScreen: React.FC = () => {
       setSearchError('');
       
       const response = await userService.searchUserByEmail(searchEmail);
-      
+
       if (response && response.role === 'PATIENT') {
         setSearchResult(response);
       } else {

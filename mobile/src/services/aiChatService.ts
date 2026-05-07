@@ -141,14 +141,15 @@ class AiChatService {
 
     if (this.stompClient && this.stompClient.connected) {
       try {
-        const destination = activeSessionId
-          ? `/app/ai/ask?sessionId=${activeSessionId}`
-          : '/app/ai/ask';
+        const destination = '/app/ai/ask';
 
         const payload = { question, country: 'egypt' };
 
         this.stompClient.publish({
           destination,
+          headers: {
+            ...(activeSessionId ? { sessionId: activeSessionId } : {}),
+          },
           body: JSON.stringify(payload),
         });
 
@@ -161,8 +162,8 @@ class AiChatService {
     // REST fallback
     try {
       const url = activeSessionId
-        ? `${this.API_BASE}/ai/ask/${activeSessionId}`
-        : `${this.API_BASE}/ai/ask`;
+        ? `/ai/ask/${activeSessionId}`
+        : '/ai/ask';
 
       const response = await apiClient.post(url, { question, country: 'egypt' });
       const data = response.data;
@@ -275,19 +276,34 @@ class AiChatService {
    * Chat history helpers
    */
   async fetchChatHistory() {
-    const response = await apiClient.get(`${this.API_BASE}/chats`);
+    const response = await apiClient.get('/chats');
     return response.data;
   }
 
   async loadSessionMessages(sessionId: string) {
-    const response = await apiClient.get(`${this.API_BASE}/chats/${sessionId}/messages`);
+    const response = await apiClient.get(`/chats/${sessionId}/messages`);
     return response.data;
   }
 
   async renameSession(sessionId: string, newTitle: string) {
-    await apiClient.put(`${this.API_BASE}/chats/${sessionId}/title`, newTitle, {
+    await apiClient.put(`/chats/${sessionId}/title`, newTitle, {
       headers: { 'Content-Type': 'text/plain' },
     });
+  }
+
+  async startNewSession(): Promise<string | null> {
+    try {
+      const response = await apiClient.post('/chats');
+      const newSessionId = response.data;
+      if (newSessionId) {
+        this.currentSessionId = newSessionId;
+      }
+      return newSessionId || null;
+    } catch (error) {
+      console.error('❌ Failed to create new session:', error);
+      this.clearSession();
+      return null;
+    }
   }
 }
 

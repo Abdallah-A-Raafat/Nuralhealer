@@ -29,6 +29,7 @@ interface BackendAuthResponse {
     lastName: string;
     role: string;
     token?: string;
+    accessToken?: string;
   };
   message: string;
 }
@@ -43,6 +44,18 @@ interface ApiError {
   status: number;
 }
 
+const SESSION_COOKIE_TOKEN = 'session-cookie';
+
+const extractToken = (response: any, userData: any): string => {
+  const bodyToken = userData?.token || userData?.accessToken;
+  const authorizationHeader = response?.headers?.authorization || response?.headers?.Authorization;
+  const headerToken = typeof authorizationHeader === 'string' && authorizationHeader.startsWith('Bearer ')
+    ? authorizationHeader.slice(7)
+    : undefined;
+
+  return bodyToken || headerToken || SESSION_COOKIE_TOKEN;
+};
+
 export const authService = {
   /**
    * Login user
@@ -56,6 +69,7 @@ export const authService = {
       
       // Backend returns: { data: { userId, email, firstName, lastName, role }, message }
       const userData = response.data.data;
+      const token = extractToken(response, userData);
       
       return {
         user: {
@@ -65,7 +79,7 @@ export const authService = {
           lastName: userData.lastName,
           role: userData.role.toUpperCase() as 'DOCTOR' | 'PATIENT',
         },
-        token: userData.token || 'session-cookie', // Backend uses cookies, but we need a token for mobile
+        token,
       };
     } catch (error: any) {
       console.error('❌ [AUTH] Login failed:', error.response?.data);
@@ -87,6 +101,7 @@ export const authService = {
       console.log('📦 [AUTH] Response:', response.data);
       
       const userData = response.data.data;
+      const token = extractToken(response, userData);
       
       return {
         user: {
@@ -96,7 +111,7 @@ export const authService = {
           lastName: userData.lastName,
           role: userData.role.toUpperCase() as 'DOCTOR' | 'PATIENT',
         },
-        token: userData.token || 'session-cookie',
+        token,
       };
     } catch (error: any) {
       console.error('❌ [AUTH] Registration failed:', error.response?.data);
@@ -124,8 +139,15 @@ export const authService = {
    */
   getCurrentUser: async (): Promise<User> => {
     try {
-      const response = await apiClient.get<User>('/auth/me');
-      return response.data;
+      const response = await apiClient.get<{ data: any; message: string }>('/users/me');
+      const userData = response.data?.data || response.data;
+      return {
+        userId: userData.id || userData.userId,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role?.toUpperCase() as 'DOCTOR' | 'PATIENT',
+      };
     } catch (error: any) {
       throw {
         message: error.response?.data?.message || 'Failed to get user',

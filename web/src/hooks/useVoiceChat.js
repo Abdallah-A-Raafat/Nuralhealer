@@ -77,19 +77,19 @@ export const useVoiceChat = () => {
       // Add bot response to chat
       addMessage({
         type: 'bot',
-        content: response.message,
+        content: response.answer || response.message,
         messageType: 'text',
-        emotion: response.emotion
+        emotion: response.emotion || response.intent
       });
 
       // Update emotion if provided
-      if (response.emotion) {
-        setEmotion(response.emotion);
+      if (response.emotion || response.intent) {
+        setEmotion(response.emotion || response.intent);
       }
 
       // Speak the response if TTS is available
-      if (response.message && synthesis) {
-        const utterance = new SpeechSynthesisUtterance(response.message);
+      if ((response.answer || response.message) && synthesis) {
+        const utterance = new SpeechSynthesisUtterance(response.answer || response.message);
         utterance.rate = 0.9;
         utterance.pitch = 1;
         utterance.volume = 1;

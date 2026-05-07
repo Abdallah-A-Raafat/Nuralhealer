@@ -22,22 +22,30 @@ const userService = {
   // Get current authenticated user data
   getCurrentUser: async (): Promise<UserProfile> => {
     const response = await apiClient.get('/users/me');
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   // Get current user profile
   getProfile: async (): Promise<UserProfile> => {
-    const response = await apiClient.get('/users/profile');
-    return response.data;
+    const response = await apiClient.get('/users/me');
+    return response.data?.data || response.data;
   },
 
   // Get user statistics
   getUserStats: async () => {
     try {
-      const response = await apiClient.get('/users/stats');
-      return response.data;
+      const response = await apiClient.get('/chats');
+      const sessions = response.data || [];
+      const textSessions = sessions.filter((session: any) => (session.sessionType || '').toLowerCase() !== 'voice').length;
+      const voiceSessions = sessions.filter((session: any) => (session.sessionType || '').toLowerCase() === 'voice').length;
+
+      return {
+        totalSessions: sessions.length,
+        totalMinutes: 0,
+        voiceSessions,
+        textSessions,
+      };
     } catch (error) {
-      // Return default stats if endpoint not available
       return {
         totalSessions: 0,
         totalMinutes: 0,
@@ -50,7 +58,7 @@ const userService = {
   // Get user session history
   getSessionHistory: async () => {
     try {
-      const response = await apiClient.get('/ai-chat/sessions');
+      const response = await apiClient.get('/chats');
       return response.data || [];
     } catch (error) {
       return [];
@@ -59,47 +67,40 @@ const userService = {
 
   // Update user profile
   updateProfile: async (data: Partial<UserProfile>) => {
-    const response = await apiClient.put('/users/profile', data);
-    return response.data;
+    void data;
+    throw new Error('Profile update endpoint is not available in backend yet.');
   },
 
   // Search user by email (for doctor to find patients)
   searchUserByEmail: async (email: string) => {
-    const response = await apiClient.get('/users/search', {
+    const response = await apiClient.get('/users/by-email', {
       params: { email }
     });
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   // Get user by ID
   getUserById: async (userId: string): Promise<UserProfile> => {
-    const response = await apiClient.get(`/users/${userId}`);
-    return response.data;
+    void userId;
+    throw new Error('User-by-id endpoint is not available in backend yet.');
   },
 
   // Update password
   updatePassword: async (currentPassword: string, newPassword: string) => {
-    const response = await apiClient.put('/users/password', {
-      currentPassword,
-      newPassword,
-    });
-    return response.data;
+    void currentPassword;
+    void newPassword;
+    throw new Error('Password update endpoint is not available in backend yet.');
   },
 
   // Upload profile image
   uploadProfileImage: async (formData: FormData) => {
-    const response = await apiClient.post('/users/profile-image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    void formData;
+    throw new Error('Profile image upload endpoint is not available in backend yet.');
   },
 
   // Delete account
   deleteAccount: async () => {
-    const response = await apiClient.delete('/users/account');
-    return response.data;
+    throw new Error('Delete account endpoint is not available in backend yet.');
   },
 };
 

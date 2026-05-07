@@ -135,11 +135,6 @@ export const useAiChat = (): UseAiChatReturn => {
         return false;
       }
 
-      if (!isConnected) {
-        setError('Not connected to AI service');
-        return false;
-      }
-
       addMessage({
         type: 'user',
         content: text,
@@ -156,7 +151,7 @@ export const useAiChat = (): UseAiChatReturn => {
       setError(null);
       return true;
     },
-    [isConnected, addMessage, currentSession]
+    [addMessage, currentSession]
   );
 
   const clearMessages = useCallback(() => {
@@ -207,10 +202,13 @@ export const useAiChat = (): UseAiChatReturn => {
     []
   );
 
-  const createNewSession = useCallback(() => {
+  const createNewSession = useCallback(async () => {
     setMessages([]);
-    setCurrentSession(null);
-    aiChatService.clearSession();
+    const newSessionId = await aiChatService.startNewSession();
+    setCurrentSession(newSessionId);
+    if (!newSessionId) {
+      aiChatService.clearSession();
+    }
     setError(null);
   }, []);
 

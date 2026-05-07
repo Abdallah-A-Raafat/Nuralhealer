@@ -9,7 +9,7 @@ import { useThemeStore } from '../../store/themeStore';
 const EditProfileScreen: React.FC = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
-  const { user, setUser } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const { theme } = useThemeStore();
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
@@ -29,14 +29,7 @@ const EditProfileScreen: React.FC = () => {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (user) {
-        setUser({
-          ...user,
-          firstName,
-          lastName,
-          email,
-        });
-      }
+      updateUser({ firstName, lastName, email });
       
       Alert.alert(t('success.profileUpdated'), '', [
         { text: 'OK', onPress: () => navigation.goBack() },

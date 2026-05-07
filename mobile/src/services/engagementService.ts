@@ -34,6 +34,20 @@ const engagementService = {
     return response.data;
   },
 
+  // Patient initiates engagement request to doctor
+  initiatePatientEngagement: async (
+    doctorId: string,
+    accessRuleName = 'FULL_ACCESS',
+    message: string | null = null
+  ) => {
+    const response = await apiClient.post('/engagements/initiate', {
+      doctorId,
+      accessRuleName,
+      message,
+    });
+    return response.data;
+  },
+
   // Patient verifies engagement start
   verifyEngagement: async (token: string) => {
     const response = await apiClient.post('/engagements/verify-start', { token });

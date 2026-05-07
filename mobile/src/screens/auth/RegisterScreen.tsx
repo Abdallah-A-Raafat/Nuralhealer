@@ -68,7 +68,7 @@ const RegisterScreen: React.FC = () => {
       
       // Handle response
       const userData = response.user || response;
-      const token = response.token || 'session-token';
+      const token = response.token;
       
       login(
         {

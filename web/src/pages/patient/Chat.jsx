@@ -584,59 +584,311 @@ const TextSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
 // Sound Session Component
 const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
   const { t } = useLanguage();
-  const messagesEndRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [isProcessingTranscript, setIsProcessingTranscript] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [sessionDurationSeconds, setSessionDurationSeconds] = useState(0);
   const [showEndSessionModal, setShowEndSessionModal] = useState(false);
   const [isEndingSession, setIsEndingSession] = useState(false);
-  const [sessionMessages, setSessionMessages] = useState([
-    {
-      id: 1,
-      type: 'bot',
-      content: t.chat.welcomeMessage,
-      timestamp: new Date(),
-    },
-  ]);
+  const [sessionRecords, setSessionRecords] = useState([]);
+  const [voiceSessionId, setVoiceSessionId] = useState(null);
+  const [recordedAudio, setRecordedAudio] = useState(null);
+  const [audioPlayingId, setAudioPlayingId] = useState(null);
+  const [failedRecordId, setFailedRecordId] = useState(null);
+  const [processingState, setProcessingState] = useState('idle');
+  const mediaRecorderRef = useRef(null);
+  const audioPlaybackRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const audioStreamRef = useRef(null);
+  const recordingTimeoutRef = useRef(null);
+  const recognitionRef = useRef(null);
 
-  const handleStartRecording = () => {
-    setIsRecording(true);
-    // Simulate recording
-    setTimeout(() => {
-      setTranscript("أشعر ببعض الضغط في العمل مؤخراً.");
-      setIsRecording(false);
-    }, 2000);
-  };
+  useEffect(() => {
+    let cancelled = false;
 
-  const handleSubmitTranscript = () => {
-    if (!transcript.trim()) return;
-
-    const userMessage = {
-      id: sessionMessages.length + 1,
-      type: 'user',
-      content: transcript,
-      timestamp: new Date(),
+    const createVoiceSession = async () => {
+      try {
+        const response = await chatService.startSession();
+        const sessionId = response?.sessionId || response?.id || response;
+        if (!cancelled) {
+          setVoiceSessionId(sessionId);
+        }
+      } catch (error) {
+        console.error('Failed to create voice session:', error);
+        if (!cancelled) {
+          showToast.error(t.chat?.sessionStartError || 'Failed to start voice session');
+        }
+      }
     };
 
-    setSessionMessages([...sessionMessages, userMessage]);
-    setTranscript('');
+    createVoiceSession();
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botMessage = {
-        id: sessionMessages.length + 2,
-        type: 'bot',
-        content: "ضغط العمل يمكن أن يكون صعباً حقاً. أخبرني المزيد عن ما يجعلك تشعر بالإرهاق.",
+    return () => {
+      cancelled = true;
+
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
+        recordingTimeoutRef.current = null;
+      }
+
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // Ignore stop errors during cleanup
+        }
+        recognitionRef.current = null;
+      }
+
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch {
+          // Ignore stop errors during cleanup
+        }
+      }
+
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach((track) => track.stop());
+        audioStreamRef.current = null;
+      }
+    };
+  }, [t.chat?.sessionStartError]);
+
+  const formatDuration = (totalSeconds) => {
+    const minutes = Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, '0');
+    const seconds = Math.floor(totalSeconds % 60)
+      .toString()
+      .padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  };
+
+  const stopRecording = () => {
+    if (recordingTimeoutRef.current) {
+      clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = null;
+    }
+
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // Ignore stop errors when recognition already stopped
+      }
+      recognitionRef.current = null;
+    }
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    } else {
+      setIsRecording(false);
+    }
+  };
+
+  const validateAudioFormat = (mimeType) => {
+    const supportedFormats = ['audio/webm', 'audio/wav', 'audio/mp3', 'audio/ogg', 'audio/mpeg'];
+    return supportedFormats.some(fmt => mimeType.includes(fmt.split('/')[1]) || mimeType === fmt);
+  };
+
+  const playAudio = (audioBase64, recordId) => {
+    if (!audioBase64) {
+      showToast.error(t.chat?.noAudioToPlay || 'No audio to play');
+      return;
+    }
+
+    try {
+      if (audioPlaybackRef.current) {
+        audioPlaybackRef.current.pause();
+        audioPlaybackRef.current = null;
+      }
+
+      const binaryString = atob(audioBase64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      const audioBlob = new Blob([bytes], { type: 'audio/mp3' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      audio.onended = () => {
+        setAudioPlayingId(null);
+        audioPlaybackRef.current = null;
+      };
+
+      audio.onerror = (e) => {
+        console.error('Audio playback error:', e);
+        showToast.error(t.chat?.audioPlaybackError || 'Failed to play audio');
+        setAudioPlayingId(null);
+        audioPlaybackRef.current = null;
+      };
+
+      setAudioPlayingId(recordId);
+      audioPlaybackRef.current = audio;
+      audio.play();
+    } catch (error) {
+      console.error('Error decoding audio:', error);
+      showToast.error(t.chat?.audioDecodeError || 'Failed to decode audio');
+      setAudioPlayingId(null);
+    }
+  };
+
+  const handleStartRecording = async () => {
+    if (isRecording || isProcessingTranscript) return;
+    if (!voiceSessionId) {
+      showToast.error(t.chat?.sessionStartError || 'Voice session is not ready yet');
+      return;
+    }
+
+    try {
+      setRecordingSeconds(0);
+      setTranscript('');
+      setRecordedAudio(null);
+      setProcessingState('recording');
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioStreamRef.current = stream;
+
+      const chunks = [];
+      audioChunksRef.current = chunks;
+
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const mimeType = recorder.mimeType || 'audio/webm';
+        
+        if (!validateAudioFormat(mimeType)) {
+          console.warn(`Unsupported audio format: ${mimeType}. Attempting upload anyway.`);
+          showToast.warning(`Audio format (${mimeType.split('/')[1]}) may not be supported. Upload may fail.`);
+        }
+        
+        const audioBlob = new Blob(chunks, { type: mimeType });
+        setRecordedAudio(audioBlob);
+        setIsRecording(false);
+        setProcessingState('idle');
+
+        if (audioStreamRef.current) {
+          audioStreamRef.current.getTracks().forEach((track) => track.stop());
+          audioStreamRef.current = null;
+        }
+
+        mediaRecorderRef.current = null;
+      };
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'ar-EG';
+        recognition.interimResults = false;
+        recognition.continuous = false;
+        recognition.onresult = (event) => {
+          const detectedTranscript = event.results?.[0]?.[0]?.transcript || '';
+          if (detectedTranscript) {
+            setTranscript(detectedTranscript);
+          }
+        };
+        recognition.onerror = (event) => {
+          console.warn('Speech recognition error:', event.error);
+        };
+        recognitionRef.current = recognition;
+        recognition.start();
+      }
+
+      recorder.start();
+      setIsRecording(true);
+      setProcessingState('recording');
+
+     
+    } catch (error) {
+      console.error('Failed to start voice recording:', error);
+      showToast.error(t.chat?.microphoneError || 'Unable to access microphone');
+      setIsRecording(false);
+    }
+  };
+
+  const handleSubmitTranscript = async (recordIdToRetry = null) => {
+    if (isProcessingTranscript) return;
+    if (!voiceSessionId) {
+      showToast.error(t.chat?.sessionStartError || 'Voice session is not ready yet');
+      return;
+    }
+
+    if (!recordIdToRetry && !transcript.trim() && !recordedAudio) return;
+
+    try {
+      setIsProcessingTranscript(true);
+      setProcessingState('processing');
+
+      if (isRecording) {
+        stopRecording();
+      }
+
+      const conversationHistory = sessionRecords
+        .slice()
+        .reverse()
+        .flatMap((record) => [
+          ['human', record.userTranscript],
+          ['ai', record.aiSummary],
+        ]);
+
+      console.debug('Sending conversation history to backend:', JSON.stringify(conversationHistory, null, 2));
+
+      const response = recordedAudio
+        ? await chatService.sendVoiceMessage(voiceSessionId, recordedAudio, conversationHistory)
+        : await chatService.sendMessage(voiceSessionId, transcript.trim(), 'text');
+
+      setProcessingState('responding');
+
+      const aiSummary = response?.answer || response?.message || 'No response received';
+      const userTranscript = transcript.trim() || t.chat?.voiceMessageRecorded || 'Voice message recorded';
+      const audioBase64 = response?.audioBase64 || null;
+
+      const newRecord = {
+        id: Date.now(),
+        userTranscript,
+        aiSummary,
+        audioBase64,
         timestamp: new Date(),
       };
-      setSessionMessages((prev) => [...prev, botMessage]);
-    }, 1000);
+
+      setSessionRecords((prev) => [newRecord, ...prev]);
+      setTranscript('');
+      setRecordedAudio(null);
+      setFailedRecordId(null);
+      
+      if (audioBase64) {
+        setTimeout(() => {
+          playAudio(audioBase64, newRecord.id);
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Failed to send voice session:', error);
+      const recordId = recordIdToRetry || Date.now();
+      setFailedRecordId(recordId);
+      showToast.error(t.chat?.sendingRequest || 'Failed to process voice session. Click retry to try again.');
+    } finally {
+      setIsProcessingTranscript(false);
+      setProcessingState('idle');
+    }
   };
 
   const handleEndSession = async () => {
     try {
       setIsEndingSession(true);
-      // TODO: When backend is ready, uncomment this:
-      // await chatService.endSession(sessionId);
+      if (voiceSessionId) {
+        await chatService.endSession(voiceSessionId);
+      }
       showToast.success(t.chat?.sessionEnded || 'Session ended successfully');
       setShowEndSessionModal(false);
       setTimeout(() => {
@@ -651,8 +903,22 @@ const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
   };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [sessionMessages]);
+    const intervalId = setInterval(() => {
+      setSessionDurationSeconds((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    if (!isRecording) return;
+
+    const intervalId = setInterval(() => {
+      setRecordingSeconds((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [isRecording]);
 
   // Prevent page-level scrollbar while in sound session
   useEffect(() => {
@@ -670,7 +936,12 @@ const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
     <div className={`min-h-screen bg-background flex flex-col overflow-hidden ${sidebarOpen ? 'lg:pl-80' : 'lg:pl-0'}`}>
       <div className={`fixed top-16 left-0 w-full ${sidebarOpen ? 'lg:left-80 lg:w-[calc(100%-20rem)]' : 'lg:left-0 lg:w-full'} z-40 bg-white shadow-sm border-b border-gray-200`}>
         <div className="px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-textPrimary">{t.chat.soundSession}</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-textPrimary">{t.chat.soundSession}</h1>
+            <p className="text-xs text-textSecondary mt-1">
+              {t.chat?.sessionTimeLabel || 'Session time'}: {formatDuration(sessionDurationSeconds)}
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -708,79 +979,162 @@ const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
         </div>
       </div>
 
-      <div className="flex-1 container mx-auto px-4 pt-8 pb-32 max-w-2xl mt-20 flex flex-col">
-        {/* Conversation Display */}
-        <div className="bg-white rounded-lg shadow-md overflow-y-auto p-6 space-y-4 mb-6 flex-1">
-          {sessionMessages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-lg ${
-                  message.type === 'user'
-                    ? 'bg-secondary text-white rounded-br-none'
-                    : 'bg-gray-100 text-textPrimary rounded-bl-none'
-                }`}
-              >
-                <p className="text-base" dir="rtl">{message.content}</p>
+      <div className="flex-1 container mx-auto px-4 pt-8 pb-10 max-w-4xl mt-20 overflow-y-auto">
+        <div className="grid gap-6">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${isRecording ? 'bg-red-100 ring-8 ring-red-50' : 'bg-gray-100'}`}>
+                  <svg className={`w-8 h-8 ${isRecording ? 'text-red-600 animate-pulse' : 'text-textSecondary'}`} fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4z" />
+                    <path d="M5.5 9.643a.75.75 0 00-1.5 0V12a5 5 0 0010 0v-2.357a.75.75 0 00-1.5 0V12a3.5 3.5 0 01-7 0V9.643z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-textPrimary">{t.chat?.liveVoiceSession || 'Live voice session'}</h2>
+                  <p className={`text-sm ${isRecording ? 'text-red-600 font-medium' : 'text-textSecondary'}`}>
+                    {isRecording ? `${t.chat.recording} • ${formatDuration(recordingSeconds)}` : transcript ? t.chat.readyToSend : t.chat.clickToSpeak}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
 
-        {/* Fixed recording controls */}
-        <div className={`fixed bottom-0 left-0 w-full ${sidebarOpen ? 'lg:left-80 lg:w-[calc(100%-20rem)]' : 'lg:left-0 lg:w-full'} bg-white border-t border-gray-200 shadow-md p-4 z-50`}>
-          <div className="max-w-2xl mx-auto px-4">
-            <div className="text-center mb-2">
-              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-2 ${
-                isRecording ? 'bg-red-100' : 'bg-gray-100'
-              }`}>
-                <svg className={`w-10 h-10 ${isRecording ? 'text-red-600' : 'text-textSecondary'}`} fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4z" />
-                  <path d="M5.5 9.643a.75.75 0 00-1.5 0V12a5 5 0 0010 0v-2.357a.75.75 0 00-1.5 0V12a3.5 3.5 0 01-7 0V9.643z" />
-                </svg>
+              <div className="flex items-center gap-2">
+                {Array.from({ length: 16 }).map((_, index) => (
+                  <span
+                    key={index}
+                    className={`w-1.5 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-gray-300'}`}
+                    style={{
+                      height: `${isRecording ? 10 + ((index * 7) % 24) : 10}px`,
+                      animationDelay: `${index * 0.06}s`,
+                    }}
+                  />
+                ))}
               </div>
-              <p className={`text-sm font-medium ${isRecording ? 'text-red-600' : 'text-textSecondary'}`}>
-                {isRecording ? t.chat.recording : transcript ? t.chat.readyToSend : t.chat.clickToSpeak}
-              </p>
             </div>
 
             {transcript && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
-                <p className="text-sm text-blue-900 font-medium mb-2">{t.chat.yourMessage}:</p>
-                <p className="text-sm text-blue-800" dir="rtl">{transcript}</p>
+              <div className="mt-5 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-semibold text-blue-900">{t.chat.yourMessage}</p>
+                  {processingState && processingState !== 'idle' && (
+                    <span className="text-xs text-blue-700 font-medium">
+                      {processingState === 'recording' && '🔴 Recording...'}
+                      {processingState === 'processing' && '⏳ Processing...'}
+                      {processingState === 'responding' && '🤖 AI is responding...'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-blue-800 leading-relaxed" dir="rtl">{transcript}</p>
               </div>
             )}
 
-            <div className="flex gap-3">
+            {recordedAudio && !transcript && (
+              <div className="mt-5 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <p className="text-sm font-semibold text-blue-900 mb-2">{t.chat.yourMessage}</p>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  {t.chat?.voiceMessageRecorded || 'Voice message captured and ready to send.'}
+                </p>
+              </div>
+            )}
+
+            <div className="mt-5 flex flex-col sm:flex-row gap-3">
               <button
-                onClick={handleStartRecording}
-                disabled={isRecording}
-                className="flex-1 bg-secondary text-white px-6 py-3 rounded-lg hover:bg-secondary/90 transition-colors disabled:opacity-50 font-medium"
+                onClick={isRecording ? stopRecording : handleStartRecording}
+                disabled={isProcessingTranscript}
+                className="sm:flex-1 bg-secondary text-white px-6 py-3 rounded-xl hover:bg-secondary/90 transition-colors disabled:opacity-50 font-medium"
               >
-                {isRecording ? t.chat.recording : t.chat.startRecording}
+                {isRecording ? '⏹ ' + t.chat.stopRecording || 'Stop Recording' : '🎙 ' + t.chat.startRecording}
               </button>
-              {transcript && (
-                <button
-                  onClick={handleSubmitTranscript}
-                  aria-label={t.chat.send}
-                  className="flex-1 bg-gradient-to-r from-primary to-purple-600 text-white px-6 py-3 rounded-lg shadow-md transform transition duration-200 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-xl focus:outline-none disabled:opacity-50 font-medium flex items-center justify-center gap-2 send-button"
-                >
-                    <span className="text-sm">{t.chat.send}</span>
-                    <svg className="w-4 h-4 transform transition-transform duration-200" data-role="send-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
-                </button>
-              )}
+
+              <button
+                onClick={handleSubmitTranscript}
+                disabled={!transcript || isProcessingTranscript}
+                aria-label={t.chat.send}
+                className="sm:flex-1 bg-gradient-to-r from-primary to-purple-600 text-white px-6 py-3 rounded-xl shadow-md transform transition duration-200 ease-out hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-xl focus:outline-none disabled:opacity-50 font-medium"
+              >
+                {isProcessingTranscript ? (t.chat?.sendingRequest || 'Processing...') : t.chat.send}
+              </button>
             </div>
           </div>
-        </div>
 
-        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4 mb-24">
-          <p className="text-xs text-amber-800">
-            <strong>{t.chat.note}:</strong> {t.chat.voiceRecognitionNote}
-          </p>
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-textPrimary">{t.chat?.sessionRecords || 'Session records'}</h3>
+              <span className="text-xs text-textSecondary bg-gray-100 px-3 py-1 rounded-full">
+                {sessionRecords.length} {t.chat?.records || 'records'}
+              </span>
+            </div>
+
+            {sessionRecords.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center">
+                <p className="text-sm text-textSecondary">{t.chat?.noRecordsYet || 'No records yet. Start speaking to build your audio session history.'}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {sessionRecords.map((record, index) => (
+                  <div key={record.id} className={`rounded-xl border p-4 ${failedRecordId === record.id ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-textPrimary">#{sessionRecords.length - index}</span>
+                      <span className="text-xs text-textSecondary">
+                        {record.timestamp.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-textPrimary leading-relaxed mb-2" dir="rtl">{record.userTranscript}</p>
+                    <p className="text-sm text-textSecondary leading-relaxed mb-3" dir="rtl">{record.aiSummary}</p>
+                    
+                    {record.audioBase64 && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <button
+                          onClick={() => playAudio(record.audioBase64, record.id)}
+                          disabled={isProcessingTranscript}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            audioPlayingId === record.id
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                          } disabled:opacity-50`}
+                        >
+                          {audioPlayingId === record.id ? (
+                            <>
+                              <svg className="w-4 h-4 animate-spin" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5.354 7.146a.5.5 0 000 .708l7 7a.5.5 0 00.708-.708l-7-7a.5.5 0 00-.708 0z"/>
+                              </svg>
+                              {t.chat?.playing || 'Playing...'}
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.3A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z"/>
+                              </svg>
+                              {t.chat?.playAudio || 'Play audio'}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                    
+                    {failedRecordId === record.id && (
+                      <div className="flex items-center gap-2 pt-2 border-t border-red-200">
+                        <p className="text-xs text-red-600 flex-1">{t.chat?.uploadFailed || 'Upload failed'}</p>
+                        <button
+                          onClick={() => handleSubmitTranscript(record.id)}
+                          disabled={isProcessingTranscript}
+                          className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                        >
+                          {t.chat?.retry || 'Retry'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <p className="text-xs text-amber-800">
+              <strong>{t.chat.note}:</strong> {t.chat.voiceRecognitionNote}
+            </p>
+          </div>
         </div>
       </div>
 

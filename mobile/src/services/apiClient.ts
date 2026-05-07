@@ -11,6 +11,7 @@ import { useAuthStore } from '../store/authStore';
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -21,7 +22,7 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = useAuthStore.getState().token;
     
-    if (token) {
+    if (token && token !== 'session-cookie') {
       config.headers.Authorization = `Bearer ${token}`;
     }
     

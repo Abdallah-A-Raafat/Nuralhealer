@@ -16,6 +16,7 @@ class AiChatService {
     this.messageListeners = [];
     this.statusListeners = [];
     this.currentSessionId = null;
+    this.forceNewSession = false;
     this.isManualDisconnect = false;
     
     // API configuration
@@ -106,8 +107,9 @@ class AiChatService {
       this.notifyMessageListeners(event);
       
       // Update session ID if returned from server
-      if (event.sessionId && !this.currentSessionId) {
+      if (event.sessionId) {
         this.currentSessionId = event.sessionId;
+        this.forceNewSession = false;
         console.log('📝 Session ID set:', this.currentSessionId);
       }
     } catch (error) {
@@ -124,13 +126,19 @@ class AiChatService {
   async sendQuestion(question, sessionId = null) {
     // Use provided sessionId or stored currentSessionId
     const activeSessionId = sessionId || this.currentSessionId;
+    const shouldForceNewSession = this.forceNewSession || !activeSessionId;
     
     // HYBRID LOGIC: Try STOMP first, fallback to REST
     if (this.stompClient && this.stompClient.connected) {
       try {
-        const destination = activeSessionId 
-          ? `/app/ai/ask?sessionId=${activeSessionId}`
-          : '/app/ai/ask';
+        const destination = '/app/ai/ask';
+        const headers = {};
+
+        if (shouldForceNewSession) {
+          headers.forceNewSession = 'true';
+        } else if (activeSessionId) {
+          headers.sessionId = activeSessionId;
+        }
         
         const payload = {
           question: question,
@@ -142,6 +150,7 @@ class AiChatService {
         
         this.stompClient.publish({
           destination: destination,
+          headers,
           body: JSON.stringify(payload)
         });
         
@@ -155,7 +164,7 @@ class AiChatService {
     // REST Fallback
     try {
       console.log('🔄 Using REST fallback for AI question');
-      const url = activeSessionId 
+      const url = !shouldForceNewSession && activeSessionId 
         ? `${this.API_BASE}/ai/ask/${activeSessionId}`
         : `${this.API_BASE}/ai/ask`;
       
@@ -167,8 +176,9 @@ class AiChatService {
       const data = response.data;
       
       // Update session ID from response
-      if (!this.currentSessionId && data.sessionId) {
+      if (data.sessionId) {
         this.currentSessionId = data.sessionId;
+        this.forceNewSession = false;
         console.log('📝 Session ID set from REST:', this.currentSessionId);
       }
       
@@ -296,7 +306,17 @@ class AiChatService {
    */
   clearSession() {
     this.currentSessionId = null;
+    this.forceNewSession = false;
     console.log('🗑️ Session cleared');
+  }
+
+  /**
+   * Request that the next send creates a brand-new session.
+   */
+  requestNewSession() {
+    this.currentSessionId = null;
+    this.forceNewSession = true;
+    console.log('🆕 New session requested for next AI message');
   }
 
   /**

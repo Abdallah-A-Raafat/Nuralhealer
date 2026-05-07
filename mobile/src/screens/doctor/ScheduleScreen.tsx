@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ScreenWrapper, Card } from '../../components/common';
 import { useThemeStore } from '../../store/themeStore';
+import engagementService from '../../services/engagementService';
 
 interface Appointment {
   id: string;
@@ -16,33 +17,43 @@ interface Appointment {
 const ScheduleScreen: React.FC = () => {
   const { t } = useTranslation();
   const { theme } = useThemeStore();
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [selectedDate, setSelectedDate] = useState<string>('today');
+  useEffect(() => {
+    const loadEngagementAppointments = async () => {
+      try {
+        setLoading(true);
+        const engagements = await engagementService.getMyEngagements();
+        const mapped: Appointment[] = (engagements || [])
+          .filter((engagement: any) => ['active', 'pending'].includes((engagement.status || '').toLowerCase()))
+          .map((engagement: any) => {
+            const patient = engagement.patient || {};
+            const patientName = [patient.firstName, patient.lastName].filter(Boolean).join(' ') || 'Patient';
+            const createdAt = engagement.createdAt || engagement.startDate || new Date().toISOString();
+            const time = new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  const dates = [
-    { id: 'today', label: 'Today', date: 'Jan 17' },
-    { id: 'tomorrow', label: 'Tomorrow', date: 'Jan 18' },
-    { id: 'day3', label: 'Fri', date: 'Jan 19' },
-    { id: 'day4', label: 'Sat', date: 'Jan 20' },
-    { id: 'day5', label: 'Sun', date: 'Jan 21' },
-  ];
+            return {
+              id: engagement.id,
+              patientName,
+              time,
+              duration: '50 min',
+              type: 'online',
+              status: (engagement.status || '').toLowerCase() === 'active' ? 'confirmed' : 'pending',
+            };
+          });
 
-  const appointments: Record<string, Appointment[]> = {
-    today: [
-      { id: '1', patientName: 'John Smith', time: '09:00 AM', duration: '50 min', type: 'online', status: 'confirmed' },
-      { id: '2', patientName: 'Emily Davis', time: '10:30 AM', duration: '50 min', type: 'in-person', status: 'confirmed' },
-      { id: '3', patientName: 'Michael Brown', time: '02:00 PM', duration: '50 min', type: 'online', status: 'pending' },
-    ],
-    tomorrow: [
-      { id: '4', patientName: 'Sarah Wilson', time: '11:00 AM', duration: '50 min', type: 'online', status: 'confirmed' },
-      { id: '5', patientName: 'James Taylor', time: '03:00 PM', duration: '50 min', type: 'in-person', status: 'confirmed' },
-    ],
-    day3: [],
-    day4: [],
-    day5: [],
-  };
+        setAppointments(mapped);
+      } catch (error) {
+        console.error('Failed to load schedule data:', error);
+        setAppointments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const currentAppointments = appointments[selectedDate] || [];
+    loadEngagementAppointments();
+  }, []);
 
   return (
     <ScreenWrapper>
@@ -52,53 +63,19 @@ const ScheduleScreen: React.FC = () => {
         </Text>
       </View>
 
-      {/* Date Selector */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.dateSelector}
-        contentContainerStyle={styles.dateSelectorContent}
-      >
-        {dates.map(date => (
-          <TouchableOpacity
-            key={date.id}
-            style={[
-              styles.dateCard,
-              { backgroundColor: theme.colors.card, borderColor: theme.colors.border },
-              selectedDate === date.id && {
-                backgroundColor: theme.colors.primary,
-                borderColor: theme.colors.primary,
-              },
-            ]}
-            onPress={() => setSelectedDate(date.id)}
-          >
-            <Text
-              style={[
-                styles.dateLabel,
-                { color: selectedDate === date.id ? '#FFFFFF' : theme.colors.textSecondary },
-              ]}
-            >
-              {date.label}
-            </Text>
-            <Text
-              style={[
-                styles.dateText,
-                { color: selectedDate === date.id ? '#FFFFFF' : theme.colors.text },
-              ]}
-            >
-              {date.date}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.appointmentsCount, { color: theme.colors.textSecondary }]}>
-          {currentAppointments.length} appointments
-        </Text>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          </View>
+        ) : (
+          <Text style={[styles.appointmentsCount, { color: theme.colors.textSecondary }]}> 
+            {appointments.length} appointments
+          </Text>
+        )}
 
-        {currentAppointments.length > 0 ? (
-          currentAppointments.map(appointment => (
+        {!loading && appointments.length > 0 ? (
+          appointments.map(appointment => (
             <Card key={appointment.id} style={styles.appointmentCard}>
               <View style={styles.appointmentHeader}>
                 <View style={styles.timeContainer}>
@@ -168,14 +145,14 @@ const ScheduleScreen: React.FC = () => {
               </View>
             </Card>
           ))
-        ) : (
+        ) : !loading ? (
           <Card style={styles.emptyCard}>
             <Text style={styles.emptyIcon}>📅</Text>
             <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
               No appointments scheduled
             </Text>
           </Card>
-        )}
+        ) : null}
       </ScrollView>
     </ScreenWrapper>
   );

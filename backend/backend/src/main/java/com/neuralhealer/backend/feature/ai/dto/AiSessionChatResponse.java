@@ -1,6 +1,6 @@
 package com.neuralhealer.backend.feature.ai.dto;
 
-// Removed unused import
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -8,9 +8,5 @@ import java.util.UUID;
  */
 public record AiSessionChatResponse(
                 UUID sessionId,
-                String answer,
-                String userText,
-                String audioBase64,
-                String intent,
-                Double confidence) {
+                String answer) {
 }

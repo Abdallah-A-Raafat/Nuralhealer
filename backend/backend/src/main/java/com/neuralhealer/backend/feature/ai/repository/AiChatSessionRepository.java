@@ -26,4 +26,5 @@ public interface AiChatSessionRepository extends JpaRepository<AiChatSession, UU
 
     @Query("SELECT DISTINCT s FROM AiChatSession s WHERE s.patientId = :patientId AND (LOWER(s.sessionTitle) LIKE LOWER(CONCAT('%', :query, '%')) OR s.id IN (SELECT m.sessionId FROM AiChatMessage m WHERE LOWER(m.content) LIKE LOWER(CONCAT('%', :query, '%')))) ORDER BY s.startedAt DESC")
     List<AiChatSession> searchSessions(@Param("patientId") UUID patientId, @Param("query") String query);
+    List<AiChatSession> findByPatientIdAndIsActiveTrueOrderByStartedAtDesc(UUID patientId);
 }

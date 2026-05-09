@@ -17,8 +17,8 @@ const normalizeSession = (session) => {
   };
 };
 
-export const chatService = {
-  // Start a new chat session
+const chatService = {
+  // Start (or get) an active session
   startSession: async () => {
     const response = await apiClient.post('/chats');
     return { sessionId: response.data?.sessionId || response.data };
@@ -40,7 +40,8 @@ export const chatService = {
       answer: data.answer || data.message || '',
       emotion: data.intent || data.emotion || null,
       userText: data.userText || null,
-audioBase64: data.audio_base64 || data.audioBase64 || null,    };
+      audioBase64: data.audio_base64 || data.audioBase64 || null,
+    };
   },
 
   // Send a voice recording to the AI voice endpoint
@@ -65,9 +66,8 @@ audioBase64: data.audio_base64 || data.audioBase64 || null,    };
         ? 'ogg'
         : 'wav';
     formData.append('file', uploadBlob, `voice.${extension}`);
-    
+
     const historyString = JSON.stringify(conversationHistory);
-    console.debug('Voice message conversation history:', historyString);
     formData.append('conversation_history', historyString);
 
     const response = await apiClient.post(`/ai/voice/${sessionId}`, formData, {
@@ -88,8 +88,9 @@ audioBase64: data.audio_base64 || data.audioBase64 || null,    };
     };
   },
 
-  // End an active session
+  // End an active session (no-op wrapper for now)
   endSession: async (sessionId) => {
+    // backend currently manages active flag; implement if API exists
     return { success: true, sessionId };
   },
 
@@ -154,7 +155,18 @@ audioBase64: data.audio_base64 || data.audioBase64 || null,    };
   getSessionStats: async () => {
     return { totalSessions: 0, totalMessages: 0 };
   },
+
+  // Maintenance: request backend to cleanup empty sessions
+  cleanupEmptySessions: async () => {
+    try {
+      const response = await apiClient.delete('/ai/maintenance/cleanup');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to cleanup empty sessions:', error);
+      throw error;
+    }
+  },
 };
 
+export { chatService };
 export default chatService;
-

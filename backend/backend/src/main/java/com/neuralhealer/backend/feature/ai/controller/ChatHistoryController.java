@@ -36,13 +36,13 @@ public class ChatHistoryController {
      * Manual session creation for testing.
      * POST /api/chats
      */
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Add manual session (Testing)", description = "Manually create a new chat session. Primarily for testing.")
-    public UUID createManualSession(@AuthenticationPrincipal User user) {
-        UUID id = user.getPatientProfile() != null ? user.getPatientProfile().getId() : user.getId();
-        return chatStorageService.createNewSession(id);
-    }
+  @PostMapping
+@ResponseStatus(HttpStatus.CREATED)
+public UUID createManualSession(@AuthenticationPrincipal User user) {
+    UUID id = user.getPatientProfile() != null ? user.getPatientProfile().getId() : user.getId();
+    // ✅ Was: createNewSession — always made a new empty session
+    return chatStorageService.getOrCreateSession(id);
+}
 
     @GetMapping("/search")
     @Operation(summary = "Search chats", description = "Search sessions by title or message content")

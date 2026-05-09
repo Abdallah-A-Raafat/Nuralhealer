@@ -1,6 +1,5 @@
 package com.neuralhealer.backend.feature.ai.entity;
 
-import com.neuralhealer.backend.feature.ai.enums.ChatSenderType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -24,9 +23,8 @@ public class AiChatMessage {
     @Column(name = "session_id", nullable = false)
     private UUID sessionId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "sender_type", nullable = false, columnDefinition = "chat_sender_type")
-    private ChatSenderType senderType;
+    @Column(name = "sender_type", nullable = false)
+    private String senderType;  // plain String, no enum, no converter
 
     @Column(name = "sender_id")
     private UUID senderId;

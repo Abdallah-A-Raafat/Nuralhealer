@@ -84,7 +84,7 @@ public class AiChatbotController {
             // 6. Wrap in session-aware response
             AiSessionChatResponse response = new AiSessionChatResponse(
                     sessionId,
-                    aiResponse.answer());
+                    aiResponse.answer(), null, null, null, 0);
 
             return ResponseEntity.ok(response);
         } catch (RestClientException e) {

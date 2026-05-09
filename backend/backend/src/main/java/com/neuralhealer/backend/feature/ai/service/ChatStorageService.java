@@ -30,12 +30,27 @@ public class ChatStorageService {
     private final EngagementRepository engagementRepository;
     private final DoctorProfileRepository doctorProfileRepository;
 
-    @Transactional
-    public UUID getOrCreateSession(UUID patientId) {
-        return sessionRepository.findByPatientIdAndIsActiveTrue(patientId)
-                .map(AiChatSession::getId)
-                .orElseGet(() -> createNewSession(patientId));
+@Transactional
+public UUID getOrCreateSession(UUID patientId) {
+    // ✅ Get all active sessions, pick the most recent one
+    List<AiChatSession> activeSessions = sessionRepository
+        .findByPatientIdAndIsActiveTrueOrderByStartedAtDesc(patientId);
+    
+    if (!activeSessions.isEmpty()) {
+        // Deactivate all except the most recent
+        if (activeSessions.size() > 1) {
+            activeSessions.stream()
+                .skip(1)
+                .forEach(session -> {
+                    session.setIsActive(false);
+                    sessionRepository.save(session);
+                });
+        }
+        return activeSessions.get(0).getId();
     }
+    
+    return createNewSession(patientId);
+}
 
     /**
      * Force create a new active session for a patient.
@@ -95,46 +110,40 @@ public class ChatStorageService {
         });
     }
 
-    public void saveMessage(UUID sessionId, String sender, String content) {
-        long start = System.currentTimeMillis();
-        try {
-            ChatSenderType type = ChatSenderType.valueOf(sender.toLowerCase());
+  public void saveMessage(UUID sessionId, String sender, String content) {
+    long start = System.currentTimeMillis();
+    try {
+        String senderType = sender.toLowerCase(); // "patient" or "ai"
 
-            AiChatMessage message = AiChatMessage.builder()
-                    .sessionId(sessionId)
-                    .senderType(type)
-                    .content(content)
-                    .sentAt(LocalDateTime.now())
-                    .build();
+        AiChatMessage message = AiChatMessage.builder()
+                .sessionId(sessionId)
+                .senderType(senderType)
+                .content(content)
+                .sentAt(LocalDateTime.now())
+                .build();
 
-            messageRepository.save(message);
+        messageRepository.save(message);
 
-            // Update session: increment count and set title from first patient message
-            sessionRepository.findById(sessionId).ifPresent(session -> {
-                session.setMessageCount(session.getMessageCount() + 1);
+        sessionRepository.findById(sessionId).ifPresent(session -> {
+            session.setMessageCount(session.getMessageCount() + 1);
 
-                // Auto-generate title from first patient message
-                if (type == ChatSenderType.patient && session.getMessageCount() == 1) { // Changed from 0 to 1 because
-                                                                                        // messageCount is incremented
-                                                                                        // before this check
-                    String autoTitle = generateSessionTitle(content);
-                    session.setSessionTitle(autoTitle);
-                }
-
-                sessionRepository.save(session);
-            });
-
-            long duration = System.currentTimeMillis() - start;
-            if (duration > 500) {
-                log.warn("Slow chat message save: {}ms for session {}", duration, sessionId);
+            if ("patient".equals(senderType) && session.getMessageCount() == 1) {
+                String autoTitle = generateSessionTitle(content);
+                session.setSessionTitle(autoTitle);
             }
 
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid sender type '{}' for session {}", sender, sessionId, e);
-        } catch (Exception e) {
-            log.error("Failed to save chat message for session {}", sessionId, e);
+            sessionRepository.save(session);
+        });
+
+        long duration = System.currentTimeMillis() - start;
+        if (duration > 500) {
+            log.warn("Slow chat message save: {}ms for session {}", duration, sessionId);
         }
+
+    } catch (Exception e) {
+        log.error("Failed to save chat message for session {}", sessionId, e);
     }
+}
 
     public List<AiChatSession> getUserSessions(UUID patientId) {
         return sessionRepository.findByPatientIdOrderByStartedAtDesc(patientId);

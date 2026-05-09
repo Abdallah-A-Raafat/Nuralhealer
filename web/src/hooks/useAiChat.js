@@ -43,17 +43,18 @@ export const useAiChat = () => {
         setIsAiTyping(false);
         break;
 
-      case 'AI_RESPONSE':
-        console.log('🤖 AI response received');
-        setIsAiTyping(false);
-        addMessage({
-          type: 'bot',
-          content: content,
-          sources: sources || [],
-          timestamp: timestamp || new Date().toISOString(),
-          senderName: senderName || 'AI Assistant'
-        });
-        break;
+        case 'AI_RESPONSE':
+          setIsAiTyping(false);
+          addMessage({
+            type: 'bot',
+            content: content,
+            sources: sources || [],
+            timestamp: timestamp || new Date().toISOString(),
+            senderName: senderName || 'AI Assistant'
+          });
+          // ✅ Refresh session list to update message count and title
+          setTimeout(() => fetchSessions(), 800);
+          break;
 
       case 'AI_ERROR':
         console.error('❌ AI error:', content);
@@ -182,11 +183,12 @@ export const useAiChat = () => {
       // Backend uses 'patient' but frontend uses 'user' for consistency
       const transformedMessages = sessionMessages.map(msg => ({
         id: msg.id,
-        type: msg.senderType.toLowerCase() === 'patient' ? 'user' : msg.senderType.toLowerCase(), // Map 'patient' to 'user', keep 'ai' as is
+        type: msg.senderType === 'patient' ? 'user' : 'bot',
         content: msg.content,
         timestamp: msg.sentAt,
         senderName: msg.senderType === 'ai' ? 'AI Assistant' : 'You'
-      }));
+    }));
+
       
       setMessages(transformedMessages);
       setCurrentSession(sessionId);
@@ -204,14 +206,15 @@ export const useAiChat = () => {
   /**
    * Create a new chat session
    */
-  const createNewSession = useCallback(() => {
-    setMessages([]);
-    setCurrentSession(null);
-    aiChatService.requestNewSession();
-    setError(null);
-    console.log('🆕 New session created');
-  }, []);
-
+    const createNewSession = useCallback(async () => {
+      setMessages([]);
+      setCurrentSession(null);
+      aiChatService.requestNewSession();
+      setError(null);
+      // ✅ Refresh sidebar after a short delay to pick up newly created session
+      setTimeout(() => fetchSessions(), 1000);
+      console.log('🆕 New session created');
+    }, [fetchSessions]);
   /**
    * Search sessions by query
    */

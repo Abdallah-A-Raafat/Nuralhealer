@@ -126,9 +126,13 @@ public class AiChatbotController {
             chatStorageService.saveMessage(sessionId, "AI", aiResponse.answer());
 
             // 6. Wrap in session-aware response
-            AiSessionChatResponse response = new AiSessionChatResponse(
-                    sessionId,
-                    aiResponse.answer());
+ AiSessionChatResponse response = new AiSessionChatResponse(
+    sessionId,
+    aiResponse.answer(),
+    null,   // no audio for text chat
+    null,   // no userText for text chat
+    aiResponse.intent(),
+    aiResponse.confidence());
 
             return ResponseEntity.ok(response);
         } catch (RestClientException e) {
@@ -169,10 +173,13 @@ public class AiChatbotController {
 
             // 4. Save AI Response
             chatStorageService.saveMessage(sessionId, "AI", aiResponse.answer());
-
-            AiSessionChatResponse response = new AiSessionChatResponse(
-                    sessionId,
-                    aiResponse.answer());
+AiSessionChatResponse response = new AiSessionChatResponse(
+    sessionId,
+    aiResponse.answer(),
+    aiResponse.audioBase64(),
+    aiResponse.userText(),
+    aiResponse.intent(),
+    aiResponse.confidence());
 
             return ResponseEntity.ok(response);
         } catch (RestClientException e) {

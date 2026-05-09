@@ -767,14 +767,8 @@ const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
 
       recorder.onstop = () => {
         const mimeType = recorder.mimeType || 'audio/webm';
-        
-        if (!validateAudioFormat(mimeType)) {
-          console.warn(`Unsupported audio format: ${mimeType}. Attempting upload anyway.`);
-          showToast.warning(`Audio format (${mimeType.split('/')[1]}) may not be supported. Upload may fail.`);
-        }
-        
         const audioBlob = new Blob(chunks, { type: mimeType });
-        setRecordedAudio(audioBlob);
+        setRecordedAudio(audioBlob);  // ✅ just save it
         setIsRecording(false);
         setProcessingState('idle');
 
@@ -782,7 +776,6 @@ const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
           audioStreamRef.current.getTracks().forEach((track) => track.stop());
           audioStreamRef.current = null;
         }
-
         mediaRecorderRef.current = null;
       };
 
@@ -826,13 +819,37 @@ const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
 
     if (!recordIdToRetry && !transcript.trim() && !recordedAudio) return;
 
+    // ✅ If still recording, stop first and wait for onstop to fire
+    if (isRecording && mediaRecorderRef.current) {
+      mediaRecorderRef.current.onstop = async () => {
+        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        
+        if (audioStreamRef.current) {
+          audioStreamRef.current.getTracks().forEach((track) => track.stop());
+          audioStreamRef.current = null;
+        }
+
+        setIsRecording(false);
+        setProcessingState('idle');
+        
+        // ✅ Submit immediately with the blob directly instead of waiting for state
+        await submitVoice(audioBlob, transcript);
+      };
+      
+      mediaRecorderRef.current.stop();
+      return; // wait for onstop
+    }
+
+    // Not recording — use existing recordedAudio state
+    await submitVoice(recordedAudio, transcript);
+};
+
+// ✅ New helper function that does the actual API call
+const submitVoice = async (audioBlob, currentTranscript) => {
     try {
       setIsProcessingTranscript(true);
       setProcessingState('processing');
-
-      if (isRecording) {
-        stopRecording();
-      }
 
       const conversationHistory = sessionRecords
         .slice()
@@ -842,17 +859,20 @@ const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
           ['ai', record.aiSummary],
         ]);
 
-      console.debug('Sending conversation history to backend:', JSON.stringify(conversationHistory, null, 2));
+      console.log('🎤 audioBlob:', audioBlob);
+      console.log('🎤 Will use voice:', !!audioBlob);
 
-      const response = recordedAudio
-        ? await chatService.sendVoiceMessage(voiceSessionId, recordedAudio, conversationHistory)
-        : await chatService.sendMessage(voiceSessionId, transcript.trim(), 'text');
+      const response = audioBlob
+        ? await chatService.sendVoiceMessage(voiceSessionId, audioBlob, conversationHistory)
+        : await chatService.sendMessage(voiceSessionId, currentTranscript.trim(), 'text');
 
       setProcessingState('responding');
 
       const aiSummary = response?.answer || response?.message || 'No response received';
-      const userTranscript = transcript.trim() || t.chat?.voiceMessageRecorded || 'Voice message recorded';
+      const userTranscript = currentTranscript.trim() || t.chat?.voiceMessageRecorded || 'Voice message recorded';
       const audioBase64 = response?.audioBase64 || null;
+
+      console.log('🎤 audioBase64 received:', audioBase64 ? 'YES, length=' + audioBase64.length : 'NULL');
 
       const newRecord = {
         id: Date.now(),
@@ -866,22 +886,19 @@ const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
       setTranscript('');
       setRecordedAudio(null);
       setFailedRecordId(null);
-      
+
       if (audioBase64) {
-        setTimeout(() => {
-          playAudio(audioBase64, newRecord.id);
-        }, 500);
+        setTimeout(() => playAudio(audioBase64, newRecord.id), 500);
       }
     } catch (error) {
       console.error('Failed to send voice session:', error);
-      const recordId = recordIdToRetry || Date.now();
-      setFailedRecordId(recordId);
-      showToast.error(t.chat?.sendingRequest || 'Failed to process voice session. Click retry to try again.');
+      setFailedRecordId(recordIdToRetry || Date.now());
+      showToast.error(t.chat?.sendingRequest || 'Failed to process voice session.');
     } finally {
       setIsProcessingTranscript(false);
       setProcessingState('idle');
     }
-  };
+};
 
   const handleEndSession = async () => {
     try {
@@ -1038,13 +1055,13 @@ const SoundSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
             )}
 
             <div className="mt-5 flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={isRecording ? stopRecording : handleStartRecording}
-                disabled={isProcessingTranscript}
-                className="sm:flex-1 bg-secondary text-white px-6 py-3 rounded-xl hover:bg-secondary/90 transition-colors disabled:opacity-50 font-medium"
-              >
-                {isRecording ? '⏹ ' + t.chat.stopRecording || 'Stop Recording' : '🎙 ' + t.chat.startRecording}
-              </button>
+            <button
+              onClick={isRecording ? stopRecording : handleStartRecording}
+              disabled={isProcessingTranscript}
+              className="sm:flex-1 bg-secondary text-white px-6 py-3 rounded-xl hover:bg-secondary/90 transition-colors disabled:opacity-50 font-medium"
+            >
+              {isRecording ? '⏹ Stop Recording' : '🎙 Start Recording'}
+            </button>
 
               <button
                 onClick={handleSubmitTranscript}

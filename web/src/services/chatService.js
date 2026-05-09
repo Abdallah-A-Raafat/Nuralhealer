@@ -40,8 +40,7 @@ export const chatService = {
       answer: data.answer || data.message || '',
       emotion: data.intent || data.emotion || null,
       userText: data.userText || null,
-      audioBase64: data.audioBase64 || null,
-    };
+audioBase64: data.audio_base64 || data.audioBase64 || null,    };
   },
 
   // Send a voice recording to the AI voice endpoint

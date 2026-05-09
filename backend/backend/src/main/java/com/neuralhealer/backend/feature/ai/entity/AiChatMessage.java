@@ -25,7 +25,7 @@ public class AiChatMessage {
     private UUID sessionId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "sender_type", nullable = false)
+    @Column(name = "sender_type", nullable = false, columnDefinition = "chat_sender_type")
     private ChatSenderType senderType;
 
     @Column(name = "sender_id")

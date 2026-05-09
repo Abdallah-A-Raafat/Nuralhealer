@@ -77,14 +77,14 @@ public class AiChatbotService {
     /**
      * Quick check if AI is available based on cached health status.
      */
-    public boolean isAiAvailable() {
-        if (lastHealthCheck == null) {
-            // First time check
-            checkHealth();
-        }
-        return lastHealthStatus;
+public boolean isAiAvailable() {
+    // Re-check if last check was more than 2 minutes ago or never checked
+    if (lastHealthCheck == null || 
+        lastHealthCheck.isBefore(LocalDateTime.now().minusMinutes(2))) {
+        checkHealth();
     }
-
+    return lastHealthStatus;
+}
     /**
      * Send a question to AI and get response.
      * Handles Arabic text with proper UTF-8 encoding.
@@ -136,48 +136,74 @@ public class AiChatbotService {
         }
     }
 
-    public AiChatResponse askVoice(org.springframework.web.multipart.MultipartFile file, java.util.List<java.util.List<String>> conversationHistory) {
-        try {
-            String url = baseUrl + "/voice";
-            log.debug("Sending voice to AI: file size={} bytes", file.getSize());
+    public AiChatResponse askVoice(org.springframework.web.multipart.MultipartFile file, 
+                                 java.util.List<java.util.List<String>> conversationHistory) {
+    try {
+        String url = baseUrl + "/voice";
+        log.info("🎤 Sending voice to AI at URL: {}", url);
+        log.info("🎤 File name: {}, size: {} bytes, content type: {}", 
+            file.getOriginalFilename(), file.getSize(), file.getContentType());
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-            if (apiKey != null && !apiKey.isEmpty()) {
-                headers.set("x-api-key", apiKey);
-            }
-            if ("true".equalsIgnoreCase(ngrokSkipHeader)) {
-                headers.set("ngrok-skip-browser-warning", "true");
-            }
-
-            org.springframework.util.LinkedMultiValueMap<String, Object> body = new org.springframework.util.LinkedMultiValueMap<>();
-            body.add("file", file.getResource());
-            try {
-                String historyJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(conversationHistory);
-                body.add("conversation_history", historyJson);
-            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-                log.error("Failed to serialize history", e);
-            }
-
-            HttpEntity<org.springframework.util.LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(body, headers);
-
-            ResponseEntity<AiChatResponse> response = aiRestTemplate.exchange(
-                    url,
-                    HttpMethod.POST,
-                    entity,
-                    AiChatResponse.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return response.getBody();
-            } else {
-                throw new RestClientException("AI returned non-successful status: " + response.getStatusCode());
-            }
-
-        } catch (RestClientException e) {
-            log.error("Error calling AI voice API: {}", e.getMessage(), e);
-            throw new RestClientException("AI request failed: " + e.getMessage(), e);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        if (apiKey != null && !apiKey.isEmpty()) {
+            headers.set("x-api-key", apiKey);
         }
+        if ("true".equalsIgnoreCase(ngrokSkipHeader)) {
+            headers.set("ngrok-skip-browser-warning", "true");
+        }
+
+        org.springframework.util.LinkedMultiValueMap<String, Object> body = 
+            new org.springframework.util.LinkedMultiValueMap<>();
+        
+        // ✅ Fix: wrap file properly with filename so Python accepts it
+        org.springframework.core.io.ByteArrayResource fileResource = 
+            new org.springframework.core.io.ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return file.getOriginalFilename() != null ? 
+                        file.getOriginalFilename() : "voice.wav";
+                }
+            };
+        
+        body.add("file", fileResource);
+        
+        try {
+            String historyJson = new com.fasterxml.jackson.databind.ObjectMapper()
+                .writeValueAsString(conversationHistory);
+            body.add("conversation_history", historyJson);
+            log.info("🎤 History JSON: {}", historyJson);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.error("Failed to serialize history", e);
+        }
+
+        HttpEntity<org.springframework.util.LinkedMultiValueMap<String, Object>> entity = 
+            new HttpEntity<>(body, headers);
+
+        log.info("🎤 Sending multipart request to Python...");
+        
+        ResponseEntity<AiChatResponse> response = aiRestTemplate.exchange(
+            url, HttpMethod.POST, entity, AiChatResponse.class);
+
+        log.info("🎤 Voice response status: {}", response.getStatusCode());
+        log.info("🎤 audio_base64 is null: {}", 
+            response.getBody() == null || response.getBody().audioBase64() == null);
+
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            return response.getBody();
+        } else {
+            throw new RestClientException("AI returned non-successful status: " + 
+                response.getStatusCode());
+        }
+
+    } catch (RestClientException e) {
+        log.error("❌ Error calling AI voice API: {}", e.getMessage(), e);
+        throw new RestClientException("AI request failed: " + e.getMessage(), e);
+    } catch (java.io.IOException e) {
+        log.error("❌ Failed to read uploaded file bytes: {}", e.getMessage(), e);
+        throw new RestClientException("Failed to read voice file: " + e.getMessage());
     }
+}
 
     /**
      * Get the last health check time.

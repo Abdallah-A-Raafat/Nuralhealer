@@ -1,12 +1,13 @@
 package com.neuralhealer.backend.feature.ai.dto;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.UUID;
 
-/**
- * Enhanced response for AI chat that includes the session ID.
- */
 public record AiSessionChatResponse(
-                UUID sessionId,
-                String answer) {
+        UUID sessionId,
+        String answer,
+        @JsonProperty("audio_base64") String audioBase64,
+        @JsonProperty("user_text") String userText,
+        String intent,
+        double confidence) {
 }

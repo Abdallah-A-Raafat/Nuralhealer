@@ -283,6 +283,22 @@ const TextSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
     }
   };
 
+  const handleDeleteSession = async (sessionId) => {
+  try {
+    await chatService.deleteSession(sessionId);
+    showToast.success(t.chat?.sessionDeleted || 'Session deleted');
+    // If deleted session was current, clear it
+    if (currentSession === sessionId) {
+      createNewSession();
+    }
+    // Refresh sidebar
+    await fetchSessions();
+  } catch (error) {
+    console.error('Failed to delete session:', error);
+    showToast.error(t.chat?.deleteError || 'Failed to delete session');
+  }
+};
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isAiTyping]);
@@ -359,6 +375,7 @@ const TextSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
               onSelectSession={handleSelectSession}
               onNewChat={handleNewChat}
               onRenameSession={handleRenameSession}
+              onDeleteSession={handleDeleteSession}
               authorizedDoctors={authorizedDoctors}
               authorizedLoading={loadingAuthorized}
               authorizedError={authorizedError}
@@ -579,6 +596,7 @@ const TextSession = ({ onBack, sidebarOpen, setSidebarOpen }) => {
       </Modal>
     </div>
   );
+  
 };
 
 // Sound Session Component

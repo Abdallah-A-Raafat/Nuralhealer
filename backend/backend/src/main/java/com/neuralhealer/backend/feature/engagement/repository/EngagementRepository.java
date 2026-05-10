@@ -28,4 +28,8 @@ public interface EngagementRepository extends JpaRepository<Engagement, UUID> {
     @Query("SELECT e FROM Engagement e WHERE e.doctor.user.id = :doctorId AND e.status = :status")
     List<Engagement> findByDoctorUserIdAndStatus(@Param("doctorId") UUID doctorId,
             @Param("status") EngagementStatus status);
-}
+@Query("SELECT e FROM Engagement e " +
+       "JOIN FETCH e.patient p " +
+       "JOIN FETCH p.user pu " +
+       "WHERE e.doctor.user.id = :doctorId")
+List<Engagement> findByDoctorUserIdWithPatient(@Param("doctorId") UUID doctorId);

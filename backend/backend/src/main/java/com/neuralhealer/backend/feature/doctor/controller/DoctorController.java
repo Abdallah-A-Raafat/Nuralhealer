@@ -23,6 +23,7 @@ public class DoctorController {
     private final DoctorProfileRepository doctorProfileRepository;
     private final com.neuralhealer.backend.feature.doctor.repository.DoctorPatientRepository doctorPatientRepository;
     private final com.neuralhealer.backend.feature.ai.service.ChatStorageService chatStorageService;
+    private final com.neuralhealer.backend.feature.engagement.repository.EngagementRepository engagementRepository; 
 
     @GetMapping
     @Operation(summary = "Get all doctors", description = "List all available doctor profiles")
@@ -34,39 +35,84 @@ public class DoctorController {
     }
 
     @GetMapping("/patients/{patientId}/chats")
-    @Operation(summary = "Get patient chats", description = "View chat history for a specific patient")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<com.neuralhealer.backend.feature.ai.entity.AiChatSession> getPatientChats(
             @org.springframework.web.bind.annotation.PathVariable java.util.UUID patientId,
             @org.springframework.security.core.annotation.AuthenticationPrincipal com.neuralhealer.backend.shared.entity.User user) {
+
         if (!user.isDoctor()) {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.FORBIDDEN, "Only doctors can access this endpoint");
         }
 
-        java.util.UUID doctorId = user.getDoctorProfile().getId();
-        if (!doctorPatientRepository.existsByDoctorIdAndPatientId(doctorId, patientId)) {
+        java.util.UUID doctorUserId = user.getId();
+
+        // ✅ Eagerly fetch patient + user to avoid LazyInitializationException
+        List<com.neuralhealer.backend.feature.engagement.entity.Engagement> engagements =
+            engagementRepository.findByDoctorUserIdWithPatient(doctorUserId);
+
+        // ✅ Find the engagement matching this patient (by user ID or profile ID)
+        com.neuralhealer.backend.feature.engagement.entity.Engagement matchedEngagement = engagements.stream()
+            .filter(e -> {
+                java.util.UUID ePatientUserId = e.getPatient().getUser().getId();
+                java.util.UUID ePatientProfileId = e.getPatient().getId();
+                return patientId.equals(ePatientUserId) || patientId.equals(ePatientProfileId);
+            })
+            .filter(e -> {
+                if (e.getStatus() == com.neuralhealer.backend.feature.engagement.enums.EngagementStatus.active) return true;
+                if (e.getStatus() == com.neuralhealer.backend.feature.engagement.enums.EngagementStatus.ended) {
+                    var rule = e.getAccessRule();
+                    return rule != null && Boolean.TRUE.equals(rule.getRetainsHistoryAccess());
+                }
+                return false;
+            })
+            .findFirst()
+            .orElse(null);
+
+        if (matchedEngagement == null) {
             throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.FORBIDDEN, "You do not have access to this patient");
+                    org.springframework.http.HttpStatus.FORBIDDEN, "You do not have access to this patient's chats");
         }
 
-        return chatStorageService.getUserSessions(patientId);
+        // ✅ Always use the patient PROFILE ID for getUserSessions
+        java.util.UUID patientProfileId = matchedEngagement.getPatient().getId();
+        return chatStorageService.getUserSessions(patientProfileId);
     }
 
     @GetMapping("/patients/{patientId}/chats/{sessionId}/messages")
-    @Operation(summary = "Get patient chat messages", description = "View messages for a specific session")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<com.neuralhealer.backend.feature.ai.entity.AiChatMessage> getPatientChatMessages(
             @org.springframework.web.bind.annotation.PathVariable java.util.UUID patientId,
             @org.springframework.web.bind.annotation.PathVariable java.util.UUID sessionId,
             @org.springframework.security.core.annotation.AuthenticationPrincipal com.neuralhealer.backend.shared.entity.User user) {
+
         if (!user.isDoctor()) {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.FORBIDDEN, "Only doctors can access this endpoint");
         }
 
-        java.util.UUID doctorId = user.getDoctorProfile().getId();
-        if (!doctorPatientRepository.existsByDoctorIdAndPatientId(doctorId, patientId)) {
+        java.util.UUID doctorUserId = user.getId();
+
+        List<com.neuralhealer.backend.feature.engagement.entity.Engagement> engagements =
+            engagementRepository.findByDoctorUserIdWithPatient(doctorUserId);
+
+        boolean hasAccess = engagements.stream()
+            .anyMatch(e -> {
+                java.util.UUID ePatientUserId = e.getPatient().getUser().getId();
+                java.util.UUID ePatientProfileId = e.getPatient().getId();
+                boolean patientMatch = patientId.equals(ePatientUserId) || patientId.equals(ePatientProfileId);
+                if (!patientMatch) return false;
+                if (e.getStatus() == com.neuralhealer.backend.feature.engagement.enums.EngagementStatus.active) return true;
+                if (e.getStatus() == com.neuralhealer.backend.feature.engagement.enums.EngagementStatus.ended) {
+                    var rule = e.getAccessRule();
+                    return rule != null && Boolean.TRUE.equals(rule.getRetainsHistoryAccess());
+                }
+                return false;
+            });
+
+        if (!hasAccess) {
             throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.FORBIDDEN, "You do not have access to this patient");
+                    org.springframework.http.HttpStatus.FORBIDDEN, "You do not have access to this patient's chats");
         }
 
         return chatStorageService.getSessionMessages(sessionId);

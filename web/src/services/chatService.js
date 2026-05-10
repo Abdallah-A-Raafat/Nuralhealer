@@ -166,6 +166,24 @@ const chatService = {
       throw error;
     }
   },
+
+
+deleteSession: async (sessionId) => {
+  await apiClient.delete(`/chats/${sessionId}`);
+  return { success: true };
+},
+
+// Get patient chat sessions (doctor view)
+getDoctorPatientChats: async (patientId) => {
+  const response = await apiClient.get(`/doctors/patients/${patientId}/chats`);
+  return response.data;
+},
+
+// Get messages for a specific session (doctor view)
+getDoctorPatientChatMessages: async (patientId, sessionId) => {
+  const response = await apiClient.get(`/doctors/patients/${patientId}/chats/${sessionId}/messages`);
+  return response.data;
+},
 };
 
 export { chatService };

@@ -9,6 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface AiChatMessageRepository extends JpaRepository<AiChatMessage, UUID> {
-
+    void deleteBySessionId(UUID sessionId);
     List<AiChatMessage> findBySessionIdOrderBySentAt(UUID sessionId);
 }

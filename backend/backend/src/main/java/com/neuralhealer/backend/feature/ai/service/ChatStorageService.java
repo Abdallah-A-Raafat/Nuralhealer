@@ -109,6 +109,12 @@ public UUID getOrCreateSession(UUID patientId) {
             }
         });
     }
+@Transactional
+public void deleteSession(UUID sessionId) {
+    messageRepository.deleteBySessionId(sessionId);
+    sessionRepository.deleteById(sessionId);
+    log.info("Deleted session {} and all its messages", sessionId);
+}
 
   public void saveMessage(UUID sessionId, String sender, String content) {
     long start = System.currentTimeMillis();
@@ -320,3 +326,4 @@ public UUID getOrCreateSession(UUID patientId) {
         return title.isEmpty() ? "New AI Chat" : title;
     }
 }
+

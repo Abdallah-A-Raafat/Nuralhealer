@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { MessageSquare, Plus, Search, Calendar, MessageCircle, Edit2, Check, X, Users, Shield } from 'lucide-react';
+import { MessageSquare, Plus, Search, Calendar, MessageCircle, Edit2, Check, X, Users, Shield, Trash2 } from 'lucide-react';
 import { useLanguage } from '../../hooks/useLanguage';
-
 /**
  * Chat Sidebar Component
  * Displays chat history with search and session management
@@ -14,6 +13,7 @@ const ChatSidebar = ({
   onSelectSession,
   onNewChat,
   onRenameSession,
+  onDeleteSession,
   onCloseSidebar,
   authorizedDoctors = [],
   authorizedLoading = false,
@@ -343,6 +343,25 @@ const ChatSidebar = ({
                     )}
                   </div>
                 )}
+                {onDeleteSession && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm('Delete this session and all its messages?')) {
+                                    onDeleteSession(session.id);
+                                  }
+                                }}
+                                className={`
+                                  p-1 rounded transition-colors
+                                  ${currentSession === session.id 
+                                    ? 'text-red-500 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20' 
+                                    : 'text-gray-400 hover:bg-gray-200 hover:text-red-500 dark:text-gray-500 dark:hover:bg-[#3F3651]'}
+                                `}
+                                title={t.chat?.deleteSession || 'Delete session'}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            )}
 
                 {showAccessManagement && accessManagementSessionId === session.id && (
                   <div className="mt-2 bg-gray-50 dark:bg-[#2A2238] border border-gray-200 dark:border-[#3F3651] rounded-lg p-3 text-xs" onClick={(e) => e.stopPropagation()}>

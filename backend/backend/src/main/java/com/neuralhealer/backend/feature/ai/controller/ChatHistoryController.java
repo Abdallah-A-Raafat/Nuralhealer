@@ -105,4 +105,18 @@ public UUID createManualSession(@AuthenticationPrincipal User user) {
         UUID id = user.getPatientProfile() != null ? user.getPatientProfile().getId() : user.getId();
         return chatStorageService.getSessionsWithAuthorizedDoctors(id);
     }
+    @DeleteMapping("/{sessionId}")
+      @ResponseStatus(HttpStatus.NO_CONTENT)
+      @Operation(summary = "Delete a session", description = "Delete a chat session and all its messages")
+      public void deleteSession(
+              @PathVariable UUID sessionId,
+              @AuthenticationPrincipal User user) {
+          UUID id = user.getPatientProfile() != null ? user.getPatientProfile().getId() : user.getId();
+          boolean isOwner = chatStorageService.sessionBelongsToPatient(sessionId, id);
+          if (!isOwner) {
+              throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to this session");
+          }
+          chatStorageService.deleteSession(sessionId);
+      }
 }
+

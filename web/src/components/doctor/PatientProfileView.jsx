@@ -8,8 +8,7 @@ import userService from '../../services/userService';
 import therapyProgressService from '../../services/therapyProgressService';
 import chatService from '../../services/chatService';
 import { showToast } from '../../utils/toast';
-import { ArrowLeft, User, Mail, Calendar, Shield, Activity, Brain, MessageSquare, Clock } from 'lucide-react';
-
+import { ArrowLeft, User, Mail, Calendar, Shield, Activity, Brain, MessageSquare, Clock, Mic, ChevronDown, ChevronUp } from 'lucide-react';
 /**
  * PatientProfileView Component
  * 
@@ -37,7 +36,9 @@ const PatientProfileView = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [patientChats, setPatientChats] = useState([]);
   const [loadingChats, setLoadingChats] = useState(false);
-
+  const [expandedSession, setExpandedSession] = useState(null);
+  const [sessionMessages, setSessionMessages] = useState({});
+  const [loadingMessages, setLoadingMessages] = useState(null);
   useEffect(() => {
     fetchPatientData();
   }, [engagementId]);
@@ -52,6 +53,11 @@ const PatientProfileView = () => {
       if (!currentEngagement || currentEngagement.status?.toLowerCase() !== 'active') {
         showToast.error('Engagement not found or not active');
         navigate('/doctor-patients');
+        const patientData = currentEngagement.patient;
+        console.log('Patient data:', patientData);
+        console.log('Patient ID being used:', patientData?.id);
+        setPatient(patientData);
+        await loadPatientChats(patientData?.id);
         return;
       }
       
@@ -86,19 +92,34 @@ const PatientProfileView = () => {
   const loadPatientChats = async (patientId) => {
     if (!patientId) return;
     try {
-      // Backend does not yet expose patient chat history for doctors; avoid 500s
       setLoadingChats(true);
-      setPatientChats([]);
-      // When backend supports it, call: chatService.getPatientSessionHistory(patientId, 0, 10)
+      const data = await chatService.getDoctorPatientChats(patientId);
+      setPatientChats(data || []);
     } catch (error) {
       console.error('Error loading patient chat history:', error);
-      showToast.error('Failed to load patient chat history');
       setPatientChats([]);
     } finally {
       setLoadingChats(false);
     }
   };
-
+  const toggleSession = async (sessionId) => {
+    if (expandedSession === sessionId) {
+      setExpandedSession(null);
+      return;
+    }
+    setExpandedSession(sessionId);
+    if (!sessionMessages[sessionId]) {
+      try {
+        setLoadingMessages(sessionId);
+        const msgs = await chatService.getDoctorPatientChatMessages(patient?.id, sessionId);
+        setSessionMessages(prev => ({ ...prev, [sessionId]: msgs }));
+      } catch (err) {
+        console.error('Failed to load messages:', err);
+      } finally {
+        setLoadingMessages(null);
+      }
+    }
+  };
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -192,7 +213,7 @@ const PatientProfileView = () => {
                 onClick={() => navigate(`/engagement-chat/${engagementId}`)}
               >
                 <MessageSquare className="w-4 h-4" />
-                View Chat History
+                Chat now 
               </Button>
             </div>
           </div>
@@ -229,6 +250,16 @@ const PatientProfileView = () => {
             >
               Assessments
             </button>
+            <button
+            onClick={() => setActiveTab('chats')}
+            className={`px-4 py-2 font-medium transition-colors ${
+              activeTab === 'chats'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-textSecondary hover:text-textPrimary dark:text-gray-400 dark:hover:text-white'
+            }`}
+          >
+            AI Chats
+          </button>
           </div>
         </div>
       </div>
@@ -282,6 +313,7 @@ const PatientProfileView = () => {
               </div>
             </div>
 
+
             {/* AI Chat History */}
             <div className="bg-white dark:bg-[#241D30] rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
@@ -291,32 +323,92 @@ const PatientProfileView = () => {
                 </h2>
                 {loadingChats && (
                   <span className="text-sm text-textSecondary dark:text-gray-400 flex items-center gap-2">
-                    <Clock className="w-4 h-4" /> Loading...
+                    <Clock className="w-4 h-4 animate-spin" /> Loading...
                   </span>
                 )}
               </div>
 
-              {(!patientChats || patientChats.length === 0) && !loadingChats && (
-                <p className="text-textSecondary dark:text-gray-400">
-                  AI chat history is not available yet for doctor view.
+              {!loadingChats && patientChats.length === 0 && (
+                <p className="text-textSecondary dark:text-gray-400 text-center py-8">
+                  No AI chat sessions found for this patient.
                 </p>
               )}
 
-              <div className="grid md:grid-cols-2 gap-4">
-                {patientChats?.map((session) => (
-                  <div key={session.sessionId || session.id} className="border border-gray-200 dark:border-[#3F3651] rounded-lg p-4 bg-white dark:bg-[#1A1625]">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm text-textSecondary dark:text-gray-400">
-                        {session.sessionType === 'sound' ? 'Voice Session' : 'Text Session'}
+              <div className="space-y-3">
+                {patientChats.map((session) => (
+                  <div key={session.id} className="border border-gray-200 dark:border-[#3F3651] rounded-lg overflow-hidden">
+                    {/* Session Row */}
+                    <button
+                      onClick={() => toggleSession(session.id)}
+                      className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#1A1625] transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        {session.sessionType === 'voice' ? (
+                          <Mic className="w-5 h-5 text-secondary flex-shrink-0" />
+                        ) : (
+                          <MessageSquare className="w-5 h-5 text-primary flex-shrink-0" />
+                        )}
+                        <div>
+                          <p className="font-medium text-textPrimary dark:text-white text-sm">
+                            {session.sessionTitle || 'AI Chat Session'}
+                          </p>
+                          <p className="text-xs text-textSecondary dark:text-gray-400">
+                            {formatChatDateTime(session.startedAt)}
+                            {' · '}{session.messageCount || 0} messages
+                            {session.isActive && (
+                              <span className="ml-2 text-green-600 dark:text-green-400">● Active</span>
+                            )}
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">{session.status || 'completed'}</span>
-                    </div>
-                    <div className="text-textPrimary dark:text-white font-semibold text-lg mb-1">
-                      {formatChatDateTime(session.startTime)}
-                    </div>
-                    <div className="text-sm text-textSecondary dark:text-gray-400 flex items-center gap-2">
-                      <Clock className="w-4 h-4" /> {formatChatDuration(session.startTime, session.endTime)} • {session.messageCount || 0} messages
-                    </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          session.sessionType === 'voice'
+                            ? 'bg-secondary/10 text-secondary'
+                            : 'bg-primary/10 text-primary'
+                        }`}>
+                          {session.sessionType === 'voice' ? 'Voice' : 'Text'}
+                        </span>
+                        {expandedSession === session.id
+                          ? <ChevronUp className="w-4 h-4 text-gray-400" />
+                          : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                      </div>
+                    </button>
+
+                    {/* Messages Panel */}
+                    {expandedSession === session.id && (
+                      <div className="border-t border-gray-200 dark:border-[#3F3651] bg-gray-50 dark:bg-[#1A1625] p-4 max-h-80 overflow-y-auto">
+                        {loadingMessages === session.id ? (
+                          <div className="flex justify-center py-4">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                          </div>
+                        ) : (sessionMessages[session.id] || []).length === 0 ? (
+                          <p className="text-sm text-textSecondary dark:text-gray-400 text-center py-4">
+                            No messages in this session.
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {(sessionMessages[session.id] || []).map(msg => (
+                              <div
+                                key={msg.id}
+                                className={`flex ${msg.senderType === 'patient' ? 'justify-end' : 'justify-start'}`}
+                              >
+                                <div className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg text-sm ${
+                                  msg.senderType === 'patient'
+                                    ? 'bg-primary text-white rounded-br-none'
+                                    : 'bg-white dark:bg-[#241D30] border border-gray-200 dark:border-[#3F3651] text-textPrimary dark:text-white rounded-bl-none'
+                                }`}>
+                                  <p dir="auto">{msg.content}</p>
+                                  <p className={`text-xs mt-1 ${msg.senderType === 'patient' ? 'text-white/70' : 'text-textSecondary dark:text-gray-400'}`}>
+                                    {msg.sentAt ? new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -527,6 +619,79 @@ const PatientProfileView = () => {
           </div>
         )}
       </div>
+      {/* AI Chats Tab */}
+{activeTab === 'chats' && (
+  <div className="bg-white dark:bg-[#241D30] rounded-lg shadow-md p-6">
+    <h2 className="text-xl font-bold text-textPrimary dark:text-white mb-6 flex items-center gap-2">
+      <MessageSquare className="w-5 h-5" />
+      Complete AI Chat History
+    </h2>
+    {/* Reuse same session list from overview */}
+    {loadingChats ? (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    ) : patientChats.length === 0 ? (
+      <p className="text-textSecondary dark:text-gray-400 text-center py-12">
+        No AI chat sessions found for this patient.
+      </p>
+    ) : (
+      <div className="space-y-3">
+        {patientChats.map((session) => (
+          <div key={session.id} className="border border-gray-200 dark:border-[#3F3651] rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSession(session.id)}
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#1A1625] transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                {session.sessionType === 'voice'
+                  ? <Mic className="w-5 h-5 text-secondary flex-shrink-0" />
+                  : <MessageSquare className="w-5 h-5 text-primary flex-shrink-0" />}
+                <div>
+                  <p className="font-medium text-textPrimary dark:text-white text-sm">
+                    {session.sessionTitle || 'AI Chat Session'}
+                  </p>
+                  <p className="text-xs text-textSecondary dark:text-gray-400">
+                    {formatChatDateTime(session.startedAt)} · {session.messageCount || 0} messages
+                  </p>
+                </div>
+              </div>
+              {expandedSession === session.id
+                ? <ChevronUp className="w-4 h-4 text-gray-400" />
+                : <ChevronDown className="w-4 h-4 text-gray-400" />}
+            </button>
+            {expandedSession === session.id && (
+              <div className="border-t border-gray-200 dark:border-[#3F3651] bg-gray-50 dark:bg-[#1A1625] p-4 max-h-96 overflow-y-auto">
+                {loadingMessages === session.id ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(sessionMessages[session.id] || []).map(msg => (
+                      <div key={msg.id} className={`flex ${msg.senderType === 'patient' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-sm px-3 py-2 rounded-lg text-sm ${
+                          msg.senderType === 'patient'
+                            ? 'bg-primary text-white rounded-br-none'
+                            : 'bg-white dark:bg-[#241D30] border border-gray-200 dark:border-[#3F3651] text-textPrimary dark:text-white rounded-bl-none'
+                        }`}>
+                          <p dir="auto">{msg.content}</p>
+                          <p className={`text-xs mt-1 ${msg.senderType === 'patient' ? 'text-white/70' : 'text-textSecondary'}`}>
+                            {msg.sentAt ? new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
     </div>
   );
 };

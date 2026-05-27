@@ -1,10 +1,12 @@
 /**
  * useAiChat Hook (mobile)
- * STOMP WebSocket + REST fallback, session support to mirror web behavior
+ * STOMP WebSocket + REST fallback with full session management
+ * Mirrors web useAiChat.js behavior
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import aiChatService from '../services/aiChatService';
+import stompService from '../services/stompService';
+import { chatService } from '../services/chatService';
 
 interface Message {
   id: string;
@@ -35,13 +37,15 @@ interface UseAiChatReturn {
   isLoadingHistory: boolean;
   isLoadingMessages: boolean;
   sendMessage: (text: string) => Promise<boolean>;
+  sendVoiceMessage: (audioBlob: Blob, history?: any[]) => Promise<boolean>;
   clearMessages: () => void;
   reconnect: () => void;
   fetchSessions: () => Promise<ChatSession[]>;
   loadSession: (sessionId: string) => Promise<void>;
-  createNewSession: () => void;
-  searchSessions: (query?: string) => ChatSession[];
+  createNewSession: () => Promise<void>;
+  deleteSession: (sessionId: string) => Promise<void>;
   renameSession: (sessionId: string, newTitle: string) => Promise<void>;
+  searchSessions: (query?: string) => ChatSession[];
 }
 
 export const useAiChat = (): UseAiChatReturn => {
@@ -55,7 +59,7 @@ export const useAiChat = (): UseAiChatReturn => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
-  const wsUrl = useMemo(() => aiChatService.getDefaultWsUrl(), []);
+  const wsUrl = useMemo(() => stompService.getDefaultWsUrl(), []);
 
   const addMessage = useCallback((message: Omit<Message, 'id'>) => {
     setMessages((prev) => [
@@ -104,30 +108,31 @@ export const useAiChat = (): UseAiChatReturn => {
     [addMessage]
   );
 
+  // Initialize STOMP connection on mount
   useEffect(() => {
-    aiChatService.connect(wsUrl);
+    stompService.connect();
 
-    const unsubscribeStatus = aiChatService.onStatusChange((status) => {
+    const unsubscribeStatus = stompService.onStatusChange((status) => {
       setConnectionStatus(status);
       setIsConnected(status === 'connected');
 
       if (status === 'error' || status === 'failed') {
         setError('Failed to connect to AI service');
-      } else {
+      } else if (status === 'connected') {
         setError(null);
       }
     });
 
-    const unsubscribeMessages = aiChatService.onMessage((message) => {
+    const unsubscribeMessages = stompService.onMessage((message) => {
       handleIncomingMessage(message);
     });
 
     return () => {
       unsubscribeStatus();
       unsubscribeMessages();
-      aiChatService.disconnect();
+      stompService.disconnect();
     };
-  }, [handleIncomingMessage, wsUrl]);
+  }, [handleIncomingMessage]);
 
   const sendMessage = useCallback(
     async (text: string): Promise<boolean> => {
@@ -141,17 +146,70 @@ export const useAiChat = (): UseAiChatReturn => {
         timestamp: new Date().toISOString(),
       });
 
-      const sent = await aiChatService.sendQuestion(text, currentSession || undefined);
+      // Try STOMP first if connected
+      if (stompService.isConnected()) {
+        const sent = await stompService.sendQuestion(text, currentSession || undefined);
+        if (sent) {
+          setError(null);
+          return true;
+        }
+      }
 
-      if (!sent) {
+      // REST fallback when STOMP unavailable
+      try {
+        console.log('🔄 STOMP unavailable, using REST fallback for message');
+        const response = await chatService.sendMessage(currentSession || '', text);
+        addMessage({
+          type: 'bot',
+          content: response.answer || response.message,
+          timestamp: new Date().toISOString(),
+          senderName: 'AI Assistant',
+        });
+        setError(null);
+        return true;
+      } catch (err) {
+        console.error('❌ REST fallback failed:', err);
         setError('Failed to send message');
         return false;
       }
-
-      setError(null);
-      return true;
     },
     [addMessage, currentSession]
+  );
+
+  const sendVoiceMessage = useCallback(
+    async (audioBlob: Blob, conversationHistory: any[] = []): Promise<boolean> => {
+      if (!currentSession) {
+        setError('No active session');
+        return false;
+      }
+
+      try {
+        setIsAiTyping(true);
+        const result = await chatService.sendVoiceMessage(currentSession, audioBlob, conversationHistory);
+
+        addMessage({
+          type: 'user',
+          content: result.userText || 'Voice message sent',
+          timestamp: new Date().toISOString(),
+        });
+
+        addMessage({
+          type: 'bot',
+          content: result.answer,
+          timestamp: new Date().toISOString(),
+          senderName: 'AI Assistant',
+        });
+
+        setIsAiTyping(false);
+        return true;
+      } catch (error) {
+        console.error('❌ Voice message error:', error);
+        setError('Failed to send voice message');
+        setIsAiTyping(false);
+        return false;
+      }
+    },
+    [currentSession, addMessage]
   );
 
   const clearMessages = useCallback(() => {
@@ -162,9 +220,12 @@ export const useAiChat = (): UseAiChatReturn => {
   const fetchSessions = useCallback(async (): Promise<ChatSession[]> => {
     setIsLoadingHistory(true);
     try {
-      const data = await aiChatService.fetchChatHistory();
-      setSessions(data || []);
-      return data || [];
+      const data = await chatService.getSessionHistory();
+      const normalized = Array.isArray(data)
+        ? data
+        : data?.content || [];
+      setSessions(normalized);
+      return normalized;
     } catch (err) {
       console.error('❌ Failed to fetch sessions:', err);
       setError('Failed to load chat history');
@@ -180,18 +241,23 @@ export const useAiChat = (): UseAiChatReturn => {
       setIsLoadingMessages(true);
       setError(null);
       try {
-        const sessionMessages = await aiChatService.loadSessionMessages(sessionId);
-        const transformed = (sessionMessages || []).map((msg: any) => ({
+        const details = await chatService.getSessionDetails(sessionId);
+        
+        // Details is a flat array of messages, not { messages: [...] }
+        const messageArray = Array.isArray(details) ? details : [];
+
+        // Transform messages to internal format
+        const transformedMessages = messageArray.map((msg: any) => ({
           id: msg.id || `${Date.now()}-${Math.random()}`,
           type: msg.senderType?.toLowerCase() === 'patient' ? 'user' : 'bot',
           content: msg.content,
-          timestamp: msg.sentAt,
+          timestamp: msg.sentAt || msg.timestamp,
           senderName: msg.senderType === 'ai' ? 'AI Assistant' : 'You',
         }));
 
-        setMessages(transformed);
+        setMessages(transformedMessages);
         setCurrentSession(sessionId);
-        aiChatService.setSessionId(sessionId);
+        stompService.setSessionId(sessionId);
       } catch (err) {
         console.error('❌ Failed to load session:', err);
         setError('Failed to load session messages');
@@ -203,13 +269,65 @@ export const useAiChat = (): UseAiChatReturn => {
   );
 
   const createNewSession = useCallback(async () => {
-    setMessages([]);
-    const newSessionId = await aiChatService.startNewSession();
-    setCurrentSession(newSessionId);
-    if (!newSessionId) {
-      aiChatService.clearSession();
+    try {
+      setIsLoadingMessages(true);
+      const response = await chatService.startSession();
+      setMessages([]);
+      setCurrentSession(response.sessionId);
+      stompService.setSessionId(response.sessionId);
+      setError(null);
+      
+      // Fetch fresh session list
+      await fetchSessions();
+    } catch (err) {
+      console.error('❌ Failed to create session:', err);
+      setError('Failed to create new session');
+    } finally {
+      setIsLoadingMessages(false);
     }
-    setError(null);
+  }, [fetchSessions]);
+
+  const deleteSession = useCallback(async (sessionId: string) => {
+    try {
+      await chatService.deleteSession(sessionId);
+      
+      // Remove from sessions list
+      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+      
+      // Clear current session if deleted
+      if (currentSession === sessionId) {
+        setMessages([]);
+        setCurrentSession(null);
+        stompService.clearSessionId();
+      }
+      
+      console.log('✅ Session deleted:', sessionId);
+    } catch (err) {
+      console.error('❌ Failed to delete session:', err);
+      setError('Failed to delete session');
+      throw err;
+    }
+  }, [currentSession]);
+
+  const renameSession = useCallback(async (sessionId: string, newTitle: string) => {
+    try {
+      await chatService.renameSession(sessionId, newTitle);
+      
+      // Update sessions list
+      setSessions((prev) =>
+        prev.map((session) =>
+          session.id === sessionId
+            ? { ...session, sessionTitle: newTitle }
+            : session
+        )
+      );
+      
+      console.log('✅ Session renamed:', sessionId, '→', newTitle);
+    } catch (err) {
+      console.error('❌ Failed to rename session:', err);
+      setError('Failed to rename session');
+      throw err;
+    }
   }, []);
 
   const searchSessions = useCallback(
@@ -225,18 +343,11 @@ export const useAiChat = (): UseAiChatReturn => {
     [sessions]
   );
 
-  const renameSession = useCallback(async (sessionId: string, newTitle: string) => {
-    await aiChatService.renameSession(sessionId, newTitle);
-    setSessions((prev) =>
-      prev.map((session) => (session.id === sessionId ? { ...session, sessionTitle: newTitle } : session))
-    );
+  const reconnect = useCallback(() => {
+    stompService.reconnect();
   }, []);
 
-  const reconnect = useCallback(() => {
-    aiChatService.disconnect();
-    setTimeout(() => aiChatService.connect(wsUrl), 500);
-  }, [wsUrl]);
-
+  // Fetch sessions when connected
   useEffect(() => {
     if (isConnected) {
       fetchSessions();
@@ -254,13 +365,15 @@ export const useAiChat = (): UseAiChatReturn => {
     isLoadingHistory,
     isLoadingMessages,
     sendMessage,
+    sendVoiceMessage,
     clearMessages,
     reconnect,
     fetchSessions,
     loadSession,
     createNewSession,
-    searchSessions,
+    deleteSession,
     renameSession,
+    searchSessions,
   };
 };
 

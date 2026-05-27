@@ -1,4 +1,7 @@
 {
   "name": "NeuralHealerMobile",
-  "displayName": "NeuralHealerMobile"
+  "displayName": "NeuralHealerMobile",
+  "plugins": [
+    "expo-font"
+  ]
 }

@@ -89,6 +89,18 @@ public UUID getOrCreateSession(UUID patientId) {
             }
         }).orElse(new java.util.ArrayList<List<String>>());
     }
+    @Transactional
+      public UUID createVoiceSession(UUID patientId) {
+          AiChatSession newSession = AiChatSession.builder()
+                  .patientId(patientId)
+                  .isActive(true)
+                  .startedAt(LocalDateTime.now())
+                  .messageCount(0)
+                  .sessionType("voice")        // ← voice not general
+                  .sessionTitle("Voice Session")
+                  .build();
+          return sessionRepository.save(newSession).getId();
+      }
 
     /**
      * Store conversation history from AI response.

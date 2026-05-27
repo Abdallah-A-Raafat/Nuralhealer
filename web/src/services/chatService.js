@@ -24,6 +24,12 @@ const chatService = {
     return { sessionId: response.data?.sessionId || response.data };
   },
 
+  startVoiceSession: async () => {
+  const response = await apiClient.post('/chats/voice');
+  return { sessionId: response.data?.sessionId || response.data };
+  },
+
+
   // Send a message in an active session
   sendMessage: async (sessionId, message, messageType = 'text') => {
     const endpoint = sessionId ? `/ai/ask/${sessionId}` : '/ai/ask';

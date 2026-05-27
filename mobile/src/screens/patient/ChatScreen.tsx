@@ -16,11 +16,15 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useThemeStore } from '../../store/themeStore';
 import { useAiChat } from '../../hooks/useAiChat';
+import { ChatSidebar } from '../../components/chat/ChatSidebar';
+import VoiceChatScreen from './VoiceChatScreen';
 
 // Session Type Selection Screen
 const SessionTypeSelector: React.FC<{ onSelectSession: (type: string) => void }> = ({ onSelectSession }) => {
@@ -127,6 +131,7 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const { theme } = useThemeStore();
   const flatListRef = useRef<FlatList>(null);
   const [inputValue, setInputValue] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const {
     messages,
@@ -143,6 +148,8 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     fetchSessions,
     loadSession,
     createNewSession,
+    deleteSession,
+    renameSession,
   } = useAiChat();
 
   const handleSendMessage = async () => {
@@ -150,6 +157,10 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const sent = await sendMessage(inputValue);
     if (sent) {
       setInputValue('');
+      // Refresh sessions after sending
+      setTimeout(() => {
+        fetchSessions();
+      }, 500);
     }
   };
 
@@ -171,17 +182,13 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const handleSelectSession = (sessionId: string) => {
     if (!sessionId) return;
     loadSession(sessionId);
+    setSidebarOpen(false);
   };
 
   const handleNewChat = () => {
     createNewSession();
     setInputValue('');
-  };
-
-  const formatDate = (value?: string) => {
-    if (!value) return '';
-    const date = new Date(value);
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    setSidebarOpen(false);
   };
 
   useEffect(() => {
@@ -206,6 +213,7 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       ]}>
         <Text style={[
           styles.messageText,
+          { textAlign: 'right', writingDirection: 'rtl' },
           isUser && { color: '#FFFFFF' },
           !isUser && !isError && { color: theme.colors.text },
           isError && { color: '#991B1B' },
@@ -226,7 +234,7 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     if (!isAiTyping) return null;
     return (
       <View style={[styles.typingIndicator, { backgroundColor: theme.colors.inputBackground }]}>
-        <Text style={{ color: theme.colors.textSecondary }}>AI is typing...</Text>
+        <Text style={{ color: theme.colors.textSecondary }}>{t('chat.aiTyping') || 'AI is typing...'}</Text>
       </View>
     );
   };
@@ -235,7 +243,7 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     if (messages.length > 0) return null;
     return (
       <View style={[styles.welcomeBubble, { backgroundColor: theme.colors.inputBackground }]}>
-        <Text style={[styles.messageText, { color: theme.colors.text }]}>
+        <Text style={[styles.messageText, { color: theme.colors.text, textAlign: 'right', writingDirection: 'rtl' }]}>
           {t('chat.welcomeMessage')}
         </Text>
       </View>
@@ -246,6 +254,12 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
       <View style={[styles.chatHeader, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
+        <TouchableOpacity 
+          onPress={() => setSidebarOpen(true)}
+          style={styles.hamburgerButton}
+        >
+          <MaterialIcons name="menu" size={24} color={theme.colors.text} />
+        </TouchableOpacity>
         <View style={styles.headerLeft}>
           <View style={[styles.headerIcon, { backgroundColor: theme.colors.primary + '20' }]}>
             <Text style={styles.headerIconText}>💬</Text>
@@ -289,73 +303,6 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           <Text style={styles.errorText}>⚠️ {error}</Text>
         </View>
       )}
-
-      {/* Sessions list (parity with web sidebar) */}
-      <View style={[styles.sessionsCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}> 
-        <View style={styles.sessionsHeader}>
-          <View style={styles.sessionsHeaderLeft}>
-            <Text style={[styles.sessionsTitle, { color: theme.colors.text }]}>
-              {t('chat.sessionHistory')}
-            </Text>
-            {isLoadingHistory && <ActivityIndicator size="small" color={theme.colors.primary} />}
-          </View>
-          <View style={styles.sessionsHeaderActions}>
-            <TouchableOpacity onPress={fetchSessions} style={[styles.sessionActionButton, { borderColor: theme.colors.border }]}> 
-              <Text style={[styles.sessionActionText, { color: theme.colors.text }]}>{t('common.refresh') || 'Refresh'}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleNewChat} style={[styles.sessionActionButtonPrimary, { backgroundColor: theme.colors.primary }]}> 
-              <Text style={styles.sessionActionPrimaryText}>{t('chat.newChat') || 'New Chat'}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {(!sessions || sessions.length === 0) && !isLoadingHistory ? (
-          <Text style={[styles.emptySessionsText, { color: theme.colors.textSecondary }]}>
-            {t('chat.noSessions') || 'No chat sessions yet'}
-          </Text>
-        ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sessionsList}> 
-            {sessions.map((session) => {
-              const active = currentSession === session.id;
-              return (
-                <TouchableOpacity
-                  key={session.id}
-                  style={[
-                    styles.sessionItem,
-                    {
-                      borderColor: active ? theme.colors.primary : theme.colors.border,
-                      backgroundColor: active ? theme.colors.primary + '15' : theme.colors.inputBackground,
-                    },
-                  ]}
-                  onPress={() => handleSelectSession(session.id)}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[
-                      styles.sessionTitle,
-                      { color: active ? theme.colors.primary : theme.colors.text },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {session.sessionTitle || t('chat.textSession')}
-                  </Text>
-                  <Text style={[styles.sessionMeta, { color: theme.colors.textSecondary }]}> 
-                    {formatDate(session.startedAt)}
-                  </Text>
-                  <Text style={[styles.sessionMeta, { color: theme.colors.textSecondary }]}> 
-                    {(session.messageCount ?? 0)} {t('chat.messages')}
-                  </Text>
-                  {session.isActive && (
-                    <Text style={[styles.sessionActiveBadge, { color: theme.colors.primary }]}> 
-                      {t('chat.active') || 'Active'}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        )}
-      </View>
 
       <KeyboardAvoidingView 
         style={styles.chatArea}
@@ -407,25 +354,44 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Sidebar Modal */}
+      <Modal
+        visible={sidebarOpen}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setSidebarOpen(false)}
+      >
+        <ChatSidebar
+          sessions={sessions}
+          currentSession={currentSession}
+          isLoading={isLoadingHistory}
+          onSelectSession={handleSelectSession}
+          onNewChat={handleNewChat}
+          onRenameSession={renameSession}
+          onDeleteSession={deleteSession}
+          onCloseSidebar={() => setSidebarOpen(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 };
 
-// Voice Chat Session (Placeholder)
+// Voice Chat Session
 const VoiceChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-  const { t } = useTranslation();
-  const { theme } = useThemeStore();
+  const { currentSession, createNewSession } = useAiChat();
+
+  useEffect(() => {
+    if (!currentSession) {
+      createNewSession();
+    }
+  }, []);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.voiceContainer}>
-        <Text style={[styles.voiceTitle, { color: theme.colors.text }]}>🎤 {t('chat.soundSession')}</Text>
-        <Text style={[styles.voiceSubtitle, { color: theme.colors.textSecondary }]}>Voice sessions coming soon!</Text>
-        <TouchableOpacity style={[styles.voiceBackButton, { backgroundColor: theme.colors.primary }]} onPress={onBack}>
-          <Text style={styles.voiceBackButtonText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    <VoiceChatScreen
+      sessionId={currentSession || ''}
+      onBack={onBack}
+    />
   );
 };
 
@@ -463,7 +429,8 @@ const styles = StyleSheet.create({
   tipTitle: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
   tipText: { fontSize: 13 },
   chatHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1 },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  hamburgerButton: { marginRight: 8, padding: 8 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   headerIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   headerIconText: { fontSize: 20 },
   headerTitle: { fontSize: 18, fontWeight: '600' },

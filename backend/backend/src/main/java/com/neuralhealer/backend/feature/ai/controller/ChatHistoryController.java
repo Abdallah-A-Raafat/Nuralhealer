@@ -118,5 +118,12 @@ public UUID createManualSession(@AuthenticationPrincipal User user) {
           }
           chatStorageService.deleteSession(sessionId);
       }
+      @PostMapping("/voice")
+        @ResponseStatus(HttpStatus.CREATED)
+        @Operation(summary = "Create a new voice session")
+        public UUID createVoiceSession(@AuthenticationPrincipal User user) {
+            UUID id = user.getPatientProfile() != null ? user.getPatientProfile().getId() : user.getId();
+            return chatStorageService.createVoiceSession(id);
+        }
 }
 

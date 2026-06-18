@@ -377,19 +377,11 @@ const TextChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   );
 };
 
-// Voice Chat Session
+// Voice Chat Session — VoiceChatScreen manages its own session internally
 const VoiceChatSession: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-  const { currentSession, createNewSession } = useAiChat();
-
-  useEffect(() => {
-    if (!currentSession) {
-      createNewSession();
-    }
-  }, []);
-
+  // Pass no sessionId so VoiceChatScreen creates a dedicated voice session via startVoiceSession()
   return (
     <VoiceChatScreen
-      sessionId={currentSession || ''}
       onBack={onBack}
     />
   );

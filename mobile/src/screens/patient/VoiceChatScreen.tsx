@@ -23,7 +23,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons, AntDesign, Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useThemeStore } from '../../store/themeStore';
 import { chatService } from '../../services/chatService';
 
@@ -201,34 +201,28 @@ const VoiceChatScreen: React.FC<VoiceChatScreenProps> = ({
 
     try {
       setIsProcessing(true);
+      setError(null);
 
-      // Read file as base64
-      const base64Audio = await FileSystem.readAsStringAsync(audioUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      // Convert base64 to Blob
-      const audioBlob = new Blob([Buffer.from(base64Audio, 'base64')], {
-        type: 'audio/m4a',
-      });
+      console.log('🎤 Sending voice message, URI:', audioUri, 'SessionId:', sessionId);
 
       // Build conversation history for context
-      const conversationHistory: Array<[string, string]> = voiceRecords.map(
-        (record) => ['human', record.userText] as [string, string]
-      );
-      conversationHistory.push(['ai', '']);
+      const conversationHistory = voiceRecords.map(
+        (record) => [['human', record.userText], ['ai', record.aiResponse]]
+      ).flat();
 
-      // Send to AI voice endpoint
-      const result = await chatService.sendVoiceMessage(
+      // Send to AI voice endpoint — pass URI directly (React Native FormData style)
+      const result = await chatService.sendVoiceMessageFromUri(
         sessionId,
-        audioBlob,
+        audioUri,
         conversationHistory
       );
+
+      console.log('✅ Voice response received:', result);
 
       // Add to records
       const newRecord: VoiceRecord = {
         id: `${Date.now()}`,
-        userText: recognizedText || result.userText || 'Voice message sent',
+        userText: result.userText || 'Voice message sent',
         aiResponse: result.answer || 'No response',
         timestamp: new Date().toISOString(),
         audioUrl: result.audioBase64,
@@ -241,9 +235,10 @@ const VoiceChatScreen: React.FC<VoiceChatScreenProps> = ({
       if (result.audioBase64) {
         playAudioResponse(result.audioBase64);
       }
-    } catch (err) {
-      setError(t('chat.failedToSendVoiceMessage') || 'Failed to send voice message');
-      console.error('Send voice error:', err);
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err?.message || 'Unknown error';
+      console.error('❌ Send voice error:', msg, err);
+      setError(`${t('chat.failedToSendVoiceMessage') || 'Failed to send voice message'}: ${msg}`);
     } finally {
       setIsProcessing(false);
     }
@@ -259,7 +254,7 @@ const VoiceChatScreen: React.FC<VoiceChatScreenProps> = ({
       // Convert base64 to file
       const filename = `${FileSystem.documentDirectory}ai_response_${Date.now()}.m4a`;
       await FileSystem.writeAsStringAsync(filename, base64Audio, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
 
       // Load and play audio
@@ -296,7 +291,7 @@ const VoiceChatScreen: React.FC<VoiceChatScreenProps> = ({
       // Convert base64 to file
       const filename = `${FileSystem.documentDirectory}voice_record_${recordId}.m4a`;
       await FileSystem.writeAsStringAsync(filename, record.audioUrl, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
 
       // Load and play audio

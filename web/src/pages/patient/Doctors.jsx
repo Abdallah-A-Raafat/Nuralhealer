@@ -6,6 +6,165 @@ import apiClient from '../../services/apiClient';
 import engagementService from '../../services/engagementService';
 import { showToast } from '../../utils/toast';
 
+const dummyEgyptianDoctors = [
+  {
+    id: 'dummy-1',
+    fullName: 'Dr. Ahmed Okasha',
+    specialization: 'Psychiatry',
+    title: 'Professor of Psychiatry',
+    rating: 4.9,
+    totalReviews: 1240,
+    yearsOfExperience: 35,
+    location: 'Cairo, Egypt',
+    availabilityStatus: 'online',
+    consultationFee: 50,
+    isVerified: true
+  },
+  {
+    id: 'dummy-2',
+    fullName: 'Dr. Heba Kotb',
+    specialization: 'Family & Marital Therapy',
+    title: 'Consultant',
+    rating: 4.8,
+    totalReviews: 980,
+    yearsOfExperience: 25,
+    location: 'Giza, Egypt',
+    availabilityStatus: 'busy',
+    consultationFee: 40,
+    isVerified: true
+  },
+  {
+    id: 'dummy-3',
+    fullName: 'Dr. Nabil El-Kot',
+    specialization: 'Clinical Psychology',
+    title: 'Senior Therapist',
+    rating: 4.7,
+    totalReviews: 540,
+    yearsOfExperience: 20,
+    location: 'Alexandria, Egypt',
+    availabilityStatus: 'online',
+    consultationFee: 35,
+    isVerified: true
+  },
+  {
+    id: 'dummy-4',
+    fullName: 'Dr. Nasser Loza',
+    specialization: 'Addiction Psychiatry',
+    title: 'Director',
+    rating: 4.9,
+    totalReviews: 870,
+    yearsOfExperience: 30,
+    location: 'Cairo, Egypt',
+    availabilityStatus: 'offline',
+    consultationFee: 60,
+    isVerified: true
+  },
+  {
+    id: 'dummy-5',
+    fullName: 'Dr. Mona Reda',
+    specialization: 'Child Psychiatry',
+    title: 'Consultant',
+    rating: 4.6,
+    totalReviews: 410,
+    yearsOfExperience: 18,
+    location: 'Heliopolis, Cairo',
+    availabilityStatus: 'online',
+    consultationFee: 45,
+    isVerified: true
+  },
+  {
+    id: 'dummy-6',
+    fullName: 'Dr. Hisham Ramy',
+    specialization: 'General Psychiatry',
+    title: 'Professor',
+    rating: 4.8,
+    totalReviews: 620,
+    yearsOfExperience: 28,
+    location: 'Maadi, Cairo',
+    availabilityStatus: 'busy',
+    consultationFee: 55,
+    isVerified: true
+  },
+  {
+    id: 'dummy-7',
+    fullName: 'Dr. Yehia El-Rakhawy',
+    specialization: 'Psychiatry',
+    title: 'Senior Consultant',
+    rating: 4.9,
+    totalReviews: 1105,
+    yearsOfExperience: 40,
+    location: 'Dokki, Giza',
+    availabilityStatus: 'online',
+    consultationFee: 70,
+    isVerified: true
+  },
+  {
+    id: 'dummy-8',
+    fullName: 'Dr. Khalil Fadel',
+    specialization: 'Psychological Medicine',
+    title: 'Consultant',
+    rating: 4.7,
+    totalReviews: 830,
+    yearsOfExperience: 30,
+    location: 'Heliopolis, Cairo',
+    availabilityStatus: 'offline',
+    consultationFee: 45,
+    isVerified: true
+  },
+  {
+    id: 'dummy-9',
+    fullName: 'Dr. Noha El-Nahhas',
+    specialization: 'Clinical Psychology',
+    title: 'Psychologist',
+    rating: 4.8,
+    totalReviews: 615,
+    yearsOfExperience: 15,
+    location: 'Zamalek, Cairo',
+    availabilityStatus: 'busy',
+    consultationFee: 40,
+    isVerified: true
+  },
+  {
+    id: 'dummy-10',
+    fullName: 'Dr. Yasser Abdel-Razek',
+    specialization: 'Psychiatry',
+    title: 'Professor',
+    rating: 4.6,
+    totalReviews: 450,
+    yearsOfExperience: 22,
+    location: 'Nasr City, Cairo',
+    availabilityStatus: 'online',
+    consultationFee: 50,
+    isVerified: true
+  },
+  {
+    id: 'dummy-11',
+    fullName: 'Dr. Mostafa Hussein',
+    specialization: 'Child Psychiatry',
+    title: 'Consultant',
+    rating: 4.9,
+    totalReviews: 920,
+    yearsOfExperience: 26,
+    location: 'Maadi, Cairo',
+    availabilityStatus: 'online',
+    consultationFee: 55,
+    isVerified: true
+  },
+  {
+    id: 'dummy-12',
+    fullName: 'Dr. Rasha Abd El-Rahman',
+    specialization: 'Couples Therapy',
+    title: 'Therapist',
+    rating: 4.7,
+    totalReviews: 380,
+    yearsOfExperience: 12,
+    location: '6th of October City, Giza',
+    availabilityStatus: 'busy',
+    consultationFee: 35,
+    isVerified: true
+  }
+];
+
 const Doctors = () => {
   const { t } = useLanguage();
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -15,10 +174,7 @@ const Doctors = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [locating, setLocating] = useState(false);
   const [sendingEngagementRequest, setSendingEngagementRequest] = useState(false);
-  const [nearestDoctor, setNearestDoctor] = useState(null);
-  const [locationError, setLocationError] = useState('');
 
   // Fetch doctors from backend
   useEffect(() => {
@@ -83,35 +239,6 @@ const Doctors = () => {
     } finally {
       setSendingEngagementRequest(false);
     }
-  };
-
-  const findNearestDoctor = () => {
-    setLocationError('');
-    setNearestDoctor(null);
-
-    if (!('geolocation' in navigator)) {
-      setLocationError('Geolocation not supported on this device.');
-      return;
-    }
-
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      () => {
-        // Backend proximity search not ready; pick top-rated doctor as a stand-in
-        if (doctors.length === 0) {
-          setLocationError('No doctors available yet.');
-        } else {
-          const fallback = [...doctors].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
-          setNearestDoctor(fallback);
-        }
-        setLocating(false);
-      },
-      (err) => {
-        setLocationError(err.message || 'Unable to access location.');
-        setLocating(false);
-      },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
-    );
   };
 
   return (
@@ -209,47 +336,23 @@ const Doctors = () => {
             </div>
           )}
           
-          {/* All Doctors (frontend-only nearest doctor placeholder) */}
+          {/* All Doctors Header */}
           {!loading && !error && activeTab === 'all-doctors' && (
-            <div className="col-span-full text-center py-12 flex flex-col items-center gap-4">
+            <div className="col-span-full text-center mb-8 flex flex-col items-center gap-4">
               <div className="text-6xl">🏥</div>
               <h3 className="text-xl font-semibold text-textPrimary">
                 {t.patient.doctors.allDoctors || 'All Doctors'}
               </h3>
               <p className="text-textSecondary max-w-2xl">
-                {t.patient.doctors.allDoctorsDescription || 'Find a nearby doctor. Location search will use real proximity once backend data is ready.'}
+                {t.patient.doctors.allDoctorsDescription || 'Browse and find top-rated therapists and psychiatrists in your area.'}
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 items-center">
-                <Button variant="primary" onClick={findNearestDoctor} disabled={locating}>
-                  {locating ? 'Locating…' : 'Find Nearest Doctor'}
-                </Button>
-                <span className="text-sm text-textSecondary">(Uses your location; provisional selection until backend proximity is live)</span>
-              </div>
-              {locationError && (
-                <div className="text-sm text-red-600">{locationError}</div>
-              )}
-              {nearestDoctor && (
-                <div className="mt-4 w-full max-w-md bg-white rounded-lg shadow p-6 text-left">
-                  <p className="text-sm text-textSecondary mb-2">Suggested doctor (temporary)</p>
-                  <h4 className="text-lg font-semibold text-textPrimary">{nearestDoctor.fullName}</h4>
-                  <p className="text-sm text-textSecondary">{nearestDoctor.specialization || nearestDoctor.title || 'General Practitioner'}</p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <Button variant="primary" size="small" onClick={() => handleBookSession(nearestDoctor)}>
-                      Book
-                    </Button>
-                    <Button variant="outline" size="small" onClick={() => handleSendEngagementRequest(nearestDoctor)}>
-                      Request Engagement
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          {/* Doctor Cards Grid - Only show when activeTab is 'our-doctors' and doctors exist */}
-          {!loading && !error && activeTab === 'our-doctors' && doctors.length > 0 && (
+          {/* Doctor Cards Grid */}
+          {!loading && !error && ((activeTab === 'our-doctors' && doctors.length > 0) || (activeTab === 'all-doctors' && dummyEgyptianDoctors.length > 0)) && (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {doctors.map((doctor) => (
+              {(activeTab === 'our-doctors' ? doctors : dummyEgyptianDoctors).map((doctor) => (
                 <div key={doctor.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
                   {/* Doctor Header */}
                   <div className="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center">
@@ -330,22 +433,35 @@ const Doctors = () => {
                         <span className="font-bold text-primary text-lg">${doctor.consultationFee || '0'}</span>
                       </div>
                       <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="small"
-                          onClick={() => handleSendEngagementRequest(doctor)}
-                          className="flex-1 text-xs"
-                        >
-                          {t.patient.doctors.sendEngagement || 'Engage'}
-                        </Button>
-                        <Button
-                          variant="primary"
-                          size="small"
-                          onClick={() => handleBookSession(doctor)}
-                          className="flex-1"
-                        >
-                          {t.patient.doctors.bookSession}
-                        </Button>
+                        {activeTab === 'our-doctors' ? (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="small"
+                              onClick={() => handleSendEngagementRequest(doctor)}
+                              className="flex-1 text-xs"
+                            >
+                              {t.patient.doctors.sendEngagement || 'Engage'}
+                            </Button>
+                            <Button
+                              variant="primary"
+                              size="small"
+                              onClick={() => handleBookSession(doctor)}
+                              className="flex-1"
+                            >
+                              {t.patient.doctors.bookSession}
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="primary"
+                            size="small"
+                            onClick={() => window.location.href = `mailto:contact@${doctor.id}.com`}
+                            className="flex-1"
+                          >
+                            Contact
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>

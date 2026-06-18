@@ -157,6 +157,66 @@ export const chatService = {
   },
 
   /**
+   * Send a voice recording via file URI (React Native native approach).
+   * Uses FormData { uri, name, type } — no Blob/Buffer needed.
+   * POST /ai/voice/{sessionId} (multipart form-data)
+   *
+   * @param sessionId - Active session ID
+   * @param audioUri - Local file URI from expo-av (file://...)
+   * @param conversationHistory - Previous conversation pairs for context
+   */
+  sendVoiceMessageFromUri: async (
+    sessionId: string,
+    audioUri: string,
+    conversationHistory: any[] = []
+  ) => {
+    try {
+      console.log('📤 [VoiceService] URI:', audioUri, '| Session:', sessionId);
+
+      // Auto-detect extension and MIME type from URI
+      const uriLower = audioUri.toLowerCase();
+      const extension = uriLower.includes('.m4a') ? 'm4a'
+        : uriLower.includes('.mp4') ? 'mp4'
+        : uriLower.includes('.mp3') ? 'mp3'
+        : uriLower.includes('.ogg') ? 'ogg'
+        : 'wav';
+      const mimeType = (extension === 'm4a' || extension === 'mp4') ? 'audio/mp4'
+        : extension === 'mp3' ? 'audio/mpeg'
+        : extension === 'ogg' ? 'audio/ogg'
+        : 'audio/wav';
+
+      // React Native FormData: { uri, name, type } — axios handles the multipart natively
+      const formData = new FormData();
+      formData.append('file', { uri: audioUri, name: `voice.${extension}`, type: mimeType } as any);
+      formData.append('conversation_history', JSON.stringify(conversationHistory));
+
+      console.log('📤 [VoiceService] Sending as', mimeType);
+
+      const response = await apiClient.post(`/ai/voice/${sessionId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000, // voice processing can take longer
+      });
+
+      const data = response.data?.data || response.data || {};
+      console.log('✅ [VoiceService] Response:', { hasAnswer: !!data.answer, userText: data.userText || data.user_text });
+
+      return {
+        sessionId: data.sessionId || sessionId || null,
+        message: data.answer || '',
+        answer: data.answer || '',
+        userText: data.user_text || data.userText || null,
+        audioBase64: data.audio_base64 || data.audioBase64 || null,
+        confidence: data.confidence || null,
+      };
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const msg = error?.response?.data?.error || error?.message;
+      console.error(`❌ [VoiceService] Failed HTTP ${status}:`, msg);
+      throw error;
+    }
+  },
+
+  /**
    * End an active session (no-op wrapper, backend manages active flag)
    * POST /chats/{sessionId}/end or similar
    * Returns: { success, sessionId }

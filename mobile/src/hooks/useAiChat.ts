@@ -2,11 +2,18 @@
  * useAiChat Hook (mobile)
  * STOMP WebSocket + REST fallback with full session management
  * Mirrors web useAiChat.js behavior
+ *
+ * Connection strategy:
+ *   1. Try STOMP WebSocket first (preferred — real-time streaming)
+ *   2. If WS fails, fall back to REST polling (still fully functional)
+ *   3. Health-check the REST API to determine overall "connected" status
+ *      so the UI never stays stuck on "disconnected" when API is reachable
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import stompService from '../services/stompService';
 import { chatService } from '../services/chatService';
+import apiClient from '../services/apiClient';
 
 interface Message {
   id: string;
@@ -52,12 +59,16 @@ export const useAiChat = (): UseAiChatReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isAiTyping, setIsAiTyping] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
   const [error, setError] = useState<string | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<string | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
+  // Track whether REST API is reachable (fallback when STOMP WS fails)
+  const restReachableRef = useRef(false);
+  const healthCheckInterval = useRef<NodeJS.Timeout | null>(null);
 
   const wsUrl = useMemo(() => stompService.getDefaultWsUrl(), []);
 
@@ -108,18 +119,79 @@ export const useAiChat = (): UseAiChatReturn => {
     [addMessage]
   );
 
+  /**
+   * Check REST API reachability and update status accordingly.
+   * Called when STOMP WS fails — keeps "connected" state if REST works.
+   */
+  const checkRestHealth = useCallback(async (): Promise<boolean> => {
+    try {
+      // Try a lightweight REST endpoint to verify API is reachable
+      await apiClient.get('/ai/health');
+      restReachableRef.current = true;
+      console.log('✅ REST API reachable — using REST fallback mode');
+      return true;
+    } catch {
+      try {
+        // Secondary check: try fetching chat sessions (requires auth)
+        await apiClient.get('/chats', { params: { page: 0, size: 1 } });
+        restReachableRef.current = true;
+        console.log('✅ REST API reachable (via /chats) — using REST fallback mode');
+        return true;
+      } catch {
+        restReachableRef.current = false;
+        console.warn('⚠️ REST API also unreachable');
+        return false;
+      }
+    }
+  }, []);
+
   // Initialize STOMP connection on mount
   useEffect(() => {
+    // Start in 'connecting' state while we determine reachability
+    setConnectionStatus('connecting');
     stompService.connect();
 
-    const unsubscribeStatus = stompService.onStatusChange((status) => {
-      setConnectionStatus(status);
-      setIsConnected(status === 'connected');
-
-      if (status === 'error' || status === 'failed') {
-        setError('Failed to connect to AI service');
-      } else if (status === 'connected') {
+    const unsubscribeStatus = stompService.onStatusChange(async (status) => {
+      if (status === 'connected') {
+        // STOMP connected — best case
+        restReachableRef.current = true;
+        setConnectionStatus('connected');
+        setIsConnected(true);
         setError(null);
+        // Clear health-check polling if STOMP is now up
+        if (healthCheckInterval.current) {
+          clearInterval(healthCheckInterval.current);
+          healthCheckInterval.current = null;
+        }
+      } else if (status === 'error' || status === 'disconnected') {
+        // STOMP failed — check if REST API is reachable as fallback
+        console.warn(`⚠️ STOMP ${status} — checking REST API reachability...`);
+        const restOk = await checkRestHealth();
+
+        if (restOk) {
+          // REST works — show connected (will use REST fallback for messages)
+          setConnectionStatus('connected');
+          setIsConnected(true);
+          setError(null);
+          console.log('📡 Connected via REST fallback (STOMP unavailable)');
+
+          // Poll health every 30s to detect if REST goes down too
+          if (!healthCheckInterval.current) {
+            healthCheckInterval.current = setInterval(async () => {
+              const stillOk = await checkRestHealth();
+              if (!stillOk && !stompService.isConnected()) {
+                setConnectionStatus('disconnected');
+                setIsConnected(false);
+                setError('Lost connection to AI service');
+              }
+            }, 30000);
+          }
+        } else {
+          // Both STOMP and REST are unreachable
+          setConnectionStatus('disconnected');
+          setIsConnected(false);
+          setError('Cannot reach AI service. Check your network connection.');
+        }
       }
     });
 
@@ -127,12 +199,34 @@ export const useAiChat = (): UseAiChatReturn => {
       handleIncomingMessage(message);
     });
 
+    // On mount: also do an immediate REST health check after a short delay
+    // in case STOMP never fires a status event quickly enough
+    const initialHealthCheck = setTimeout(async () => {
+      if (!stompService.isConnected()) {
+        console.log('⏱ STOMP not yet connected — running initial REST health check...');
+        const restOk = await checkRestHealth();
+        if (restOk && !stompService.isConnected()) {
+          setConnectionStatus('connected');
+          setIsConnected(true);
+          setError(null);
+        } else if (!restOk && !stompService.isConnected()) {
+          setConnectionStatus('disconnected');
+          setIsConnected(false);
+        }
+      }
+    }, 4000); // Wait 4 s for STOMP to connect first
+
     return () => {
       unsubscribeStatus();
       unsubscribeMessages();
       stompService.disconnect();
+      clearTimeout(initialHealthCheck);
+      if (healthCheckInterval.current) {
+        clearInterval(healthCheckInterval.current);
+        healthCheckInterval.current = null;
+      }
     };
-  }, [handleIncomingMessage]);
+  }, [handleIncomingMessage, checkRestHealth]);
 
   const sendMessage = useCallback(
     async (text: string): Promise<boolean> => {
@@ -146,7 +240,7 @@ export const useAiChat = (): UseAiChatReturn => {
         timestamp: new Date().toISOString(),
       });
 
-      // Try STOMP first if connected
+      // Try STOMP first if connected (real-time streaming)
       if (stompService.isConnected()) {
         const sent = await stompService.sendQuestion(text, currentSession || undefined);
         if (sent) {
@@ -155,13 +249,15 @@ export const useAiChat = (): UseAiChatReturn => {
         }
       }
 
-      // REST fallback when STOMP unavailable
+      // REST fallback — works even when STOMP is unavailable
       try {
-        console.log('🔄 STOMP unavailable, using REST fallback for message');
+        console.log('🔄 Using REST fallback for message (STOMP unavailable)');
+        setIsAiTyping(true);
         const response = await chatService.sendMessage(currentSession || '', text);
+        setIsAiTyping(false);
         addMessage({
           type: 'bot',
-          content: response.answer || response.message,
+          content: response.answer || response.message || 'No response',
           timestamp: new Date().toISOString(),
           senderName: 'AI Assistant',
         });
@@ -169,7 +265,8 @@ export const useAiChat = (): UseAiChatReturn => {
         return true;
       } catch (err) {
         console.error('❌ REST fallback failed:', err);
-        setError('Failed to send message');
+        setIsAiTyping(false);
+        setError('Failed to send message. Please try again.');
         return false;
       }
     },
@@ -343,9 +440,23 @@ export const useAiChat = (): UseAiChatReturn => {
     [sessions]
   );
 
-  const reconnect = useCallback(() => {
+  const reconnect = useCallback(async () => {
+    setConnectionStatus('connecting');
+    setIsConnected(false);
+    setError(null);
     stompService.reconnect();
-  }, []);
+    // After reconnect attempt, also check REST as backup
+    setTimeout(async () => {
+      if (!stompService.isConnected()) {
+        const restOk = await checkRestHealth();
+        if (restOk) {
+          setConnectionStatus('connected');
+          setIsConnected(true);
+          setError(null);
+        }
+      }
+    }, 3000);
+  }, [checkRestHealth]);
 
   // Fetch sessions when connected
   useEffect(() => {

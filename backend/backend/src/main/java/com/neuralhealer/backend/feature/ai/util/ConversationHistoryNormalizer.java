@@ -150,10 +150,10 @@ public final class ConversationHistoryNormalizer {
 
     /**
      * Build API-format history from a list of AiChatMessage database records.
-     * Maps internal DB roles to API roles:
+     * Maps internal DB roles (String "patient" or "ai") to API roles:
      * <ul>
-     *   <li>patient → human</li>
-     *   <li>ai → ai</li>
+     *   <li>"patient" → "human"</li>
+     *   <li>"ai" → "ai"</li>
      * </ul>
      *
      * @param messages List of DB message entities, ordered by time
@@ -169,6 +169,7 @@ public final class ConversationHistoryNormalizer {
             if (msg == null || msg.getContent() == null || msg.getSenderType() == null) {
                 continue;
             }
+            // AiChatMessage.senderType is a String field, not an enum
             String apiRole = dbRoleToApiRole(msg.getSenderType());
             if (apiRole != null) {
                 history.add(Arrays.asList(apiRole, msg.getContent().trim()));
@@ -178,9 +179,27 @@ public final class ConversationHistoryNormalizer {
     }
 
     /**
-     * Convert a single DB role to API role.
+     * Convert a DB role string to API role.
+     * <p>
+     * AiChatMessage.senderType is stored as a plain String ("patient" or "ai"),
+     * not as the ChatSenderType enum.
      *
-     * @param dbRole ChatSenderType from the database
+     * @param dbRole String from the database ("patient" or "ai")
+     * @return "human" or "ai", or null if unknown
+     */
+    public static String dbRoleToApiRole(String dbRole) {
+        if (dbRole == null) return null;
+        return switch (dbRole.toLowerCase()) {
+            case "patient", "user", "human" -> "human";
+            case "ai", "bot", "assistant" -> "ai";
+            default -> null;
+        };
+    }
+
+    /**
+     * Convert a DB role enum to API role.
+     *
+     * @param dbRole ChatSenderType enum value
      * @return "human" or "ai", or null if unknown
      */
     public static String dbRoleToApiRole(ChatSenderType dbRole) {

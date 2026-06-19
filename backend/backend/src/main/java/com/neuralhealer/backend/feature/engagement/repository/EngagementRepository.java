@@ -33,3 +33,4 @@ public interface EngagementRepository extends JpaRepository<Engagement, UUID> {
        "JOIN FETCH p.user pu " +
        "WHERE e.doctor.user.id = :doctorId")
 List<Engagement> findByDoctorUserIdWithPatient(@Param("doctorId") UUID doctorId);
+}

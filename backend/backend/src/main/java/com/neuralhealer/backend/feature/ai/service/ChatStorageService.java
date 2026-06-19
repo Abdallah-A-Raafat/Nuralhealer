@@ -3,7 +3,6 @@ package com.neuralhealer.backend.feature.ai.service;
 import com.neuralhealer.backend.feature.ai.entity.AiChatMessage;
 import com.neuralhealer.backend.feature.ai.entity.AiChatSession;
 import com.neuralhealer.backend.feature.engagement.entity.Engagement;
-import com.neuralhealer.backend.feature.ai.enums.ChatSenderType;
 import com.neuralhealer.backend.feature.engagement.enums.EngagementStatus;
 import com.neuralhealer.backend.feature.ai.repository.AiChatMessageRepository;
 import com.neuralhealer.backend.feature.ai.repository.AiChatSessionRepository;
@@ -171,11 +170,15 @@ public class ChatStorageService {
         long start = System.currentTimeMillis();
         try {
             if (sender == null) throw new IllegalArgumentException("sender is null");
-            ChatSenderType type = ChatSenderType.valueOf(sender.toLowerCase());
+            String senderLower = sender.toLowerCase();
+            // Validate sender is a known type (patient or ai)
+            if (!senderLower.equals("patient") && !senderLower.equals("ai")) {
+                throw new IllegalArgumentException("Invalid sender type: " + sender);
+            }
 
             AiChatMessage message = AiChatMessage.builder()
                     .sessionId(sessionId)
-                    .senderType(type)
+                    .senderType(senderLower)  // String field, not enum
                     .content(content)
                     .sentAt(LocalDateTime.now())
                     .build();
@@ -188,7 +191,7 @@ public class ChatStorageService {
                 session.setMessageCount((session.getMessageCount() == null ? 0 : session.getMessageCount()) + 1);
 
                 // Auto-generate title from first patient message
-                if (type == ChatSenderType.patient && session.getMessageCount() == 1) {
+                if ("patient".equals(senderLower) && session.getMessageCount() == 1) {
                     String autoTitle = generateSessionTitle(content);
                     session.setSessionTitle(autoTitle);
                 }

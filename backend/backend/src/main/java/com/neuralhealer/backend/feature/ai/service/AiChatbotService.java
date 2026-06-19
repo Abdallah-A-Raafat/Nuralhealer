@@ -2,6 +2,7 @@ package com.neuralhealer.backend.feature.ai.service;
 
 import com.neuralhealer.backend.feature.ai.dto.AiChatResponse;
 import com.neuralhealer.backend.feature.ai.dto.AiHealthResponse;
+import com.neuralhealer.backend.feature.ai.util.ConversationHistoryNormalizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
@@ -9,12 +10,18 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Service for communicating with external AI Chatbot API.
  * Handles health checks, question/answer flow, and error handling.
+ * <p>
+ * All outgoing requests to the AI engine are normalized to ensure
+ * conversation_history uses strict "human" / "ai" roles in the format:
+ * <pre>[["human", "msg"], ["ai", "msg"]]</pre>
  */
 @Service
 @Slf4j
@@ -77,27 +84,38 @@ public class AiChatbotService {
     /**
      * Quick check if AI is available based on cached health status.
      */
-public boolean isAiAvailable() {
-    // Re-check if last check was more than 2 minutes ago or never checked
-    if (lastHealthCheck == null || 
-        lastHealthCheck.isBefore(LocalDateTime.now().minusMinutes(2))) {
-        checkHealth();
+    public boolean isAiAvailable() {
+        if (lastHealthCheck == null) {
+            checkHealth();
+        }
+        return lastHealthStatus;
     }
-    return lastHealthStatus;
-}
+
     /**
-     * Send a question to AI and get response.
-     * Handles Arabic text with proper UTF-8 encoding.
+     * Send a question to the AI /chat endpoint.
+     * <p>
+     * The conversation history is normalized before sending to ensure
+     * all roles are strictly "human" or "ai" in API format:
+     * <pre>[["human", "message"], ["ai", "response"]]</pre>
      *
-     * @param question The question to ask (supports Arabic)
-     * @return AI response with answer and sources
+     * @param question The current user message (supports Arabic)
+     * @param conversationHistory Raw history from any source — will be normalized
+     * @return AI response with answer, intent, confidence, emotion, updated_history, etc.
      * @throws RestClientException if AI is unavailable or request fails
      */
-    public AiChatResponse askQuestion(String question, java.util.List<java.util.List<String>> conversationHistory) {
+    public AiChatResponse askQuestion(String question, List<List<String>> conversationHistory) {
         try {
             String url = baseUrl + askEndpoint;
-            log.debug("Sending question to AI: {} (length: {} chars)",
+            log.debug("Sending question to AI /chat: {} (length: {} chars)",
                     question.substring(0, Math.min(50, question.length())), question.length());
+
+            // Normalize history before sending to API (ensures clean human/ai roles)
+            List<List<String>> normalizedHistory = ConversationHistoryNormalizer.normalizeHistory(conversationHistory);
+            log.debug("History normalized to {} turns for AI /chat request", normalizedHistory.size());
+
+            // Build request body: {"user_input": "...", "conversation_history": [[...]]}
+            com.neuralhealer.backend.feature.ai.dto.AiChatEngineRequest requestBody =
+                new com.neuralhealer.backend.feature.ai.dto.AiChatEngineRequest(question, normalizedHistory);
 
             // Create request with proper headers for Arabic text and API Key
             HttpHeaders headers = new HttpHeaders();
@@ -110,11 +128,10 @@ public boolean isAiAvailable() {
                 headers.set("ngrok-skip-browser-warning", "true");
             }
 
-            com.neuralhealer.backend.feature.ai.dto.AiChatEngineRequest requestBody = 
-                new com.neuralhealer.backend.feature.ai.dto.AiChatEngineRequest(question, conversationHistory);
-            HttpEntity<com.neuralhealer.backend.feature.ai.dto.AiChatEngineRequest> entity = new HttpEntity<>(requestBody, headers);
+            HttpEntity<com.neuralhealer.backend.feature.ai.dto.AiChatEngineRequest> entity =
+                    new HttpEntity<>(requestBody, headers);
 
-            // Send POST request
+            // Send POST request to /chat
             ResponseEntity<AiChatResponse> response = aiRestTemplate.exchange(
                     url,
                     HttpMethod.POST,
@@ -123,87 +140,100 @@ public boolean isAiAvailable() {
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 AiChatResponse aiResponse = response.getBody();
-                log.debug("AI response received: answer length={}",
-                        aiResponse.answer() != null ? aiResponse.answer().length() : 0);
+                log.debug("AI /chat response received: answer length={}, intent={}, hasEmotion={}",
+                        aiResponse.answer() != null ? aiResponse.answer().length() : 0,
+                        aiResponse.intent(),
+                        aiResponse.hasEmotion());
                 return aiResponse;
             } else {
                 throw new RestClientException("AI returned non-successful status: " + response.getStatusCode());
             }
 
         } catch (RestClientException e) {
-            log.error("Error calling AI API: {}", e.getMessage(), e);
-            throw new RestClientException("AI request failed: " + e.getMessage(), e);
+            log.error("Error calling AI /chat API: {}", e.getMessage(), e);
+            throw new RestClientException("AI /chat request failed: " + e.getMessage(), e);
         }
     }
 
-    public AiChatResponse askVoice(org.springframework.web.multipart.MultipartFile file, 
-                                 java.util.List<java.util.List<String>> conversationHistory) {
-    try {
-        String url = baseUrl + "/voice";
-        log.info("🎤 Sending voice to AI at URL: {}", url);
-        log.info("🎤 File name: {}, size: {} bytes, content type: {}", 
-            file.getOriginalFilename(), file.getSize(), file.getContentType());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        if (apiKey != null && !apiKey.isEmpty()) {
-            headers.set("x-api-key", apiKey);
-        }
-        if ("true".equalsIgnoreCase(ngrokSkipHeader)) {
-            headers.set("ngrok-skip-browser-warning", "true");
-        }
-
-        org.springframework.util.LinkedMultiValueMap<String, Object> body = 
-            new org.springframework.util.LinkedMultiValueMap<>();
-        
-        // ✅ Fix: wrap file properly with filename so Python accepts it
-        org.springframework.core.io.ByteArrayResource fileResource = 
-            new org.springframework.core.io.ByteArrayResource(file.getBytes()) {
-                @Override
-                public String getFilename() {
-                    return file.getOriginalFilename() != null ? 
-                        file.getOriginalFilename() : "voice.wav";
-                }
-            };
-        
-        body.add("file", fileResource);
-        
+    /**
+     * Send a voice file to the AI /voice endpoint.
+     * <p>
+     * The conversation_history is sent as a <b>stringified JSON</b> in the form-data,
+     * exactly as the AI voice endpoint expects:
+     * <pre>
+     * data = {"conversation_history": '[["human","hi"],["ai","hello"]]'}
+     * </pre>
+     * NOT a raw JSON array. The history is normalized before stringification.
+     *
+     * @param file The audio file (mp3, wav, m4a, ogg, webm)
+     * @param conversationHistory Raw history — will be normalized and stringified
+     * @return AI response with transcribed user_text, answer, emotion, audio_base64, etc.
+     * @throws RestClientException if AI is unavailable or request fails
+     */
+    public AiChatResponse askVoice(MultipartFile file, List<List<String>> conversationHistory) {
         try {
-            String historyJson = new com.fasterxml.jackson.databind.ObjectMapper()
-                .writeValueAsString(conversationHistory);
+            String url = baseUrl + "/voice";
+            log.debug("Sending voice to AI /voice: file size={} bytes, contentType={}",
+                    file.getSize(), file.getContentType());
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            if (apiKey != null && !apiKey.isEmpty()) {
+                headers.set("x-api-key", apiKey);
+            }
+            if ("true".equalsIgnoreCase(ngrokSkipHeader)) {
+                headers.set("ngrok-skip-browser-warning", "true");
+            }
+
+            org.springframework.util.LinkedMultiValueMap<String, Object> body =
+                    new org.springframework.util.LinkedMultiValueMap<>();
+
+            // Wrap file with proper filename so Python accepts it
+            org.springframework.core.io.ByteArrayResource fileResource =
+                    new org.springframework.core.io.ByteArrayResource(file.getBytes()) {
+                        @Override
+                        public String getFilename() {
+                            return file.getOriginalFilename() != null
+                                    ? file.getOriginalFilename()
+                                    : "voice.wav";
+                        }
+                    };
+            body.add("file", fileResource);
+
+            // Normalize and stringify history for multipart/form-data
+            // CRITICAL: conversation_history must be a JSON STRING, not a raw array
+            String historyJson = ConversationHistoryNormalizer.toJson(conversationHistory);
             body.add("conversation_history", historyJson);
-            log.info("🎤 History JSON: {}", historyJson);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            log.error("Failed to serialize history", e);
+            log.debug("Voice request history JSON: {} chars", historyJson.length());
+
+            HttpEntity<org.springframework.util.LinkedMultiValueMap<String, Object>> entity =
+                    new HttpEntity<>(body, headers);
+
+            ResponseEntity<AiChatResponse> response = aiRestTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    AiChatResponse.class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                AiChatResponse aiResponse = response.getBody();
+                log.debug("AI /voice response received: userText={}, answer length={}, hasEmotion={}",
+                        aiResponse.userText(),
+                        aiResponse.answer() != null ? aiResponse.answer().length() : 0,
+                        aiResponse.hasEmotion());
+                return aiResponse;
+            } else {
+                throw new RestClientException("AI returned non-successful status: " + response.getStatusCode());
+            }
+
+        } catch (RestClientException e) {
+            log.error("Error calling AI /voice API: {}", e.getMessage(), e);
+            throw new RestClientException("AI /voice request failed: " + e.getMessage(), e);
+        } catch (java.io.IOException e) {
+            log.error("Failed to read uploaded voice file: {}", e.getMessage(), e);
+            throw new RestClientException("Failed to read voice file: " + e.getMessage());
         }
-
-        HttpEntity<org.springframework.util.LinkedMultiValueMap<String, Object>> entity = 
-            new HttpEntity<>(body, headers);
-
-        log.info("🎤 Sending multipart request to Python...");
-        
-        ResponseEntity<AiChatResponse> response = aiRestTemplate.exchange(
-            url, HttpMethod.POST, entity, AiChatResponse.class);
-
-        log.info("🎤 Voice response status: {}", response.getStatusCode());
-        log.info("🎤 audio_base64 is null: {}", 
-            response.getBody() == null || response.getBody().audioBase64() == null);
-
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            return response.getBody();
-        } else {
-            throw new RestClientException("AI returned non-successful status: " + 
-                response.getStatusCode());
-        }
-
-    } catch (RestClientException e) {
-        log.error("❌ Error calling AI voice API: {}", e.getMessage(), e);
-        throw new RestClientException("AI request failed: " + e.getMessage(), e);
-    } catch (java.io.IOException e) {
-        log.error("❌ Failed to read uploaded file bytes: {}", e.getMessage(), e);
-        throw new RestClientException("Failed to read voice file: " + e.getMessage());
     }
-}
 
     /**
      * Get the last health check time.

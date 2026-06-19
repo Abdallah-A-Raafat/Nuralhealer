@@ -11,6 +11,7 @@ import com.neuralhealer.backend.feature.engagement.repository.EngagementReposito
 import com.neuralhealer.backend.feature.doctor.repository.DoctorProfileRepository;
 import com.neuralhealer.backend.feature.doctor.dto.AuthorizedDoctorResponse;
 import com.neuralhealer.backend.feature.patient.dto.SessionWithDoctorsResponse;
+import com.neuralhealer.backend.feature.ai.util.ConversationHistoryNormalizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service for storing and retrieving AI chat sessions and messages.
+ * <p>
+ * Handles the stateless conversation history pattern:
+ * <ol>
+ *   <li>Store {@code updated_history} from AI response after each turn</li>
+ *   <li>Send it back in the next request</li>
+ *   <li>Fall back to building from DB messages if cache is empty/corrupted</li>
+ * </ol>
+ * <p>
+ * Internal → API role mapping: {@code patient} → {@code human}, {@code ai} → {@code ai}
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,27 +43,25 @@ public class ChatStorageService {
     private final EngagementRepository engagementRepository;
     private final DoctorProfileRepository doctorProfileRepository;
 
-@Transactional
-public UUID getOrCreateSession(UUID patientId) {
-    // ✅ Get all active sessions, pick the most recent one
-    List<AiChatSession> activeSessions = sessionRepository
-        .findByPatientIdAndIsActiveTrueOrderByStartedAtDesc(patientId);
-    
-    if (!activeSessions.isEmpty()) {
-        // Deactivate all except the most recent
-        if (activeSessions.size() > 1) {
-            activeSessions.stream()
-                .skip(1)
-                .forEach(session -> {
-                    session.setIsActive(false);
-                    sessionRepository.save(session);
-                });
+    @Transactional
+    public UUID getOrCreateSession(UUID patientId) {
+        List<AiChatSession> activeSessions =
+                sessionRepository.findByPatientIdAndIsActiveTrueOrderByStartedAtDesc(patientId);
+
+        if (!activeSessions.isEmpty()) {
+            // Deactivate all except the most recent
+            if (activeSessions.size() > 1) {
+                activeSessions.stream()
+                        .skip(1)
+                        .forEach(session -> {
+                            session.setIsActive(false);
+                            sessionRepository.save(session);
+                        });
+            }
+            return activeSessions.get(0).getId();
         }
-        return activeSessions.get(0).getId();
+        return createNewSession(patientId);
     }
-    
-    return createNewSession(patientId);
-}
 
     /**
      * Force create a new active session for a patient.
@@ -69,99 +80,140 @@ public UUID getOrCreateSession(UUID patientId) {
     }
 
     /**
-     * Get stored conversation history for a session.
-     * Returns the last updatedHistory from AI response.
+     * Force create a new voice session for a patient.
+     */
+    @Transactional
+    public UUID createVoiceSession(UUID patientId) {
+        AiChatSession newSession = AiChatSession.builder()
+                .patientId(patientId)
+                .isActive(true)
+                .startedAt(LocalDateTime.now())
+                .messageCount(0)
+                .sessionType("voice")
+                .sessionTitle("Voice Session")
+                .build();
+        return sessionRepository.save(newSession).getId();
+    }
+
+    /**
+     * Get stored conversation history for a session in API format.
+     * <p>
+     * First tries the cached {@code conversation_history_json} from the AI response.
+     * If that's empty or invalid, falls back to building from the individual
+     * {@code ai_chat_messages} records (DB messages → API format: patient → human).
+     *
+     * @param sessionId the session UUID
+     * @return normalized history in API format: [["human","msg"],["ai","msg"],...]
      */
     public List<List<String>> getSessionHistory(UUID sessionId) {
         return sessionRepository.findById(sessionId).map(session -> {
-            if (session.getConversationHistoryJson() == null || session.getConversationHistoryJson().isBlank()) {
-                return new java.util.ArrayList<List<String>>();
+            // 1. Try cached conversation_history_json from AI response
+            if (session.getConversationHistoryJson() != null && !session.getConversationHistoryJson().isBlank()) {
+                try {
+                    List<List<String>> parsed = ConversationHistoryNormalizer.fromJson(
+                            session.getConversationHistoryJson());
+                    if (!parsed.isEmpty()) {
+                        log.debug("Loaded history from cache for session {} ({} turns)", sessionId, parsed.size());
+                        return parsed;
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to parse cached history for session {}, falling back to DB messages", sessionId, e);
+                }
             }
-            try {
-                @SuppressWarnings("unchecked")
-                java.util.List<List<String>> result = (java.util.List<List<String>>) new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                        session.getConversationHistoryJson(),
-                        new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.List<String>>>() {});
-                return result;
-            } catch (Exception e) {
-                log.error("Failed to deserialize conversation history for session {}", sessionId, e);
-                return new java.util.ArrayList<List<String>>();
-            }
-        }).orElse(new java.util.ArrayList<List<String>>());
+
+            // 2. Fallback: build from DB messages (patient → human, ai → ai)
+            List<AiChatMessage> messages = messageRepository.findBySessionIdOrderBySentAt(sessionId);
+            List<List<String>> built = ConversationHistoryNormalizer.fromDbMessages(messages);
+            log.debug("Built history from DB messages for session {} ({} turns)", sessionId, built.size());
+            return built;
+
+        }).orElse(new java.util.ArrayList<>());
     }
-    @Transactional
-      public UUID createVoiceSession(UUID patientId) {
-          AiChatSession newSession = AiChatSession.builder()
-                  .patientId(patientId)
-                  .isActive(true)
-                  .startedAt(LocalDateTime.now())
-                  .messageCount(0)
-                  .sessionType("voice")        // ← voice not general
-                  .sessionTitle("Voice Session")
-                  .build();
-          return sessionRepository.save(newSession).getId();
-      }
+
+    /**
+     * Build API-format history directly from DB messages for a session.
+     * Useful when the cached {@code conversation_history_json} is empty or corrupted.
+     *
+     * @param sessionId the session UUID
+     * @return normalized history in API format
+     */
+    public List<List<String>> buildHistoryFromMessages(UUID sessionId) {
+        List<AiChatMessage> messages = messageRepository.findBySessionIdOrderBySentAt(sessionId);
+        return ConversationHistoryNormalizer.fromDbMessages(messages);
+    }
 
     /**
      * Store conversation history from AI response.
      * Call this after each AI response to save updatedHistory.
+     * Normalizes the history before saving to ensure clean data.
      */
     @Transactional
     public void updateSessionHistory(UUID sessionId, List<List<String>> history) {
         if (history == null) return;
-        
+
+        // Normalize before storing to ensure clean API-format data
+        List<List<String>> normalized = ConversationHistoryNormalizer.normalizeHistory(history);
+
         sessionRepository.findById(sessionId).ifPresent(session -> {
             try {
-                String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(history);
+                String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(normalized);
                 session.setConversationHistoryJson(json);
                 sessionRepository.save(session);
-                log.debug("Updated session {} history with {} turns", sessionId, history.size());
+                log.debug("Updated session {} history with {} turns", sessionId, normalized.size());
             } catch (Exception e) {
                 log.error("Failed to update history for session {}", sessionId, e);
             }
         });
     }
-@Transactional
-public void deleteSession(UUID sessionId) {
-    messageRepository.deleteBySessionId(sessionId);
-    sessionRepository.deleteById(sessionId);
-    log.info("Deleted session {} and all its messages", sessionId);
-}
 
-  public void saveMessage(UUID sessionId, String sender, String content) {
-    long start = System.currentTimeMillis();
-    try {
-        String senderType = sender.toLowerCase(); // "patient" or "ai"
+    @Transactional
+    public void saveMessage(UUID sessionId, String sender, String content) {
+        long start = System.currentTimeMillis();
+        try {
+            if (sender == null) throw new IllegalArgumentException("sender is null");
+            ChatSenderType type = ChatSenderType.valueOf(sender.toLowerCase());
 
-        AiChatMessage message = AiChatMessage.builder()
-                .sessionId(sessionId)
-                .senderType(senderType)
-                .content(content)
-                .sentAt(LocalDateTime.now())
-                .build();
+            AiChatMessage message = AiChatMessage.builder()
+                    .sessionId(sessionId)
+                    .senderType(type)
+                    .content(content)
+                    .sentAt(LocalDateTime.now())
+                    .build();
 
-        messageRepository.save(message);
+            AiChatMessage saved = messageRepository.save(message);
+            log.debug("Saved chat message {} for session {}", saved.getId(), sessionId);
 
-        sessionRepository.findById(sessionId).ifPresent(session -> {
-            session.setMessageCount(session.getMessageCount() + 1);
+            // Update session: increment count and set title from first patient message
+            sessionRepository.findById(sessionId).ifPresent(session -> {
+                session.setMessageCount((session.getMessageCount() == null ? 0 : session.getMessageCount()) + 1);
 
-            if ("patient".equals(senderType) && session.getMessageCount() == 1) {
-                String autoTitle = generateSessionTitle(content);
-                session.setSessionTitle(autoTitle);
+                // Auto-generate title from first patient message
+                if (type == ChatSenderType.patient && session.getMessageCount() == 1) {
+                    String autoTitle = generateSessionTitle(content);
+                    session.setSessionTitle(autoTitle);
+                }
+
+                sessionRepository.save(session);
+            });
+
+            long duration = System.currentTimeMillis() - start;
+            if (duration > 500) {
+                log.warn("Slow chat message save: {}ms for session {}", duration, sessionId);
             }
 
-            sessionRepository.save(session);
-        });
-
-        long duration = System.currentTimeMillis() - start;
-        if (duration > 500) {
-            log.warn("Slow chat message save: {}ms for session {}", duration, sessionId);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid sender type '{}' for session {}", sender, sessionId, e);
+        } catch (Exception e) {
+            log.error("Failed to save chat message for session {}", sessionId, e);
         }
-
-    } catch (Exception e) {
-        log.error("Failed to save chat message for session {}", sessionId, e);
     }
-}
+
+    @Transactional
+    public void deleteSession(UUID sessionId) {
+        messageRepository.deleteBySessionId(sessionId);
+        sessionRepository.deleteById(sessionId);
+        log.info("Deleted session {} and all its messages", sessionId);
+    }
 
     public List<AiChatSession> getUserSessions(UUID patientId) {
         return sessionRepository.findByPatientIdOrderByStartedAtDesc(patientId);
@@ -338,4 +390,3 @@ public void deleteSession(UUID sessionId) {
         return title.isEmpty() ? "New AI Chat" : title;
     }
 }
-

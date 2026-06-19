@@ -12,8 +12,14 @@ This directory contains detailed technical implementation guides for various fea
 *   **[AI Chatbot](ai-chatbot.md)**: Integration with AI services and chat history management.
 *   **[AI Chat Storage](AI%20Chat%20Storage.md)**: Persistence layer for AI conversations.
 *   **[Messaging System](messaging.md)**: Real-time chat functionality.
-*   **[Websocket Architecture](WEBSOCKET_ARCHITECTURE.md)**: STOMP and SockJS infrastructure for real-time updates.
+*   **[Websocket Architecture](WEBSOCKET_ARCHITECTURE.md)**: STOMP and raw WebSocket infrastructure for real-time updates.
 *   **[SSE Client Guide](sse_client_guide.md)**: Guide for implementing Server-Sent Events on the client.
+*   **[Live Sessions](../api/live-sessions.md)**: Lightweight session creation, join, and shutdown endpoints.
+
+## 🛎️ Notifications & Alerts
+*   **[Notification System](notifications.md)**: Real-time notification delivery, SSE streaming, and inbox actions.
+*   **[Notification API](../api/notification.md)**: REST endpoints for unread counts, read state, stats, and streaming.
+*   **[WebRTC Signaling](WEBSOCKET_ARCHITECTURE.md)**: Raw WebSocket channel for live-session signaling.
 
 ## 🛠️ Infrastructure & Services
 *   **[GMAIL SMTP Integration](GMAIL-SMTP.md)**: Email delivery configuration and provider details.

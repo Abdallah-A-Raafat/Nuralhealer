@@ -301,6 +301,7 @@ sequenceDiagram
 | `PUT` | `/api/notifications/{id}/read` | Mark as read |
 | `GET` | `/api/notifications/unread-count` | Get unread count |
 | `GET` | `/api/notifications/{id}/delivery-status` | Get delivery status |
+| `GET` | `/api/diagnostic/notifications` | Run notification channel diagnostics |
 
 ### 5.2 SSE Stream
 
@@ -417,6 +418,27 @@ Authorization: Bearer {token}
   "normalPriority": 3
 }
 ```
+
+### 5.7 Diagnostic API
+
+**Request:**
+```http
+GET /api/diagnostic/notifications
+Authorization: Bearer {token}
+```
+
+**Response:**
+Returns a diagnostic report of the notification channels.
+```json
+{
+  "status": "UP",
+  "channels": {
+    "sse": "CONNECTED",
+    "email": "OPERATIONAL"
+  }
+}
+```
+
 
 ---
 

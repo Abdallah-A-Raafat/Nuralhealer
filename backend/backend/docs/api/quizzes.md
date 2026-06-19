@@ -46,6 +46,24 @@ Standard 50-question personality assessment (shorter version).
 
 ---
 
+## 🧩 3. PHQ-9 Quiz
+Patient Health Questionnaire-9 for depression screening.
+
+**Base URL**: `/api/quizzes/phq9`
+
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/start` | Start a new session. Returns `sessionId`. | No |
+| `GET` | `/questions` | Get all questions. | Session |
+| `GET` | `/responses` | Get all saved responses. | Session |
+| `POST` | `/submit-question` | Save response for a single question. | Session |
+| `POST` | `/submit-quiz` | Final submission and scoring. | Session |
+
+### Headers
+- `X-Quiz-Session`: The sessionId returned from `/start`.
+
+---
+
 ## 📊 Shared Models
 
 ### Quiz Response

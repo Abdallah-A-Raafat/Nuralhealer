@@ -219,8 +219,8 @@ GMAIL_APP_PASSWORD=16-char-app-password
 ### Real-Time Communication
 - **STOMP over WebSocket** for bi-directional messaging
 - **Server-Sent Events (SSE)** for notification streaming
-- **SockJS Fallback** for browser compatibility
-- **In-Memory Broker** with Redis readiness
+- **Raw WebSocket channels** for notifications and WebRTC signaling
+- **Spring simple broker** for STOMP message delivery
 
 ### External Integrations
 - **Gmail SMTP** for email delivery
@@ -230,7 +230,6 @@ GMAIL_APP_PASSWORD=16-char-app-password
 ### Development & Operations
 - **Docker & Docker Compose** for containerization
 - **Maven** for dependency management
-- **Liquibase** for database migrations (optional)
 - **Actuator** for health monitoring
 
 ---
@@ -401,6 +400,14 @@ curl -X POST http://localhost:8080/api/ai/ask \
 }
 ```
 
+### Live Sessions API
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/live-sessions` | Create a live session | Yes |
+| `GET` | `/live-sessions/{sessionId}` | Get a live session | Yes |
+| `POST` | `/live-sessions/{sessionId}/join` | Join a live session | Yes |
+| `DELETE` | `/live-sessions/{sessionId}` | End a live session | Yes |
+
 ### AI Chat History System
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
@@ -457,21 +464,14 @@ curl -X POST http://localhost:8080/api/ai/ask \
 | `PATCH` | `/doctors/me/availability` | Toggle availability status | Doctor |
 | `PUT` | `/doctors/me/social-media` | Update social media links | Doctor |
 
-### Doctor Verification
-| Method | Endpoint | Description | Role |
-|--------|----------|-------------|------|
-| `GET` | `/doctors/verification/questions` | Get verification questions | Doctor |
-| `POST` | `/doctors/verification/me/submit` | Submit verification answers | Doctor |
-| `GET` | `/doctors/verification/me/answers` | View submitted answers | Doctor |
-
 ### Testing & Utilities
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/test/email/verification` | Test verification email |
 | `POST` | `/test/email/password-reset` | Test password reset email |
 | `POST` | `/test/email/special-thanks` | Test special thanks email |
-| `GET` | `/actuator/health` | System health check |
-| `GET` | `/actuator/metrics` | Application metrics |
+| `GET` | `/api/actuator/health` | System health check |
+| `GET` | `/api/actuator/metrics` | Application metrics |
 
 ---
 
@@ -494,18 +494,23 @@ const client = new StompJs.Client({
 | Type | Path | Purpose |
 |------|------|---------|
 | **Subscribe** | `/topic/engagement/{id}` | Engagement chat & updates |
-| **Subscribe** | `/topic/user/{userId}` | Personal notifications |
 | **Subscribe** | `/user/queue/ai` | AI responses & events |
 | **Send** | `/app/engagement/{id}/message` | Send chat message |
 | **Send** | `/app/ai/ask` | Ask AI question |
 | **Send** | `/app/engagement/{id}/typing` | Typing indicators |
 
+### Raw WebSocket Channels
+| Endpoint | Purpose |
+|----------|---------|
+| `/notifications` | Authenticated notification stream |
+| `/ws/webrtc` | Live-session WebRTC signaling |
+
 ### Message Formats
 **AI Question (WebSocket):**
 ```json
 {
-  "user_input": "What are common stress symptoms?",
-  "conversation_history": [["user","previous q"],["assistant","previous a"]]
+  "question": "What are common stress symptoms?",
+  "country": "EG"
 }
 ```
 
@@ -513,12 +518,10 @@ const client = new StompJs.Client({
 ```json
 {
   "type": "AI_RESPONSE",
-  "response": "Common symptoms include...",
-  "intent": "symptom_inquiry",
-  "confidence": 0.92,
-  "user_text": "What are common stress symptoms?",
-  "updated_history": [["user","q"],["assistant","a"]],
-  "audio_base64": "optional audio"
+  "sessionId": "uuid",
+  "senderName": "AI Assistant",
+  "content": "Common symptoms include...",
+  "timestamp": "2026-05-15T12:00:00"
 }
 ```
 
@@ -535,7 +538,7 @@ const client = new StompJs.Client({
 ### Scaling Strategy
 1. **Vertical Scaling**: Increase instance size (current approach)
 2. **Read Replicas**: PostgreSQL read replicas for reporting
-3. **Redis Integration**: For WebSocket session clustering
+3. **Raw WebSocket Scaling**: Keep notification and signaling handlers stateless where possible
 4. **Microservices**: Planned decomposition (see roadmap)
 
 ### Monitoring & Metrics

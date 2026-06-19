@@ -35,10 +35,17 @@ Designed for complex interactions like chat, typing indicators, and state machin
 4. Client sends a message to `/app/engagement/{id}/message`.
 
 ### 2.2 Raw WebSockets (Notifications & Alerts)
-Designed for high-frequency or lightweight server-to-client updates where STOMP overhead is unnecessary.
+Designed for low-level server-to-client streams where a raw socket is simpler than STOMP.
 - **Endpoint**: `/notifications`
 - **Handler**: `NotificationWebSocketHandler` (extends `BaseWebSocketHandler`)
-- **Security**: Handled by `BaseWebSocketHandler` during the handshake.
+- **Security**: Authenticated users only; anonymous access is disabled for this channel.
+- **Use case**: Persistent notification streams and future low-latency alert fan-out.
+
+### 2.3 WebRTC Signaling
+The backend also exposes a raw socket for live-session signaling.
+- **Endpoint**: `/ws/webrtc`
+- **Handler**: `WebRtcSignalingSocketHandler`
+- **Use case**: Negotiation messages for live audio/video sessions.
 
 ---
 
@@ -98,6 +105,6 @@ sequenceDiagram
 - **Scalability**: All session tracking uses `ConcurrentHashMap` for thread-safety, preparing the system for high concurrency.
 
 🔍 **Key Files**:
-- [WebSocketConfig.java](file:///f:/documents/Nuralhealer-main/Nuralhealer/backend/backend/src/main/java/com/neuralhealer/backend/config/WebSocketConfig.java) (STOMP Configuration)
-- [RawWebSocketConfig.java](file:///f:/documents/Nuralhealer-main/Nuralhealer/backend/backend/src/main/java/com/neuralhealer/backend/config/RawWebSocketConfig.java) (Raw Configuration)
-- [WebSocketService.java](file:///f:/documents/Nuralhealer-main/Nuralhealer/backend/backend/src/main/java/com/neuralhealer/backend/service/WebSocketService.java) (Central Hub)
+- [WebSocketConfig.java](../../src/main/java/com/neuralhealer/backend/shared/websocket/WebSocketConfig.java) (STOMP Configuration)
+- [RawWebSocketConfig.java](../../src/main/java/com/neuralhealer/backend/shared/websocket/RawWebSocketConfig.java) (Raw Configuration)
+- [WebSocketService.java](../../src/main/java/com/neuralhealer/backend/shared/websocket/WebSocketService.java) (Central Hub)

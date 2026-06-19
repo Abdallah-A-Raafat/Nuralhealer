@@ -1,5 +1,6 @@
 package com.neuralhealer.backend.feature.ai.controller;
 
+import com.neuralhealer.backend.feature.ai.dto.AiChatFullResponse;
 import com.neuralhealer.backend.feature.ai.dto.AiChatRequest;
 import com.neuralhealer.backend.feature.ai.dto.AiChatResponse;
 import com.neuralhealer.backend.shared.websocket.WebSocketMessage;
@@ -17,6 +18,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -57,13 +60,13 @@ public class AiStompController {
         log.debug("STOMP AI request received: session={}, user={}", wsSessionId, userId);
 
         if (!aiChatbotService.isAiAvailable()) {
-            sendAiMessage(headerAccessor, WebSocketMessageType.AI_ERROR, "الذكاء الاصطناعي غير متاح حالياً", null);
+            sendAiMessage(headerAccessor, WebSocketMessageType.AI_ERROR, "الذكاء الاصطناعي غير متاح حالياً", null, null);
             return;
         }
 
         // 1. Resolve/Create Persistent Chat Session
         UUID chatSessionId = null;
-        java.util.List<java.util.List<String>> history = new java.util.ArrayList<>();
+        List<List<String>> history = new ArrayList<>();
         
         if (userId != null
                 && authentication.getPrincipal() instanceof com.neuralhealer.backend.shared.entity.User user) {
@@ -91,7 +94,7 @@ public class AiStompController {
                     chatSessionId = chatStorageService.getOrCreateSession(patientId);
                 }
 
-                // Get stored conversation history (from last response)
+                // Get stored conversation history (normalized + fallback to DB messages)
                 history = chatStorageService.getSessionHistory(chatSessionId);
 
                 chatStorageService.saveMessage(chatSessionId, "PATIENT", request.question());
@@ -102,10 +105,10 @@ public class AiStompController {
 
         // 2. Send TYPING_START (as step 2 in original flow, but conceptually step 1 in
         // UI feedback)
-        sendAiMessage(headerAccessor, WebSocketMessageType.AI_TYPING_START, "المساعد الذكي يكتب...", chatSessionId);
+        sendAiMessage(headerAccessor, WebSocketMessageType.AI_TYPING_START, "المساعد الذكي يكتب...", chatSessionId, null);
 
         try {
-            // 2. Call AI Service
+            // 3. Call AI Service
             AiChatResponse response = aiChatbotService.askQuestion(request.question(), history);
 
             // Store updated history for next turn
@@ -119,43 +122,47 @@ public class AiStompController {
                 cleanAnswer = cleanAnswer.replaceAll("^[\\s\\n]*(الإجابة|الأجابة|الرد|الإجابة هي)[:\\-]?\\s*", "");
             }
 
-            // 3. Send TYPING_STOP
-            sendAiMessage(headerAccessor, WebSocketMessageType.AI_TYPING_STOP, null, chatSessionId);
+            // 4. Send TYPING_STOP
+            sendAiMessage(headerAccessor, WebSocketMessageType.AI_TYPING_STOP, null, chatSessionId, null);
 
-            // 4. Send RESPONSE
-            sendAiMessage(headerAccessor, WebSocketMessageType.AI_RESPONSE, cleanAnswer, chatSessionId);
+            // 5. Build full AI response metadata for the WebSocket message
+            AiChatFullResponse fullResponse = AiChatFullResponse.from(chatSessionId, response);
 
-            // 5. Save AI Response
+            // 6. Send RESPONSE with full metadata (intent, confidence, emotion, etc.)
+            sendAiMessage(headerAccessor, WebSocketMessageType.AI_RESPONSE, cleanAnswer, chatSessionId, fullResponse);
+
+            // 7. Save AI Response
             if (chatSessionId != null) {
                 chatStorageService.saveMessage(chatSessionId, "AI", cleanAnswer);
             }
 
-            // 6. Trigger persistent notification if user is logged in
+            // 8. Trigger persistent notification if user is logged in
             if (userId != null) {
                 notificationCreatorService.createAiNotification(
                         userId,
                         "AI Analysis Ready",
                         "Your smart medical assistant has provided a response.",
-                        null // No persistent AI interaction ID yet, using null
+                        null
                 );
             }
 
         } catch (Exception e) {
             log.error("AI Error in STOMP: {}", e.getMessage());
-            sendAiMessage(headerAccessor, WebSocketMessageType.AI_TYPING_STOP, null, chatSessionId);
+            sendAiMessage(headerAccessor, WebSocketMessageType.AI_TYPING_STOP, null, chatSessionId, null);
             sendAiMessage(headerAccessor, WebSocketMessageType.AI_ERROR,
                     "عذراً، حدث خطأ أثناء الاتصال بالذكاء الاصطناعي.",
-                    chatSessionId);
+                    chatSessionId, null);
         }
     }
 
     private void sendAiMessage(SimpMessageHeaderAccessor headerAccessor, WebSocketMessageType type, String content,
-            UUID chatSessionId) {
+            UUID chatSessionId, Object metadata) {
         WebSocketMessage wsMessage = WebSocketMessage.builder()
                 .type(type)
                 .sessionId(chatSessionId)
                 .senderName("AI Assistant")
                 .content(content)
+                .metadata(metadata)
                 .timestamp(LocalDateTime.now())
                 .build();
 
